@@ -1,0 +1,60 @@
+# ── Node ──────────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Build output ──────────────────────────────────────────────────────────────
+dist/
+build/
+.vite/
+
+# ── Environment variables ──────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── OS files ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Backup / Temporary ────────────────────────────────────────────────────────
+*.zip
+*.bak
+*.tmp
+*.log
+lock.txt
+
+# ── Cache ─────────────────────────────────────────────────────────────────────
+.cache/
+.turbo/
+*.tsbuildinfo
+
+# ── TypeScript ────────────────────────────────────────────────────────────────
+*.js.map
+
+# ── Supabase local dev ────────────────────────────────────────────────────────
+.supabase/
+
+# ── Uploads (user-generated content goes to Supabase Storage) ────────────────
+uploads/images/
+
+# Local secrets
+deploy/LOCAL-CREDENTIALS.secret.txt
+*.secret.txt
+
+
+# OAuth secrets (never commit)
+deploy/oauth.env
+

@@ -1,0 +1,65 @@
+﻿{
+    "paths":  [
+                  {
+                      "exists":  true,
+                      "path":  "C:\\Users\\ayobe\\Desktop"
+                  },
+                  {
+                      "exists":  false,
+                      "path":  "C:\\Users\\ayobe\\OneDrive\\Desktop"
+                  },
+                  {
+                      "exists":  true,
+                      "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب"
+                  }
+              ],
+    "keywordMatches":  [
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\خبرة النكهات والعلم.png",
+                               "name":  "خبرة النكهات والعلم.png",
+                               "size":  783937
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\اس اف اف ملفات\\SFF Documents\\SFF Brochure\\Morales Logo.jpg",
+                               "name":  "Morales Logo.jpg",
+                               "size":  20745
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\اس اف اف ملفات\\SFF Documents\\SFF Brochure\\SFF logo.jpg",
+                               "name":  "SFF logo.jpg",
+                               "size":  34557
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\اس اف اف ملفات\\SFF Documents\\SFF Brochure\\sff New logo .jpeg",
+                               "name":  "sff New logo .jpeg",
+                               "size":  45127
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\اس اف اف ملفات\\Tax Invoice\\SFF Brochure\\Morales Logo.jpg",
+                               "name":  "Morales Logo.jpg",
+                               "size":  20745
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\اس اف اف ملفات\\Tax Invoice\\SFF Brochure\\SFF logo.jpg",
+                               "name":  "SFF logo.jpg",
+                               "size":  34557
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\اس اف اف ملفات\\Tax Invoice\\SFF Brochure\\sff New logo .jpeg",
+                               "name":  "sff New logo .jpeg",
+                               "size":  45127
+                           },
+                           {
+                               "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\صور\\logo_512x512.png",
+                               "name":  "logo_512x512.png",
+                               "size":  64497
+                           }
+                       ],
+    "directImages":  [
+                         {
+                             "path":  "C:\\Users\\ayobe\\OneDrive\\سطح المكتب\\خبرة النكهات والعلم.png",
+                             "name":  "خبرة النكهات والعلم.png",
+                             "size":  783937
+                         }
+                     ]
+}

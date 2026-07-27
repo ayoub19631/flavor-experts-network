@@ -1,0 +1,100 @@
+{
+  "name": "flavorexperts-desktop",
+  "version": "1.0.0",
+  "description": "منصة خبراء النكهات - تطبيق سطح المكتب",
+  "main": "main.js",
+  "author": "Flavor Experts",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --mac --linux",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9",
+    "electron-store": "^8.2.0",
+    "electron-log": "^5.2.2"
+  },
+  "devDependencies": {
+    "electron": "^32.2.7",
+    "electron-builder": "^25.1.8",
+    "electron-reload": "^2.0.0-alpha.1"
+  },
+  "build": {
+    "appId": "net.flavorexperts.desktop",
+    "productName": "خبراء النكهات",
+    "copyright": "Copyright © 2024 Flavor Experts",
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "assets/**/*",
+      "web/**/*"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64", "ia32"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "publisherName": "Flavor Experts",
+      "artifactName": "FlavorExperts-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.business",
+      "artifactName": "FlavorExperts-${version}-mac.${ext}"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] },
+        { "target": "rpm", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Office",
+      "artifactName": "FlavorExperts-${version}-linux.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "خبراء النكهات",
+      "include": "installer.nsh",
+      "deleteAppDataOnUninstall": false
+    },
+    "dmg": {
+      "title": "خبراء النكهات",
+      "iconSize": 100,
+      "contents": [
+        { "x": 380, "y": 280, "type": "link", "path": "/Applications" },
+        { "x": 110, "y": 280, "type": "file" }
+      ]
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "flavorexperts",
+      "repo": "desktop-app"
+    }
+  }
+}

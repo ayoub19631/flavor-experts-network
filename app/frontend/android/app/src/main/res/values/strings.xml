@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">خبراء النكهات</string>
+    <string name="title_activity_main">خبراء النكهات</string>
+    <string name="package_name">net.flavorexperts.app</string>
+    <string name="custom_url_scheme">net.flavorexperts.app</string>
+</resources>

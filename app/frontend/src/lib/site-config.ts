@@ -1,0 +1,38 @@
+/** Central branding & contact configuration */
+export const SITE = {
+  name: import.meta.env.VITE_APP_TITLE || "Flavor Experts Network",
+  tagline: "Flavor Expertise & Science",
+  description:
+    import.meta.env.VITE_APP_DESCRIPTION ||
+    "A professional LinkedIn community for flavor scientists and food technologists",
+  url: (import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, ""),
+  domain: "flavorexpertsnetwork.com",
+  supportEmail: import.meta.env.VITE_ADMIN_EMAIL || "ayobe895@gmail.com",
+  billingEmail:
+    import.meta.env.VITE_BILLING_EMAIL ||
+    import.meta.env.VITE_ADMIN_EMAIL ||
+    "ayobe895@gmail.com",
+  linkedInGroup: "https://www.linkedin.com/groups/13155714/",
+  logo: "/brand/logo-512.webp",
+  ogImage:
+    import.meta.env.VITE_OG_IMAGE ||
+    `${(import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, "")}/brand/logo-og.png`,
+} as const;
+
+export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";
+
+/** Explicit kill-switch for checkout. Default off until payments go live. */
+export const PAYMENTS_LIVE =
+  String(import.meta.env.VITE_PAYMENTS_ENABLED || "").toLowerCase() === "true";
+
+export function isAuthorizedAdminEmail(email: string | undefined | null): boolean {
+  if (!email) return false;
+  const normalized = email.toLowerCase();
+  const primary = (import.meta.env.VITE_ADMIN_EMAIL || "").toLowerCase();
+  if (primary && normalized === primary) return true;
+  const extra = (import.meta.env.VITE_ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return extra.includes(normalized);
+}
