@@ -33,6 +33,7 @@ const ForumCategoryPage = lazy(() => import("./pages/ForumCategoryPage"));
 const ForumTopicPage = lazy(() => import("./pages/ForumTopicPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const ConsultationsPage = lazy(() => import("./pages/ConsultationsPage"));
+const MarketPage = lazy(() => import("./pages/MarketPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
@@ -94,6 +95,7 @@ const AppRoutes = () => (
       <Route path="/forum" element={<ForumPage />} />
       <Route path="/courses" element={<CoursesPage />} />
       <Route path="/consultations" element={<ConsultationsPage />} />
+      <Route path="/market" element={<MarketPage />} />
       <Route path="/blog/*" element={<BlogRoutes />} />
       <Route path="*" element={<NotFoundPage />} />
       </Routes>
@@ -106,7 +108,7 @@ const App = () => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "") || undefined}>
           <AuthProvider>
             <EmailVerificationGuard>
             <TooltipProvider>

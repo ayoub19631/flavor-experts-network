@@ -1,0 +1,8 @@
+﻿deploy/*.local.secret.txt
+deploy/auth-hook-secret.local.txt
+deploy/LOCAL-CREDENTIALS.secret.txt
+deploy/oauth.env
+deploy/vercel-login-code.txt
+.env
+.env.local
+*.pem
