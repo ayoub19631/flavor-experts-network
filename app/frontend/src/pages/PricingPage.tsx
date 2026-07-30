@@ -124,8 +124,8 @@ export default function PricingPage() {
       badgeColor: "",
       features: [
         lang === "ar" ? "الوصول للأخبار والمقالات العامة" : "Access to public news & articles",
+        lang === "ar" ? "نشر المنشورات في المجتمع المهني" : "Publish posts in the professional community",
         lang === "ar" ? "الوصول لمنتدى المجتمع" : "Community forum access",
-        lang === "ar" ? "النشرة الإخبارية الشهرية" : "Monthly newsletter",
         lang === "ar" ? "مكتبة الموارد الأساسية" : "Basic resource library",
       ],
       cta: currentTier === "free" ? (lang === "ar" ? "خطتك الحالية" : "Current Plan") : (lang === "ar" ? "خطة مجانية" : "Free Plan"),
@@ -143,10 +143,10 @@ export default function PricingPage() {
       badgeColor: "bg-primary text-primary-foreground",
       features: [
         lang === "ar" ? "جميع ميزات الخطة المجانية" : "All Free features",
+        lang === "ar" ? "البحث والتقديم على فرص العمل" : "Job search & applications",
         lang === "ar" ? "أوراق بحثية مميزة" : "Premium research papers",
         lang === "ar" ? "ندوات وورش عمل حصرية" : "Exclusive webinars & workshops",
         lang === "ar" ? "تقارير وتحليلات الصناعة" : "Industry reports & analytics",
-        lang === "ar" ? "أولوية في فعاليات التواصل" : "Priority networking events",
         lang === "ar" ? "استشارات مباشرة مع الخبراء" : "Direct expert consultations",
       ],
       cta: currentTier === "professional" ? (lang === "ar" ? "خطتك الحالية" : "Current Plan") : (lang === "ar" ? "ابدأ الآن" : "Get Started"),
@@ -164,10 +164,10 @@ export default function PricingPage() {
       badgeColor: "bg-primary text-primary-foreground",
       features: [
         lang === "ar" ? "جميع ميزات الخطة الاحترافية" : "All Professional features",
+        lang === "ar" ? "نشر فرص العمل من حساب الشركة" : "Post job openings from company account",
         lang === "ar" ? "3 إعلانات شهرية للشركة" : "3 company ads per month",
         lang === "ar" ? "نشر مقالات الشركة على الموقع" : "Publish company articles on site",
         lang === "ar" ? "شعار الشركة في قسم الشركاء" : "Company logo in Partners section",
-        lang === "ar" ? "تقارير أداء شهرية مفصلة" : "Monthly performance reports",
         lang === "ar" ? "مدير حساب مخصص" : "Dedicated account manager",
       ],
       cta: currentTier === "enterprise" ? (lang === "ar" ? "خطتك الحالية" : "Current Plan") : (lang === "ar" ? "تواصل مع المبيعات" : "Contact Sales"),

@@ -49,6 +49,18 @@ lock.txt
 
 # ── Supabase local dev ────────────────────────────────────────────────────────
 .supabase/
+supabase/.temp/
+
+# ── Tests / Playwright ────────────────────────────────────────────────────────
+test-results/
+playwright-report/
+**/test-results/
+**/playwright-report/
+
+# ── Legacy / generator leftovers ──────────────────────────────────────────────
+.mgx/
+logo-search-*
+deploy/vercel-login-code.txt
 
 # ── Uploads (user-generated content goes to Supabase Storage) ────────────────
 uploads/images/

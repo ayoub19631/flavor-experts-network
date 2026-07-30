@@ -33,7 +33,9 @@ export function resolvePlatformAccess(
   user: User | null | undefined,
   profile: UserProfile | null | undefined
 ): boolean {
+  // Public mode: site is open to everyone.
   if (!isPlatformPrivateMode()) return true;
+  // Private preview: only admins, allowlisted emails, or explicitly granted preview users.
   if (profile?.is_admin) return true;
   if (profile?.platform_preview_access) return true;
   return isEmailOnPlatformAllowlist(user?.email ?? profile?.email);

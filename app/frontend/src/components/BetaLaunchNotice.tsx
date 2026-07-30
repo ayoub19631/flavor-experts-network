@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
 import BrandLogo from "@/components/BrandLogo";
+import { PAYMENTS_LIVE } from "@/lib/site-config";
 
 const STORAGE_KEY = "fen-beta-notice-acknowledged-v1";
 
@@ -18,15 +19,21 @@ export default function BetaLaunchNotice() {
   const { lang } = useI18n();
   const isAR = lang === "ar";
   const [open, setOpen] = useState(false);
+  const enabled =
+    !PAYMENTS_LIVE &&
+    String(import.meta.env.VITE_SHOW_TESTING_UI || "false").toLowerCase() === "true";
 
   useEffect(() => {
+    if (!enabled) return;
     try {
       if (localStorage.getItem(STORAGE_KEY) === "1") return;
     } catch {
       /* private mode */
     }
     setOpen(true);
-  }, []);
+  }, [enabled]);
+
+  if (!enabled) return null;
 
   const acknowledge = () => {
     try {
@@ -73,8 +80,8 @@ export default function BetaLaunchNotice() {
             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
             <p className="text-foreground/90">
               {isAR
-                ? "يمكنك تصفح المحتوى، التسجيل، المنتدى، الموارد، والتواصل معنا أثناء فترة الاختبار."
-                : "You can browse content, sign up, use the forum and resources, and contact us during the testing period."}
+                ? "يمكنك تصفح المحتوى، التسجيل، المنتدى، المجتمع، والوظائف (للمشتركين)، والتواصل معنا."
+                : "You can browse content, sign up, use the forum and community, access jobs (premium), and contact us."}
             </p>
           </div>
         </div>

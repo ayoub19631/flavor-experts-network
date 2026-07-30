@@ -78,24 +78,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!error && data) {
         setProfile(data as UserProfile);
       } else {
-        // Profile not found — try to create it (handles race condition with trigger)
-        const newProfile = {
+        // Profile missing (race with handle_new_user) — upsert only safe identity fields.
+        // Never set is_admin / subscription / preview flags from the client.
+        const safeProfile = {
           id: u.id,
           email: u.email || "",
-          full_name: u.user_metadata?.full_name || u.email?.split("@")[0] || "User",
-          avatar_url: u.user_metadata?.avatar_url || "",
-          subscription_tier: "free" as SubscriptionTier,
-          subscription_active: true,
-          is_admin: false,
-          platform_preview_access: false,
-          created_at: u.created_at,
+          full_name:
+            u.user_metadata?.full_name ||
+            u.user_metadata?.name ||
+            u.email?.split("@")[0] ||
+            "User",
+          avatar_url: u.user_metadata?.avatar_url || u.user_metadata?.picture || "",
         };
-        const { data: inserted } = await supabase
+        const { data: inserted, error: insertError } = await supabase
           .from("user_profiles")
-          .upsert([newProfile], { onConflict: "id" })
-          .select()
+          .upsert([safeProfile], { onConflict: "id" })
+          .select("*")
           .single();
-        setProfile((inserted as UserProfile) ?? newProfile);
+
+        if (!insertError && inserted) {
+          setProfile(inserted as UserProfile);
+        } else {
+          // Retry once — trigger may still be writing
+          await new Promise((r) => setTimeout(r, 400));
+          const { data: retried } = await supabase
+            .from("user_profiles")
+            .select("*")
+            .eq("id", u.id)
+            .maybeSingle();
+          setProfile(
+            (retried as UserProfile) || {
+              ...safeProfile,
+              subscription_tier: "free" as SubscriptionTier,
+              subscription_active: true,
+              is_admin: false,
+              created_at: u.created_at,
+            },
+          );
+        }
       }
     } catch {
       setProfile({
@@ -106,7 +126,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         subscription_tier: "free",
         subscription_active: true,
         is_admin: false,
-        platform_preview_access: false,
         created_at: u.created_at,
       });
     } finally {

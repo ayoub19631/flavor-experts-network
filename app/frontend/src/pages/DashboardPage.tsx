@@ -16,15 +16,18 @@ import {
   ChevronRight, Zap, Users, FileText, Briefcase, Sparkles,
   FlaskConical, Video, Download, BarChart, Rocket, Gift,
   CreditCard, RefreshCw, ArrowUpCircle, PlayCircle, BookMarked,
-  LineChart, PieChart, Target, Layers, Newspaper,
+  LineChart, PieChart, Target, Layers, Newspaper, MessageSquareText, Send, Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { openResourceLink } from "@/lib/resources";
+import { enrichSocialPosts } from "@/lib/social";
+import type { SocialPost } from "@/lib/types";
 import Navbar from "@/components/Navbar";
 import { AvatarUploader } from "@/components/ui/file-uploader";
 import { SITE } from "@/lib/site-config";
+import { toast } from "sonner";
 
 interface ExtendedProfile {
   full_name?: string;
@@ -101,7 +104,11 @@ export default function DashboardPage() {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "security" | "subscription">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "posts" | "security" | "subscription">("overview");
+  const [myPosts, setMyPosts] = useState<SocialPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [dashPostBody, setDashPostBody] = useState("");
+  const [dashPublishing, setDashPublishing] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -182,6 +189,59 @@ export default function DashboardPage() {
     }
   }, [user?.id]);
 
+  const loadMyPosts = async () => {
+    if (!user?.id) return;
+    setPostsLoading(true);
+    const { data } = await supabase
+      .from("social_posts")
+      .select("*")
+      .eq("author_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    setMyPosts(await enrichSocialPosts((data as SocialPost[]) || []));
+    setPostsLoading(false);
+  };
+
+  useEffect(() => {
+    if (user?.id && (activeTab === "posts" || activeTab === "profile" || activeTab === "overview")) {
+      loadMyPosts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, activeTab]);
+
+  const publishDashPost = async () => {
+    if (!user) return;
+    const text = dashPostBody.trim();
+    if (text.length < 3) {
+      toast.error(lang === "ar" ? "اكتب المزيد قبل النشر" : "Write a bit more before publishing");
+      return;
+    }
+    setDashPublishing(true);
+    const { error } = await supabase.from("social_posts").insert({
+      author_id: user.id,
+      body: text,
+      is_published: true,
+    });
+    setDashPublishing(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setDashPostBody("");
+    toast.success(lang === "ar" ? "تم نشر المنشور" : "Post published");
+    loadMyPosts();
+  };
+
+  const deleteMyPost = async (id: string) => {
+    const { error } = await supabase.from("social_posts").delete().eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setMyPosts((prev) => prev.filter((p) => p.id !== id));
+    toast.success(lang === "ar" ? "تم حذف المنشور" : "Post removed");
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -215,54 +275,48 @@ export default function DashboardPage() {
     setSaveLoading(true);
     setSaveError(null);
     try {
-      // 1. Always save to auth metadata (no migration needed)
-      const { error: metaError } = await supabase.auth.updateUser({
-        data: {
-          full_name: editData.full_name!.trim(),
-          role: editData.role,
-          company: editData.company,
-          location: editData.location,
-          bio: editData.bio,
-          linkedin_url: editData.linkedin_url,
-          website_url: editData.website_url,
-          phone: editData.phone,
-          avatar_url: editData.avatar_url,
-        },
-      });
+      const fullName = editData.full_name.trim();
+      const payload = {
+        full_name: fullName,
+        role: (editData.role || "").trim(),
+        company: (editData.company || "").trim(),
+        location: (editData.location || "").trim(),
+        bio: (editData.bio || "").trim(),
+        linkedin_url: (editData.linkedin_url || "").trim(),
+        website_url: (editData.website_url || "").trim(),
+        phone: (editData.phone || "").trim(),
+        avatar_url: (editData.avatar_url || "").trim(),
+      };
+
+      const { error: metaError } = await supabase.auth.updateUser({ data: payload });
       if (metaError) throw metaError;
 
-      // 2. Also save basic fields to user_profiles (safe columns only)
-      await supabase.from("user_profiles").upsert({
-        id: user!.id,
-        email: user!.email!,
-        full_name: editData.full_name!.trim(),
-        avatar_url: editData.avatar_url || null,
-        updated_at: new Date().toISOString(),
+      // Single profile update — errors must surface so members sync is reliable
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .update({
+          ...payload,
+          email: user!.email || undefined,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user!.id);
+      if (profileError) throw profileError;
+
+      const profileResult = await updateProfile({
+        full_name: fullName,
+        avatar_url: payload.avatar_url,
       });
+      if (profileResult.error) throw new Error(profileResult.error);
 
-      // 3. Try to save extended fields if migration was applied (ignore error)
-      try {
-        await supabase.from("user_profiles").upsert({
-          id: user!.id,
-          role: editData.role || "",
-          company: editData.company || "",
-          location: editData.location || "",
-          bio: editData.bio || "",
-          linkedin_url: editData.linkedin_url || "",
-          website_url: editData.website_url || "",
-          phone: editData.phone || "",
-        });
-      } catch {
-        /* extended columns may be unavailable */
-      }
-
-      await updateProfile({ full_name: editData.full_name!.trim() });
-      setExtProfile((prev) => ({ ...prev, ...editData }));
+      setExtProfile((prev) => ({ ...prev, ...payload }));
       setSaveSuccess(true);
       setEditing(false);
+      toast.success(lang === "ar" ? "تم حفظ الملف الشخصي" : "Profile saved");
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Failed to save");
+      const message = err instanceof Error ? err.message : "Failed to save";
+      setSaveError(message);
+      toast.error(message);
     } finally {
       setSaveLoading(false);
     }
@@ -299,16 +353,17 @@ export default function DashboardPage() {
     { key: "overview", label: lang === "ar" ? "نظرة عامة" : "Overview", icon: BarChart2 },
     ...(localIsPremium ? [{ key: "premium" as const, label: lang === "ar" ? (isEnt ? "لوحة الشركة" : "المميزات الاحترافية") : (isEnt ? "Enterprise Hub" : "Premium Access"), icon: isEnt ? Building2 : Sparkles }] : []),
     { key: "profile", label: lang === "ar" ? "ملفي الشخصي" : "My Profile", icon: User },
+    { key: "posts", label: lang === "ar" ? "منشوراتي" : "My Posts", icon: MessageSquareText },
     { key: "subscription", label: lang === "ar" ? "اشتراكي" : "My Subscription", icon: CreditCard },
     { key: "security", label: lang === "ar" ? "الأمان" : "Security", icon: Lock },
   ] as const;
 
   const QUICK_ACTIONS = [
-    { icon: TrendingUp, label: lang === "ar" ? "أخبار الصناعة" : "Industry News", desc: lang === "ar" ? "آخر تطورات علوم النكهات" : "Latest flavor science updates", color: "bg-blue-100 dark:bg-blue-900/30", iconColor: "text-blue-600", href: "/#news" },
-    { icon: BookOpen, label: lang === "ar" ? "الموارد التعليمية" : "Educational Resources", desc: lang === "ar" ? "أبحاث ودورات ومراجع" : "Papers, courses & guides", color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#resources" },
+    { icon: Briefcase, label: lang === "ar" ? "فرص العمل" : "Job Opportunities", desc: localIsPremium ? (lang === "ar" ? "ابحث أو انشر وظائف" : "Search or post roles") : (lang === "ar" ? "للأعضاء المميزين" : "Premium members only"), color: "bg-primary/10 dark:bg-primary/20", iconColor: "text-primary", href: "/jobs" },
+    { icon: MessageSquareText, label: lang === "ar" ? "المجتمع المهني" : "Community Feed", desc: lang === "ar" ? "انشر وتابع التحديثات" : "Publish & follow updates", color: "bg-blue-100 dark:bg-blue-900/30", iconColor: "text-blue-600", href: "/community" },
     { icon: Users, label: lang === "ar" ? "دليل الأعضاء" : "Members Directory", desc: lang === "ar" ? "تواصل مع المتخصصين" : "Connect with professionals", color: "bg-purple-100 dark:bg-purple-900/30", iconColor: "text-purple-600", href: "/members" },
-    { icon: Briefcase, label: isCompany ? (lang === "ar" ? "مركز الشركة" : "Enterprise Hub") : (lang === "ar" ? "خدمات الشركات" : "Go Enterprise"), desc: isCompany ? (lang === "ar" ? "إدارة حساب الشركة" : "Manage company account") : (lang === "ar" ? "للشركات والمختبرات" : "For organizations & labs"), color: "bg-primary/10 dark:bg-primary/20", iconColor: "text-primary", href: "/enterprise" },
-    { icon: Star, label: localIsPremium ? (lang === "ar" ? "اشتراكي" : "My Subscription") : (lang === "ar" ? "ترقية الخطة" : "Upgrade Plan"), desc: localIsPremium ? (lang === "ar" ? "إدارة خطتك" : "Manage your plan") : (lang === "ar" ? "افتح المحتوى الحصري" : "Unlock exclusive content"), color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: localIsPremium ? undefined : "/pricing", onClick: localIsPremium ? () => setActiveTab("subscription") : undefined },
+    { icon: TrendingUp, label: lang === "ar" ? "أخبار الصناعة" : "Industry News", desc: lang === "ar" ? "آخر تطورات علوم النكهات" : "Latest flavor science updates", color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#news" },
+    { icon: Star, label: localIsPremium ? (lang === "ar" ? "اشتراكي" : "My Subscription") : (lang === "ar" ? "ترقية الخطة" : "Upgrade Plan"), desc: localIsPremium ? (lang === "ar" ? "إدارة خطتك" : "Manage your plan") : (lang === "ar" ? "افتح الوظائف والمحتوى" : "Unlock jobs & premium content"), color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: localIsPremium ? undefined : "/pricing", onClick: localIsPremium ? () => setActiveTab("subscription") : undefined },
     { icon: ExternalLink, label: lang === "ar" ? "مجموعة لينكد إن" : "LinkedIn Group", desc: lang === "ar" ? "مجتمع محترفي النكهات" : "Flavor professionals community", color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: "https://www.linkedin.com/groups/13155714/" },
   ];
 
@@ -954,8 +1009,117 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* ══ TAB: Posts ══ */}
+              {activeTab === "posts" && (
+                <div className="space-y-4">
+                  <Card className="border border-primary/20 overflow-hidden">
+                    <div className="h-1 bg-gradient-to-r from-primary via-primary/50 to-transparent" />
+                    <CardHeader className="p-5 pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <MessageSquareText className="w-4 h-4 text-primary" />
+                        {lang === "ar" ? "انشر تحديثاً مهنياً" : "Publish a professional update"}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-2 space-y-3">
+                      <Textarea
+                        rows={4}
+                        value={dashPostBody}
+                        onChange={(e) => setDashPostBody(e.target.value)}
+                        placeholder={lang === "ar" ? "شارك رؤية أو إنجازاً أو تحديثاً مهنياً…" : "Share an insight, milestone, or professional update…"}
+                        className="resize-none"
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        <Link to="/community" className="text-xs text-primary hover:underline">
+                          {lang === "ar" ? "عرض تغذية المجتمع" : "Open community feed"}
+                        </Link>
+                        <Button onClick={publishDashPost} disabled={dashPublishing} className="gap-2">
+                          {dashPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                          {lang === "ar" ? "نشر" : "Publish"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border border-border">
+                    <CardHeader className="p-5 pb-2">
+                      <CardTitle className="text-sm font-semibold">
+                        {lang === "ar" ? "منشوراتك الأخيرة" : "Your recent posts"}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-2 space-y-3">
+                      {postsLoading ? (
+                        <div className="flex justify-center py-8">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      ) : myPosts.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          {lang === "ar" ? "لم تنشر أي منشورات بعد." : "You have not published any posts yet."}
+                        </p>
+                      ) : (
+                        myPosts.map((post) => (
+                          <div key={post.id} className="rounded-xl border border-border p-4 space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed flex-1">{post.body}</p>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                                onClick={() => deleteMyPost(post.id)}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <span className="inline-flex items-center gap-1">
+                                <Heart className="w-3.5 h-3.5" /> {post.likes_count || 0}
+                              </span>
+                              <span>{new Date(post.created_at).toLocaleDateString(lang === "ar" ? "ar" : "en")}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               {/* ══ TAB: Profile ══ */}
               {activeTab === "profile" && (
+                <div className="space-y-4">
+                <Card className="border border-primary/15">
+                  <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex-1 space-y-1">
+                      <p className="font-semibold text-foreground">
+                        {lang === "ar" ? "ملفك المهني العام" : "Your public professional profile"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {lang === "ar"
+                          ? "أكمل بياناتك وانشر تحديثات منتظمة لزيادة ظهورك في الشبكة."
+                          : "Complete your details and publish regular updates to grow your visibility."}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" onClick={async () => {
+                        if (!user?.email) return;
+                        const { data } = await supabase
+                          .from("members")
+                          .select("id")
+                          .eq("email", user.email.toLowerCase())
+                          .maybeSingle();
+                        if (data?.id) window.open(`/members/${data.id}`, "_blank");
+                        else window.open("/members", "_blank");
+                      }}>
+                        {lang === "ar" ? "عرض الملف العام" : "View public profile"}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setActiveTab("posts")}>
+                        {lang === "ar" ? "نشر منشور" : "Write a post"}
+                      </Button>
+                      <Button asChild size="sm">
+                        <Link to="/community">{lang === "ar" ? "المجتمع" : "Community"}</Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
                 <Card className="border border-border">
                   <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -1084,6 +1248,28 @@ export default function DashboardPage() {
                     )}
                   </CardContent>
                 </Card>
+
+                {myPosts.length > 0 && (
+                  <Card className="border border-border">
+                    <CardHeader className="p-5 pb-2">
+                      <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                        {lang === "ar" ? "أحدث منشوراتك" : "Latest posts"}
+                        <button onClick={() => setActiveTab("posts")} className="text-xs text-primary hover:underline font-normal">
+                          {lang === "ar" ? "إدارة الكل" : "Manage all"}
+                        </button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-5 pt-2 space-y-3">
+                      {myPosts.slice(0, 3).map((post) => (
+                        <div key={post.id} className="text-sm text-muted-foreground border-b border-border last:border-0 pb-3 last:pb-0">
+                          <p className="text-foreground line-clamp-2">{post.body}</p>
+                          <p className="text-xs mt-1">{new Date(post.created_at).toLocaleDateString(lang === "ar" ? "ar" : "en")}</p>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
+                </div>
               )}
 
               {/* ══ TAB: Security ══ */}

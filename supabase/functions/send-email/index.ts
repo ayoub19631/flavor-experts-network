@@ -7,11 +7,25 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
  * Optional: ADMIN_NOTIFY_EMAIL, INTERNAL_EMAIL_SECRET, SITE_URL
  */
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-internal-email-secret",
-};
+const ALLOWED_ORIGINS = new Set([
+  "https://flavorexpertsnetwork.com",
+  "https://www.flavorexpertsnetwork.com",
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+  "http://127.0.0.1:3001",
+  "http://localhost:3001",
+]);
+
+function corsHeadersFor(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || "";
+  const allow = ALLOWED_ORIGINS.has(origin) ? origin : "https://flavorexpertsnetwork.com";
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-internal-email-secret",
+    Vary: "Origin",
+  };
+}
 
 type BroadcastRecipients = "all" | "professional" | "enterprise" | "newsletter";
 
@@ -40,10 +54,15 @@ type EmailPayload = {
   email_type?: "newsletter" | "announcement" | "news";
 };
 
-function json(body: Record<string, unknown>, status = 200) {
+function json(body: Record<string, unknown>, status = 200, req?: Request) {
+  const cors = req ? corsHeadersFor(req) : {
+    "Access-Control-Allow-Origin": "https://flavorexpertsnetwork.com",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type, x-internal-email-secret",
+  };
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...cors, "Content-Type": "application/json" },
   });
 }
 
@@ -55,20 +74,22 @@ function fromAddress() {
   return Deno.env.get("EMAIL_FROM") || "Flavor Experts Network <noreply@nexusflavor.com>";
 }
 
-function brandShell(title: string, innerHtml: string, preheader = "") {
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>${title}</title></head>
-<body style="margin:0;padding:0;background:#f4f6f8;font-family:Segoe UI,Arial,sans-serif;color:#0f2744">
+function brandShell(title: string, innerHtml: string, preheader = "", lang: "ar" | "en" = "en") {
+  const dir = lang === "ar" ? "rtl" : "ltr";
+  const brand = lang === "ar" ? "شبكة خبراء النكهات" : "Flavor Experts Network";
+  return `<!DOCTYPE html><html lang="${lang}" dir="${dir}"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>${title}</title></head>
+<body style="margin:0;padding:0;background:#F3F4F6;font-family:Segoe UI,Tahoma,Arial,sans-serif;color:#002D54">
 ${preheader ? `<div style="display:none;max-height:0;overflow:hidden">${preheader}</div>` : ""}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:24px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;padding:28px 12px">
 <tr><td align="center">
-<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e5e7eb">
-<tr><td style="background:linear-gradient(135deg,#0a3d6b,#0f2744);padding:28px 24px;color:#f5f0e6">
-<div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin-bottom:8px">Flavor Experts Network</div>
-<h1 style="margin:0;font-size:22px;line-height:1.3">${title}</h1>
+<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #E5E7EB">
+<tr><td style="background:#002D54;padding:28px 24px;color:#E1DDCF">
+<div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-bottom:8px">${brand}</div>
+<h1 style="margin:0;font-size:22px;line-height:1.35;font-weight:700">${title}</h1>
 </td></tr>
-<tr><td style="padding:28px 24px;font-size:15px;line-height:1.65">${innerHtml}</td></tr>
-<tr><td style="padding:16px 24px 28px;border-top:1px solid #eef2f7;font-size:12px;color:#6b7280;line-height:1.5">
-© ${new Date().getFullYear()} Flavor Experts Network · <a href="${siteUrl()}" style="color:#0a3d6b">${siteUrl().replace("https://", "")}</a>
+<tr><td style="padding:28px 24px;font-size:15px;line-height:1.7;color:#1f2937">${innerHtml}</td></tr>
+<tr><td style="padding:18px 24px 26px;border-top:1px solid #EEF2F7;font-size:12px;color:#6b7280;line-height:1.55">
+© ${new Date().getFullYear()} Flavor Experts Network · <a href="${siteUrl()}" style="color:#002D54;text-decoration:none">${siteUrl().replace("https://", "")}</a>
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -204,20 +225,22 @@ function textToHtml(body: string) {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeadersFor(req) });
   }
 
   try {
     const from = fromAddress();
     const body = (await req.json()) as EmailPayload;
     const authHeader = req.headers.get("Authorization") || "";
+    const respond = (payload: Record<string, unknown>, status = 200) =>
+      json(payload, status, req);
 
     // ── Custom (admin) ──────────────────────────────────────────────────────
     if (body.type === "custom") {
       const admin = await isPlatformAdmin(authHeader);
-      if (!admin.ok) return json({ error: "Admin access required" }, 403);
+      if (!admin.ok) return respond({ error: "Admin access required" }, 403);
       if (!body.to || !body.subject || (!body.html && !body.text)) {
-        return json({ error: "to, subject, and html/text required" }, 400);
+        return respond({ error: "to, subject, and html/text required" }, 400);
       }
       const result = await sendResend({
         from,
@@ -228,15 +251,15 @@ Deno.serve(async (req: Request) => {
         idempotencyKey: `custom/${body.to}/${Date.now()}`,
       });
       await logEmail("custom", body.to, body.subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     // ── Admin reply to contact message ──────────────────────────────────────
     if (body.type === "reply") {
       const admin = await isPlatformAdmin(authHeader);
-      if (!admin.ok) return json({ error: "Admin access required" }, 403);
+      if (!admin.ok) return respond({ error: "Admin access required" }, 403);
       if (!body.message_id || !body.reply_body?.trim()) {
-        return json({ error: "message_id and reply_body required" }, 400);
+        return respond({ error: "message_id and reply_body required" }, 400);
       }
       const sb = adminClient();
       const { data: msg, error } = await sb
@@ -244,7 +267,7 @@ Deno.serve(async (req: Request) => {
         .select("*")
         .eq("id", body.message_id)
         .maybeSingle();
-      if (error || !msg) return json({ error: "Message not found" }, 404);
+      if (error || !msg) return respond({ error: "Message not found" }, 404);
 
       const subject = body.subject || `Re: ${msg.subject || "Your message to Flavor Experts"}`;
       const html = brandShell(
@@ -272,15 +295,15 @@ Deno.serve(async (req: Request) => {
       }).eq("id", body.message_id);
 
       await logEmail("reply", msg.email, subject, result.id, "sent", { message_id: body.message_id });
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     // ── Broadcast (admin → Resend batch) ────────────────────────────────────
     if (body.type === "broadcast") {
       const admin = await isPlatformAdmin(authHeader);
-      if (!admin.ok) return json({ error: "Admin access required" }, 403);
+      if (!admin.ok) return respond({ error: "Admin access required" }, 403);
       if (!body.subject?.trim() || !body.body?.trim()) {
-        return json({ error: "subject and body required" }, 400);
+        return respond({ error: "subject and body required" }, 400);
       }
 
       const recipients = body.recipients || "all";
@@ -304,7 +327,7 @@ Deno.serve(async (req: Request) => {
       }
 
       emails = [...new Set(emails.map((e) => e.toLowerCase().trim()).filter(Boolean))];
-      if (emails.length === 0) return json({ error: "No recipients found" }, 400);
+      if (emails.length === 0) return respond({ error: "No recipients found" }, 400);
 
       const typeLabel = body.email_type || "announcement";
       const htmlInner = `<p>${textToHtml(body.body.trim())}</p>
@@ -330,15 +353,15 @@ Deno.serve(async (req: Request) => {
         "sent",
         { count: emails.length, recipients, email_type: typeLabel },
       );
-      return json({ ok: true, sent: emails.length, ids });
+      return respond({ ok: true, sent: emails.length, ids });
     }
 
     // ── Welcome (internal or admin) ─────────────────────────────────────────
     if (body.type === "welcome") {
       if (!isInternalRequest(req) && !(await isPlatformAdmin(authHeader)).ok) {
-        return json({ error: "Unauthorized" }, 403);
+        return respond({ error: "Unauthorized" }, 403);
       }
-      if (!body.to) return json({ error: "to required" }, 400);
+      if (!body.to) return respond({ error: "to required" }, 400);
       const name = body.meta?.name || "Member";
       const subject = body.subject || "Welcome to Flavor Experts Network";
       const html = brandShell(
@@ -356,17 +379,17 @@ Deno.serve(async (req: Request) => {
         idempotencyKey: `welcome-email/${body.to}`,
       });
       await logEmail("welcome", body.to, subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     // Internal-only types
     if (["admin_alert", "contact_ack", "enterprise_ack", "newsletter_welcome", "security_alert"].includes(body.type)) {
-      if (!isInternalRequest(req)) return json({ error: "Internal access only" }, 403);
+      if (!isInternalRequest(req)) return respond({ error: "Internal access only" }, 403);
     }
 
     if (body.type === "admin_alert") {
       const adminTo = Deno.env.get("ADMIN_NOTIFY_EMAIL");
-      if (!adminTo) return json({ ok: false, skipped: "ADMIN_NOTIFY_EMAIL unset" });
+      if (!adminTo) return respond({ ok: false, skipped: "ADMIN_NOTIFY_EMAIL unset" });
       const subject = body.subject || "Flavor Experts — new notification";
       const text = body.text || JSON.stringify(body.meta ?? {}, null, 2);
       const result = await sendResend({
@@ -377,7 +400,7 @@ Deno.serve(async (req: Request) => {
         html: body.html || brandShell(subject, `<pre style="white-space:pre-wrap">${escapeHtml(text)}</pre>`),
       });
       await logEmail("admin_alert", adminTo, subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     if (body.type === "contact_ack" && body.to) {
@@ -395,7 +418,7 @@ Deno.serve(async (req: Request) => {
         idempotencyKey: `contact-ack/${body.to}/${body.meta?.message_id || Date.now()}`,
       });
       await logEmail("contact_ack", body.to, subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     if (body.type === "enterprise_ack" && body.to) {
@@ -412,7 +435,7 @@ Deno.serve(async (req: Request) => {
         text: body.text || "We received your enterprise request.",
       });
       await logEmail("enterprise_ack", body.to, subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     if (body.type === "newsletter_welcome" && body.to) {
@@ -430,7 +453,7 @@ Deno.serve(async (req: Request) => {
         idempotencyKey: `newsletter-welcome/${body.to}`,
       });
       await logEmail("newsletter_welcome", body.to, subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
     if (body.type === "security_alert" && body.to) {
@@ -448,11 +471,11 @@ Deno.serve(async (req: Request) => {
         text: body.text || "Security alert on your Flavor Experts account.",
       });
       await logEmail("security_alert", body.to, subject, result.id, "sent");
-      return json({ ok: true, id: result.id });
+      return respond({ ok: true, id: result.id });
     }
 
-    return json({ error: "Unsupported email type" }, 400);
+    return respond({ error: "Unsupported email type" }, 400);
   } catch (err) {
-    return json({ error: String(err) }, 500);
+    return json({ error: String(err) }, 500, req);
   }
 });

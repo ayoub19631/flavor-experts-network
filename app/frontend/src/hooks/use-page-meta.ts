@@ -5,6 +5,7 @@ interface PageMetaOptions {
   title?: string;
   description?: string;
   path?: string;
+  image?: string;
   noIndex?: boolean;
 }
 
@@ -28,11 +29,12 @@ function upsertLink(rel: string, href: string) {
   el.href = href;
 }
 
-export function usePageMeta({ title, description, path = "", noIndex = false }: PageMetaOptions) {
+export function usePageMeta({ title, description, path = "", image, noIndex = false }: PageMetaOptions) {
   useEffect(() => {
     const pageTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     const pageDescription = description || SITE.description;
     const canonical = `${SITE.url}${path.startsWith("/") ? path : `/${path}`}`.replace(/\/$/, "") || SITE.url;
+    const ogImage = image || SITE.ogImage;
 
     document.title = pageTitle;
     upsertMeta("description", pageDescription);
@@ -40,10 +42,11 @@ export function usePageMeta({ title, description, path = "", noIndex = false }: 
     upsertMeta("og:description", pageDescription, "property");
     upsertMeta("og:type", "website", "property");
     upsertMeta("og:url", canonical, "property");
-    upsertMeta("og:image", SITE.ogImage, "property");
+    upsertMeta("og:image", ogImage, "property");
     upsertMeta("twitter:card", "summary_large_image");
     upsertMeta("twitter:title", pageTitle);
     upsertMeta("twitter:description", pageDescription);
+    upsertMeta("twitter:image", ogImage);
     upsertLink("canonical", canonical);
 
     if (noIndex) {
@@ -52,5 +55,5 @@ export function usePageMeta({ title, description, path = "", noIndex = false }: 
       const robots = document.querySelector('meta[name="robots"]');
       robots?.remove();
     }
-  }, [title, description, path, noIndex]);
+  }, [title, description, path, image, noIndex]);
 }

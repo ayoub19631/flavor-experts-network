@@ -28,12 +28,15 @@ const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthError = lazy(() => import("./pages/AuthError"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const MembersPage = lazy(() => import("./pages/MembersPage"));
+const MemberProfilePage = lazy(() => import("./pages/MemberProfilePage"));
 const ForumPage = lazy(() => import("./pages/ForumPage"));
 const ForumCategoryPage = lazy(() => import("./pages/ForumCategoryPage"));
 const ForumTopicPage = lazy(() => import("./pages/ForumTopicPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const ConsultationsPage = lazy(() => import("./pages/ConsultationsPage"));
 const MarketPage = lazy(() => import("./pages/MarketPage"));
+const JobsPage = lazy(() => import("./pages/JobsPage"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
@@ -51,9 +54,15 @@ const PlatformAccessChat = () => {
 };
 
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-[hsl(208_100%_10%)]">
-    <div className="text-center">
-      <BrandLogo size="lg" className="mx-auto mb-4 animate-pulse shadow-xl" />
+  <div className="min-h-screen flex items-center justify-center bg-[hsl(208_100%_10%)] relative overflow-hidden">
+    <img
+      src="/brand/hero-flavor-lab.png"
+      alt=""
+      className="absolute inset-0 h-full w-full object-cover opacity-35"
+    />
+    <div className="absolute inset-0 bg-[hsl(208_100%_8%/0.75)]" />
+    <div className="relative text-center px-6">
+      <BrandLogo size="hero" className="mx-auto mb-5 drop-shadow-2xl animate-pulse" />
       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[hsl(47_23%_85%)] mx-auto" />
     </div>
   </div>
@@ -89,6 +98,7 @@ const AppRoutes = () => (
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/auth/error" element={<AuthError />} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      <Route path="/members/:id" element={<MemberProfilePage />} />
       <Route path="/members" element={<MembersPage />} />
       <Route path="/forum/c/:slug" element={<ForumCategoryPage />} />
       <Route path="/forum/t/:id" element={<ForumTopicPage />} />
@@ -96,6 +106,8 @@ const AppRoutes = () => (
       <Route path="/courses" element={<CoursesPage />} />
       <Route path="/consultations" element={<ConsultationsPage />} />
       <Route path="/market" element={<MarketPage />} />
+      <Route path="/jobs" element={<JobsPage />} />
+      <Route path="/community" element={<CommunityPage />} />
       <Route path="/blog/*" element={<BlogRoutes />} />
       <Route path="*" element={<NotFoundPage />} />
       </Routes>

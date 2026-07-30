@@ -42,3 +42,9 @@ verify_jwt = false
 
 [functions.auth-email-hook]
 verify_jwt = false
+
+[functions.refresh-market-briefing]
+verify_jwt = false
+
+[functions.curate-industry-news]
+verify_jwt = false

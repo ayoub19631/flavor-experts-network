@@ -188,15 +188,20 @@ export default function AuthPage() {
     }
 
     if (data.user) {
-      await supabase.from("user_profiles").upsert({
+      // Safe identity/company fields only — privileges come from DB defaults / handle_new_user
+      const { error: profileErr } = await supabase.from("user_profiles").upsert({
         id: data.user.id,
-        email: companyEmail,
-        full_name: contactName,
+        email: companyEmail.trim().toLowerCase(),
+        full_name: contactName.trim(),
         account_type: "company",
-        company: companyName,
-        subscription_tier: "free",
-        is_admin: false,
+        company: companyName.trim(),
+        website_url: companyWebsite.trim() || null,
+        phone: companyPhone.trim() || null,
+        role: industry,
       }, { onConflict: "id" });
+      if (profileErr) {
+        console.warn("Company profile upsert deferred to trigger:", profileErr.message);
+      }
     }
 
     rememberPendingVerificationEmail(companyEmail);

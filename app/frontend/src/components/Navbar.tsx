@@ -39,6 +39,8 @@ export default function Navbar() {
     { href: "/#news", label: t("nav.news") },
     { href: "/#resources", label: t("nav.resources") },
     { href: "/members", label: t("nav.members") },
+    { href: "/jobs", label: t("nav.jobs") },
+    { href: "/community", label: t("nav.community") },
     { href: "/forum", label: t("nav.forum") },
     { href: "/courses", label: t("nav.courses") },
     { href: "/blog", label: t("nav.blog") },

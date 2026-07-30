@@ -40,6 +40,21 @@ interface SocialAuthButtonsProps {
   className?: string;
 }
 
+function oauthProvidersEnabled(): OAuthProvider[] {
+  // Show social buttons only when explicitly enabled (avoids broken provider UX in production).
+  const flag = String(import.meta.env.VITE_OAUTH_ENABLED || "").toLowerCase();
+  if (flag === "false" || flag === "0") return [];
+  if (flag === "true" || flag === "1") return ["google", "linkedin_oidc"];
+  const enabled: OAuthProvider[] = [];
+  if (String(import.meta.env.VITE_GOOGLE_OAUTH || "").toLowerCase() === "true") {
+    enabled.push("google");
+  }
+  if (String(import.meta.env.VITE_LINKEDIN_OAUTH || "").toLowerCase() === "true") {
+    enabled.push("linkedin_oidc");
+  }
+  return enabled;
+}
+
 export default function SocialAuthButtons({
   mode,
   intent,
@@ -49,8 +64,11 @@ export default function SocialAuthButtons({
 }: SocialAuthButtonsProps) {
   const { t } = useI18n();
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
+  const providers = oauthProvidersEnabled();
 
   const resolvedIntent: OAuthIntent = intent ?? (mode === "signup" ? "signup" : "login");
+
+  if (providers.length === 0) return null;
 
   const handleOAuth = async (provider: OAuthProvider) => {
     setLoadingProvider(provider);
@@ -84,41 +102,46 @@ export default function SocialAuthButtons({
 
   return (
     <div className={containerClass}>
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full gap-2.5 h-11 bg-background hover:bg-muted/60 border-border shadow-sm font-medium"
-        onClick={() => handleOAuth("google")}
-        disabled={loadingProvider !== null}
-      >
-        {loadingProvider === "google" ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <GoogleIcon className="w-4 h-4" />
-        )}
-        {loadingProvider === "google" ? t("auth.oauth_redirecting") : googleLabel}
-      </Button>
+      {providers.includes("google") && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-2.5 h-11 bg-background hover:bg-muted/60 border-border shadow-sm font-medium"
+          onClick={() => handleOAuth("google")}
+          disabled={loadingProvider !== null}
+        >
+          {loadingProvider === "google" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <GoogleIcon className="w-4 h-4" />
+          )}
+          {loadingProvider === "google" ? t("auth.oauth_redirecting") : googleLabel}
+        </Button>
+      )}
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full gap-2.5 h-11 border-[#0077b5]/40 text-[#0077b5] hover:bg-[#0077b5]/10 dark:text-[#38bdf8] dark:border-[#38bdf8]/40 dark:hover:bg-[#0077b5]/20 font-medium"
-        onClick={() => handleOAuth("linkedin_oidc")}
-        disabled={loadingProvider !== null}
-      >
-        {loadingProvider === "linkedin_oidc" ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <Linkedin className="w-4 h-4" />
-        )}
-        {loadingProvider === "linkedin_oidc" ? t("auth.oauth_redirecting") : linkedinLabel}
-      </Button>
+      {providers.includes("linkedin_oidc") && (
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-2.5 h-11 border-[#0077b5]/40 text-[#0077b5] hover:bg-[#0077b5]/10 dark:text-[#38bdf8] dark:border-[#38bdf8]/40 dark:hover:bg-[#0077b5]/20 font-medium"
+          onClick={() => handleOAuth("linkedin_oidc")}
+          disabled={loadingProvider !== null}
+        >
+          {loadingProvider === "linkedin_oidc" ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Linkedin className="w-4 h-4" />
+          )}
+          {loadingProvider === "linkedin_oidc" ? t("auth.oauth_redirecting") : linkedinLabel}
+        </Button>
+      )}
     </div>
   );
 }
 
 export function SocialAuthDivider() {
   const { t } = useI18n();
+  if (oauthProvidersEnabled().length === 0) return null;
   return (
     <div className="relative my-5">
       <div className="absolute inset-0 flex items-center">

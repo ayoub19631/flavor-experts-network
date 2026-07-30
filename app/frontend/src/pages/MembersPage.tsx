@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,6 +10,8 @@ import {
   Linkedin,
   Star,
   Loader2,
+  MapPin,
+  Building2,
 } from "lucide-react";
 import { supabase, type Member } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
@@ -50,13 +51,15 @@ export default function MembersPage() {
       try {
         const { data, error } = await supabase
           .from("members")
-          .select("*")
+          .select(
+            "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, is_featured, title, company, location, bio, member_type, years_experience, website",
+          )
           .order("is_featured", { ascending: false })
           .order("joined_at", { ascending: false });
         if (error || !data) {
           setMembers([]);
         } else {
-          setMembers(data);
+          setMembers(data as Member[]);
         }
       } catch {
         setMembers([]);
@@ -72,7 +75,9 @@ export default function MembersPage() {
     return (
       (m.full_name || "").toLowerCase().includes(q) ||
       (m.role || "").toLowerCase().includes(q) ||
-      (m.specialty || "").toLowerCase().includes(q)
+      (m.specialty || "").toLowerCase().includes(q) ||
+      (m.company || "").toLowerCase().includes(q) ||
+      (m.location || "").toLowerCase().includes(q)
     );
   });
 
@@ -80,12 +85,15 @@ export default function MembersPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero */}
-      <section className="pt-28 pb-10 bg-gradient-to-br from-primary/5 via-background to-primary/5">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-28 pb-12 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src="/brand/section-community.jpg" alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.82)] via-[hsl(208_100%_10%/0.88)] to-background" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {t("general.back")}
@@ -93,17 +101,17 @@ export default function MembersPage() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Users className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-[hsl(47_23%_85%)]" />
                 </div>
-                <Badge className="bg-primary/10 text-primary border-0 px-3 py-1">
+                <Badge className="bg-white/10 text-[hsl(47_23%_85%)] border-0 px-3 py-1">
                   {t("members.badge")}
                 </Badge>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
                 {t("members.title")}
               </h1>
-              <p className="text-muted-foreground max-w-xl">
+              <p className="text-white/75 max-w-xl">
                 {t("members.desc")}
               </p>
             </div>
@@ -111,7 +119,6 @@ export default function MembersPage() {
         </div>
       </section>
 
-      {/* Search */}
       <section className="py-6 border-b border-border sticky top-16 bg-background/95 backdrop-blur z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative max-w-md">
@@ -126,7 +133,6 @@ export default function MembersPage() {
         </div>
       </section>
 
-      {/* Members Grid */}
       <section className="py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
@@ -138,6 +144,9 @@ export default function MembersPage() {
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="font-medium text-foreground mb-1">{t("members.empty")}</p>
               <p className="text-sm">{t("members.empty.desc")}</p>
+              <Button asChild className="mt-6">
+                <Link to="/auth">{t("profile.cta.join")}</Link>
+              </Button>
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
@@ -153,40 +162,36 @@ export default function MembersPage() {
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {filtered.map((member, i) => {
-                  // Parse specialty: "Specialty | Company | City"
-                  const parts = (member.specialty || "").split("|").map((s) => s.trim());
-                  const specLabel = parts[0] || "";
-                  const companyLabel = parts[1] || "";
-                  const cityLabel = parts[2] || "";
+                  const specialty = (member.specialty || "")
+                    .split(/[|,]/)
+                    .map((s) => s.trim())
+                    .filter(Boolean)[0];
                   return (
-                    <Card
+                    <Link
                       key={member.id}
-                      className="border border-border hover:border-primary/40 hover:shadow-lg transition-all duration-200 overflow-hidden group"
+                      to={`/members/${member.id}`}
+                      className="group rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all duration-200 overflow-hidden block"
                     >
-                      <CardContent className="p-5">
-                        {/* Avatar */}
+                      <div className="p-5">
                         <div className="flex items-start gap-3 mb-3">
                           {member.avatar_url ? (
                             <img
                               src={member.avatar_url}
                               alt={member.full_name}
                               className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-md"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                (e.currentTarget.nextSibling as HTMLElement)?.style.setProperty("display", "flex");
-                              }}
                             />
-                          ) : null}
-                          <div
-                            className={`w-12 h-12 rounded-xl bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} items-center justify-center flex-shrink-0 shadow-md ${member.avatar_url ? "hidden" : "flex"}`}
-                          >
-                            <span className="text-sm font-bold text-white">
-                              {getInitials(member.full_name)}
-                            </span>
-                          </div>
+                          ) : (
+                            <div
+                              className={`w-12 h-12 rounded-xl bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center flex-shrink-0 shadow-md`}
+                            >
+                              <span className="text-sm font-bold text-white">
+                                {getInitials(member.full_name)}
+                              </span>
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <h3 className="font-semibold text-foreground text-sm truncate">
+                              <h3 className="font-semibold text-foreground text-sm truncate group-hover:text-primary transition-colors">
                                 {member.full_name}
                               </h3>
                               {member.is_featured && (
@@ -194,51 +199,51 @@ export default function MembersPage() {
                               )}
                             </div>
                             <p className="text-xs text-primary font-medium truncate">
-                              {member.role}
+                              {member.title || member.role}
                             </p>
-                            {companyLabel && (
-                              <p className="text-xs text-muted-foreground truncate">{companyLabel}</p>
+                            {member.company && (
+                              <p className="text-xs text-muted-foreground truncate inline-flex items-center gap-1 mt-0.5">
+                                <Building2 className="w-3 h-3" />
+                                {member.company}
+                              </p>
                             )}
                           </div>
                         </div>
 
-                        {/* Specialty + Location */}
                         <div className="flex flex-wrap gap-1.5 mb-3">
-                          {specLabel && (
+                          {specialty && (
                             <Badge variant="secondary" className="text-xs font-normal">
-                              {specLabel}
+                              {specialty}
                             </Badge>
                           )}
-                          {cityLabel && (
-                            <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                              📍 {cityLabel}
+                          {member.location && (
+                            <Badge variant="outline" className="text-xs font-normal text-muted-foreground gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {member.location}
                             </Badge>
                           )}
                         </div>
 
-                        {/* Join Date */}
-                        <p className="text-xs text-muted-foreground mb-3">
-                          {t("members.joined")}{" "}
-                          {new Date(member.joined_at).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", {
-                            month: "short",
-                            year: "numeric",
-                          })}
+                        <p className="text-xs text-muted-foreground mb-3 line-clamp-2 min-h-[2.5rem]">
+                          {member.bio?.trim() ||
+                            `${t("members.joined")} ${new Date(member.joined_at).toLocaleDateString(
+                              lang === "ar" ? "ar-SA" : "en-US",
+                              { month: "short", year: "numeric" },
+                            )}`}
                         </p>
 
-                        {/* LinkedIn */}
-                        {member.linkedin_url && (
-                          <a
-                            href={member.linkedin_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs text-[#0a66c2] hover:underline"
-                          >
-                            <Linkedin className="w-3.5 h-3.5" />
-                            {t("members.linkedin")}
-                          </a>
-                        )}
-                      </CardContent>
-                    </Card>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-primary group-hover:underline">
+                            {t("members.view_profile")}
+                          </span>
+                          {member.linkedin_url && (
+                            <span className="inline-flex items-center gap-1 text-xs text-[#0a66c2]">
+                              <Linkedin className="w-3.5 h-3.5" />
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
                   );
                 })}
               </div>

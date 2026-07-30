@@ -1,10 +1,16 @@
 import { FlaskConical } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { PAYMENTS_LIVE } from "@/lib/site-config";
 
-/** Persistent top ribbon while the public site is in beta / payments off. */
+/** Shown only while payments are off and testing UI is not explicitly disabled. */
 export default function TestingModeBanner() {
   const { lang } = useI18n();
   const isAR = lang === "ar";
+  const show =
+    !PAYMENTS_LIVE &&
+    String(import.meta.env.VITE_SHOW_TESTING_UI || "false").toLowerCase() === "true";
+
+  if (!show) return null;
 
   return (
     <div

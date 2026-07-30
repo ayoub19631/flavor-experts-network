@@ -202,3 +202,55 @@ export interface Course {
   premium: boolean;
   created_at: string;
 }
+
+export type EmploymentType = "full_time" | "part_time" | "contract" | "remote" | "internship";
+export type ExperienceLevel = "entry" | "mid" | "senior" | "lead" | "executive";
+
+export interface JobListing {
+  id: string;
+  company_id: string;
+  title: string;
+  title_ar?: string | null;
+  description: string;
+  description_ar?: string | null;
+  company_name: string;
+  location?: string | null;
+  employment_type: EmploymentType;
+  experience_level: ExperienceLevel;
+  salary_range?: string | null;
+  apply_url?: string | null;
+  skills?: string[] | null;
+  is_published: boolean;
+  status: "open" | "closed" | "draft";
+  created_at: string;
+  updated_at?: string;
+  expires_at?: string | null;
+}
+
+export interface JobApplication {
+  id: string;
+  job_id: string;
+  applicant_id: string;
+  cover_letter?: string | null;
+  resume_url?: string | null;
+  status: "submitted" | "reviewed" | "rejected" | "accepted";
+  created_at: string;
+}
+
+export interface SocialPost {
+  id: string;
+  author_id: string;
+  body: string;
+  image_url?: string | null;
+  is_published: boolean;
+  is_hidden: boolean;
+  likes_count: number;
+  created_at: string;
+  updated_at?: string;
+  author?: ForumAuthor & {
+    role?: string | null;
+    company?: string | null;
+    account_type?: string | null;
+  };
+  liked_by_me?: boolean;
+}

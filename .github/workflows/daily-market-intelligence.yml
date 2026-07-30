@@ -1,0 +1,36 @@
+name: Daily Market Intelligence
+
+on:
+  schedule:
+    # 05:00 UTC daily (~09:00 UAE)
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curate industry news wire
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SUPABASE_FUNCTIONS_URL: https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET not configured in repo secrets — skipping"
+            exit 0
+          fi
+          curl -sf -X POST "$SUPABASE_FUNCTIONS_URL/curate-industry-news" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -d '{}'
+
+      - name: Publish daily market desk briefing
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SUPABASE_FUNCTIONS_URL: https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1
+        run: |
+          if [ -z "$CRON_SECRET" ]; then exit 0; fi
+          curl -sf -X POST "$SUPABASE_FUNCTIONS_URL/refresh-market-briefing" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -d '{}'

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
+import { SITE } from "@/lib/site-config";
 import { toast } from "sonner";
 
 export default function ContactSection() {
@@ -119,10 +120,10 @@ export default function ContactSection() {
                 <div>
                   <h4 className="font-semibold text-foreground mb-1">{t("contact.email")}</h4>
                   <a
-                    href="mailto:flavorexpertsnetwork@gmail.com"
+                    href={`mailto:${SITE.supportEmail}`}
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
-                    flavorexpertsnetwork@gmail.com
+                    {SITE.supportEmail}
                   </a>
                 </div>
               </CardContent>

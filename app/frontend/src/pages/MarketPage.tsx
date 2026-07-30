@@ -85,26 +85,30 @@ export default function MarketPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-24 pb-16">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
+      <section className="relative pt-24 pb-10 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src="/brand/section-market.jpg" alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.8)] via-[hsl(208_100%_10%/0.88)] to-background" />
+        </div>
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-6">
             <ArrowLeft className="w-4 h-4" />
             {isAR ? "العودة" : "Back"}
           </Link>
 
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <Badge className="bg-primary/10 text-primary border-0 mb-3">
+              <Badge className="bg-white/10 text-[hsl(47_23%_85%)] border-0 mb-3">
                 <TrendingUp className="w-3.5 h-3.5 me-1.5" />
                 {isAR ? "موجز السوق اليومي" : "Daily Market Desk"}
               </Badge>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-3xl font-bold text-white">
                 {isAR ? "سوق مواد النكهات الأولية" : "Flavor Raw Materials Market"}
               </h1>
-              <p className="text-muted-foreground mt-2 max-w-2xl">
+              <p className="text-white/75 mt-2 max-w-2xl">
                 {isAR
-                  ? "تحديث تلقائي كل 24 ساعة لمساعدة المتخصصين على متابعة اتجاهات الزيوت العطرية والفانيليا والمنثول والمواد الأولية."
-                  : "Auto-updated every 24 hours to help professionals track citrus oils, vanilla, menthol, and aroma feedstock trends."}
+                  ? "متابعة يومية لاتجاهات الزيوت العطرية والفانيليا والمنثول والمواد الأولية — يُحدَّث كل 24 ساعة."
+                  : "Daily tracking of citrus oils, vanilla, menthol, and aroma feedstock trends — refreshed every 24 hours."}
               </p>
             </div>
             {isAdmin && (
@@ -114,6 +118,10 @@ export default function MarketPage() {
               </Button>
             )}
           </div>
+        </div>
+      </section>
+      <main className="pb-16">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {loading ? (
             <div className="flex justify-center py-20">
@@ -131,8 +139,8 @@ export default function MarketPage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {isAR
-                    ? "سيظهر هنا بعد أول تشغيل يومي تلقائي، أو يمكن للمسؤول التحديث الآن."
-                    : "It will appear after the first daily cron run, or an admin can refresh now."}
+                    ? "يُنشر أول موجز بعد التحديث اليومي التالي، أو يمكن للمسؤول تشغيل التحديث الآن."
+                    : "The first briefing appears after the next daily refresh, or an admin can run an update now."}
                 </p>
               </CardContent>
             </Card>
@@ -144,7 +152,7 @@ export default function MarketPage() {
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span>{briefing.briefing_date}</span>
                     <span>·</span>
-                    <span>{isAR ? "تحديث تلقائي" : "Auto-generated"}</span>
+                    <span>{isAR ? "يُحدَّث يومياً" : "Updated daily"}</span>
                   </div>
                   <h2 className="text-2xl font-bold text-foreground">{title}</h2>
                   <p className="text-muted-foreground leading-relaxed">{summary}</p>

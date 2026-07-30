@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -9,21 +9,21 @@ import {
   TrendingUp,
   Leaf,
   Atom,
-  Database,
   Search,
   Newspaper,
+  Clock,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { fetchFromSupabase, type IndustryNews } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
-
-const EVENT_IMAGE =
-  "https://mgx-backend-cdn.metadl.com/generate/images/986354/2026-05-14/oqqj4fqaagnq/industry-networking-event.png";
 
 const iconMap: Record<string, typeof Atom> = {
   Innovation: Atom,
   Sustainability: Leaf,
   "Market Trends": TrendingUp,
+  "Market Briefing": TrendingUp,
   Regulatory: TrendingUp,
+  Research: Atom,
   Events: Calendar,
 };
 
@@ -35,6 +35,13 @@ interface NewsItem {
   date: string;
   image_url: string;
   source_url: string;
+  author?: string;
+}
+
+function newsHref(url: string): { to?: string; href?: string; external: boolean } {
+  if (!url) return { external: false };
+  if (url.startsWith("/")) return { to: url, external: false };
+  return { href: url, external: true };
 }
 
 function formatDate(dateStr: string): string {
@@ -63,7 +70,7 @@ export default function NewsSection() {
       const result = await fetchFromSupabase<IndustryNews>("industry_news", {
         orderBy: "published_at",
         ascending: false,
-        limit: 6,
+        limit: 8,
         filters: [{ column: "is_published", value: true }],
       });
 
@@ -84,6 +91,7 @@ export default function NewsSection() {
             date: formatDate(item.published_at || item.created_at),
             image_url: item.image_url || "",
             source_url: item.source_url || "",
+            author: item.author || "",
           }));
         setNewsItems(mapped);
         setDataSource("db");
@@ -107,23 +115,76 @@ export default function NewsSection() {
   const featured = list[0];
   const displayRest = list.slice(1, 4);
 
+  function NewsLink({
+    item,
+    className,
+    children,
+  }: {
+    item: NewsItem;
+    className?: string;
+    children: ReactNode;
+  }) {
+    const target = newsHref(item.source_url);
+    if (target.to) {
+      return (
+        <Link to={target.to} className={className}>
+          {children}
+        </Link>
+      );
+    }
+    return (
+      <a
+        href={target.href || "#"}
+        target={target.external ? "_blank" : undefined}
+        rel={target.external ? "noopener noreferrer" : undefined}
+        className={className}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
     <section id="news" className="py-20 bg-secondary/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative mb-12 overflow-hidden rounded-3xl">
+          <img
+            src="/brand/section-market.jpg"
+            alt=""
+            className="h-40 sm:h-52 w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[hsl(208_100%_10%/0.9)] via-[hsl(208_100%_10%/0.65)] to-[hsl(208_100%_10%/0.35)]" />
+          <div className="absolute inset-0 flex items-end p-6 sm:p-8">
+            <div>
+              <span className="inline-block text-xs font-semibold text-[hsl(47_23%_85%)] uppercase tracking-wider mb-2">
+                {t("news.tag")}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                {t("news.title")}
+              </h2>
+              <p className="text-white/80 max-w-2xl text-sm sm:text-base">
+                {t("news.desc")}
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="text-center mb-14">
-          <span className="inline-block text-sm font-semibold text-primary uppercase tracking-wider mb-2">
-            {t("news.tag")}
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            {t("news.title")}
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            {t("news.desc")}
-          </p>
           {!loading && dataSource === "db" && newsItems.length > 0 && (
-            <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-              <Database className="w-3 h-3" />
+            <div className="mt-3 inline-flex items-center gap-1.5 text-xs text-primary bg-primary/10 px-3 py-1 rounded-full">
+              <Clock className="w-3 h-3" />
               {t("news.live")}
+            </div>
+          )}
+
+          {!loading && newsItems.length > 0 && (
+            <div className="mt-4">
+              <Link
+                to="/market"
+                className="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1"
+              >
+                {t("news.view_market")}
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           )}
 
@@ -160,19 +221,20 @@ export default function NewsSection() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card className="overflow-hidden border border-border hover:shadow-xl transition-shadow duration-300 group">
-              <a
-                href={featured.source_url || "#"}
-                target={featured.source_url ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                className="block"
-              >
+              <NewsLink item={featured} className="block">
                 <div className="relative h-56 overflow-hidden">
-                  <img
-                    src={featured.image_url || EVENT_IMAGE}
-                    alt={featured.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
+                  {featured.image_url ? (
+                    <img
+                      src={featured.image_url}
+                      alt={featured.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-secondary flex items-center justify-center">
+                      <Newspaper className="w-12 h-12 text-primary/40" />
+                    </div>
+                  )}
                   <div className="absolute top-3 start-3">
                     <Badge className="bg-primary text-primary-foreground">
                       {featured.category}
@@ -183,6 +245,12 @@ export default function NewsSection() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                     <Calendar className="w-3.5 h-3.5" />
                     {featured.date}
+                    {featured.author ? (
+                      <>
+                        <span>·</span>
+                        <span>{featured.author}</span>
+                      </>
+                    ) : null}
                   </div>
                   <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                     {featured.title}
@@ -191,7 +259,7 @@ export default function NewsSection() {
                     {featured.summary}
                   </p>
                 </CardContent>
-              </a>
+              </NewsLink>
             </Card>
 
             <div className="flex flex-col gap-4">
@@ -202,12 +270,7 @@ export default function NewsSection() {
                     key={item.id ?? item.title}
                     className="border border-border hover:border-primary/30 hover:shadow-md transition-all duration-300 group"
                   >
-                    <a
-                      href={item.source_url || "#"}
-                      target={item.source_url ? "_blank" : undefined}
-                      rel="noopener noreferrer"
-                      className="block"
-                    >
+                    <NewsLink item={item} className="block">
                       <CardContent className="p-5 flex gap-4">
                         <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                           <IconComp className="w-5 h-5 text-primary" />
@@ -230,7 +293,7 @@ export default function NewsSection() {
                         </div>
                         <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-1" />
                       </CardContent>
-                    </a>
+                    </NewsLink>
                   </Card>
                 );
               })}

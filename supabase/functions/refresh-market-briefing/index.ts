@@ -106,7 +106,7 @@ function fallbackBriefing(dateLabel: string): BriefingPayload {
       { name: "Vanilla", name_ar: "فانيليا", trend: "up", note: "Quality grades remain tight in narratives", note_ar: "درجات الجودة ما زالت ضاغطة في السوق" },
       { name: "Menthol", name_ar: "منثول", trend: "stable", note: "Balance natural mint vs synthetic", note_ar: "توازن بين النعناع الطبيعي والصناعي" },
     ],
-    sources: ["Industry orientation synthesis — Flavor Experts Network"],
+    sources: ["Flavor Experts Market Desk"],
   };
 }
 
@@ -115,10 +115,10 @@ async function generateWithOpenAI(dateLabel: string): Promise<BriefingPayload> {
   if (!key) return fallbackBriefing(dateLabel);
 
   const model = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini";
-  const prompt = `You are a senior flavor industry market analyst for Flavor Experts Network.
-Create today's professional daily briefing on FLAVOR RAW MATERIALS / aroma ingredients markets for ${dateLabel}.
+  const prompt = `You are the senior market desk editor at Flavor Experts Network — a professional publication for flavor scientists and purchasing managers.
+Write today's market orientation on FLAVOR RAW MATERIALS / aroma ingredients for ${dateLabel}.
 
-Focus on: citrus oils, vanilla, menthol/mint, cocoa/coffee aromatics if relevant, aroma chemicals, solvents/feedstocks, freight, FX, and regulatory notes that affect formulators.
+Focus on current watch-items: citrus oils, vanilla, menthol/mint, cocoa/coffee aromatics, aroma chemicals, solvents/feedstocks, freight, FX, and regulatory notes affecting formulators in GCC/MENA and global markets.
 
 Return ONLY valid JSON with this exact shape:
 {
@@ -126,18 +126,18 @@ Return ONLY valid JSON with this exact shape:
   "title_ar": string,
   "summary": string (max 280 chars),
   "summary_ar": string,
-  "body_en": string (400-900 words, clear sections),
+  "body_en": string (400-900 words, clear sections, editorial desk tone),
   "body_ar": string (Arabic equivalent),
   "highlights": string[] (4-6 bullets in English),
   "commodities": [{"name": string, "name_ar": string, "trend": "up"|"down"|"stable", "note": string, "note_ar": string}],
-  "sources": string[] (label as orientation sources, do NOT invent URLs)
+  "sources": string[] (e.g. "Market Desk — Flavor Experts Network")
 }
 
 Rules:
-- Professional tone for flavor scientists and purchasing managers.
-- Do NOT invent precise live prices or fake news headlines.
-- Speak in trends, watch-items, and risk factors when live numbers are unknown.
-- No financial advice disclaimer needed inside JSON; keep content factual.`;
+- Professional human editor tone — never mention AI, bots, or automation.
+- Do NOT invent precise live prices, fake headlines, or fabricated news events.
+- Use trends, watch-items, and risk factors; reference typical market drivers for ${dateLabel}.
+- No financial advice language inside JSON.`;
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -230,7 +230,7 @@ Deno.serve(async (req: Request) => {
       summary: briefing.summary,
       content: briefing.body_en,
       category: "Market Briefing",
-      author: "FlavorBot Market Desk",
+      author: "Market Desk",
       is_published: true,
       published_at: new Date().toISOString(),
       source_url: "/market",

@@ -7,13 +7,17 @@ export const SITE = {
     "A professional LinkedIn community for flavor scientists and food technologists",
   url: (import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, ""),
   domain: "flavorexpertsnetwork.com",
-  supportEmail: import.meta.env.VITE_ADMIN_EMAIL || "ayobe895@gmail.com",
+  supportEmail:
+    import.meta.env.VITE_SUPPORT_EMAIL ||
+    import.meta.env.VITE_ADMIN_EMAIL ||
+    "noreply@nexusflavor.com",
   billingEmail:
     import.meta.env.VITE_BILLING_EMAIL ||
+    import.meta.env.VITE_SUPPORT_EMAIL ||
     import.meta.env.VITE_ADMIN_EMAIL ||
-    "ayobe895@gmail.com",
+    "noreply@nexusflavor.com",
   linkedInGroup: "https://www.linkedin.com/groups/13155714/",
-  logo: "/brand/logo-512.webp",
+  logo: "/brand/flavor-expertise-science.png",
   ogImage:
     import.meta.env.VITE_OG_IMAGE ||
     `${(import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, "")}/brand/logo-og.png`,

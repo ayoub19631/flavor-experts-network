@@ -86,17 +86,27 @@ export default function AboutSection() {
   return (
     <section id="about" className="py-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <span className="inline-block text-sm font-semibold text-primary uppercase tracking-wider mb-2">
-            {t("about.tag")}
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            {t("about.title")}
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            {t("about.desc")}
-          </p>
+        {/* Visual anchor */}
+        <div className="relative mb-14 overflow-hidden rounded-3xl">
+          <img
+            src="/brand/section-community.jpg"
+            alt=""
+            className="h-48 sm:h-64 w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[hsl(208_100%_10%/0.88)] via-[hsl(208_100%_10%/0.55)] to-transparent" />
+          <div className="absolute inset-0 flex items-end p-6 sm:p-10">
+            <div className="max-w-xl">
+              <span className="inline-block text-xs font-semibold text-[hsl(47_23%_85%)] uppercase tracking-wider mb-2">
+                {t("about.tag")}
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                {t("about.title")}
+              </h2>
+              <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+                {t("about.desc")}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Highlights Grid */}
