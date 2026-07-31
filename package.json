@@ -1,0 +1,18 @@
+{
+  "name": "flavor-experts-network",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Flavor Experts Network — web platform with mobile apps (Capacitor) and desktop app (Electron)",
+  "scripts": {
+    "dev": "pnpm -C app/frontend dev",
+    "build": "pnpm -C app/frontend build",
+    "preview": "pnpm -C app/frontend preview",
+    "test": "pnpm -C app/frontend test",
+    "typecheck": "pnpm -C app/frontend typecheck",
+    "lint": "pnpm -C app/frontend lint",
+    "cap:sync": "pnpm -C app/frontend build && pnpm -C app/frontend exec cap sync",
+    "cap:android": "pnpm -C app/frontend exec cap open android",
+    "cap:ios": "pnpm -C app/frontend exec cap open ios",
+    "assets:generate": "pnpm -C app/frontend exec capacitor-assets generate"
+  }
+}
