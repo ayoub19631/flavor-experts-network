@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase, type Member } from "@/lib/supabase";
+import { safeHttpUrl } from "@/lib/url";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
@@ -47,7 +48,7 @@ export default function MemberProfilePage() {
       }
       setLoading(true);
       const { data, error } = await supabase
-        .from("members")
+        .from("member_directory")
         .select(
           "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, is_featured, title, company, location, bio, member_type, years_experience, website",
         )
@@ -91,6 +92,9 @@ export default function MemberProfilePage() {
       })
     : null;
 
+  const linkedinHref = safeHttpUrl(member?.linkedin_url);
+  const websiteHref = safeHttpUrl(member?.website);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -98,7 +102,7 @@ export default function MemberProfilePage() {
       <section className="relative pt-20">
         <div className="absolute inset-x-0 top-0 h-56 sm:h-64 overflow-hidden">
           <img
-            src="/brand/hero-flavor-lab.png"
+            src="/brand/hero-flavor-lab.webp"
             alt=""
             className="h-full w-full object-cover"
           />
@@ -194,17 +198,17 @@ export default function MemberProfilePage() {
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-2">
-                    {member.linkedin_url && (
+                    {linkedinHref && (
                       <Button asChild size="sm" className="gap-1.5 bg-[#0a66c2] hover:bg-[#004182]">
-                        <a href={member.linkedin_url} target="_blank" rel="noopener noreferrer">
+                        <a href={linkedinHref} target="_blank" rel="noopener noreferrer">
                           <Linkedin className="w-4 h-4" />
                           {t("members.linkedin")}
                         </a>
                       </Button>
                     )}
-                    {member.website && (
+                    {websiteHref && (
                       <Button asChild size="sm" variant="outline" className="gap-1.5">
-                        <a href={member.website} target="_blank" rel="noopener noreferrer">
+                        <a href={websiteHref} target="_blank" rel="noopener noreferrer">
                           <Globe className="w-4 h-4" />
                           {t("profile.website")}
                           <ExternalLink className="w-3 h-3 opacity-60" />
@@ -265,7 +269,7 @@ export default function MemberProfilePage() {
 
                   <div className="rounded-2xl border border-border bg-card p-6 overflow-hidden relative">
                     <img
-                      src="/brand/section-market.jpg"
+                      src="/brand/section-market.webp"
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover opacity-20"
                     />

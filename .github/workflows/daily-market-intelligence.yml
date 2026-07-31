@@ -10,14 +10,15 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
+      # Fail loudly on misconfiguration: a silently-skipped cron means stale market data.
       - name: Curate industry news wire
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           SUPABASE_FUNCTIONS_URL: https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "CRON_SECRET not configured in repo secrets — skipping"
-            exit 0
+            echo "::error::CRON_SECRET is not configured in repository secrets — market curation cannot run."
+            exit 1
           fi
           curl -sf -X POST "$SUPABASE_FUNCTIONS_URL/curate-industry-news" \
             -H "Content-Type: application/json" \
@@ -29,7 +30,10 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           SUPABASE_FUNCTIONS_URL: https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1
         run: |
-          if [ -z "$CRON_SECRET" ]; then exit 0; fi
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET is not configured in repository secrets — market briefing cannot run."
+            exit 1
+          fi
           curl -sf -X POST "$SUPABASE_FUNCTIONS_URL/refresh-market-briefing" \
             -H "Content-Type: application/json" \
             -H "x-cron-secret: $CRON_SECRET" \

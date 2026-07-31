@@ -206,15 +206,22 @@ function hookSecret(): string {
   return raw;
 }
 
+function isProduction(): boolean {
+  return siteUrl().includes("flavorexpertsnetwork.com");
+}
+
 async function verifyHook(req: Request, body: string): Promise<boolean> {
   const secret = hookSecret();
   if (!secret) {
-    // Secret not configured yet — keep mail flowing, but log loudly.
-    // Set SEND_EMAIL_HOOK_SECRET from Dashboard → Authentication → Hooks to enforce signatures.
-    console.warn(
-      "SEND_EMAIL_HOOK_SECRET missing: auth-email-hook is accepting unsigned requests. Configure the Auth Send Email hook secret.",
-    );
-    return Deno.env.get("ALLOW_UNSIGNED_AUTH_HOOK") !== "false";
+    // Fail closed in production: unsigned requests are only tolerated when
+    // explicitly opted-in for local development.
+    const allowUnsigned = Deno.env.get("ALLOW_UNSIGNED_AUTH_HOOK") === "true" && !isProduction();
+    if (!allowUnsigned) {
+      console.error(
+        "SEND_EMAIL_HOOK_SECRET missing: rejecting unsigned auth hook request. Configure the Auth Send Email hook secret.",
+      );
+    }
+    return allowUnsigned;
   }
   try {
     const wh = new Webhook(secret);
@@ -285,11 +292,31 @@ Deno.serve(async (req: Request) => {
     }
 
     const { token, token_hash, redirect_to, email_action_type } = payload.email_data;
+
+    // Only allow redirects back to our own site (open-redirect protection).
+    const safeRedirect = (() => {
+      const fallback = `${siteUrl()}/auth/callback`;
+      if (!redirect_to) return fallback;
+      try {
+        const u = new URL(redirect_to);
+        const allowed = new Set([new URL(siteUrl()).origin]);
+        if (Deno.env.get("ALLOW_LOCAL_REDIRECTS") === "true") {
+          allowed.add("http://127.0.0.1:5173");
+          allowed.add("http://localhost:5173");
+          allowed.add("http://127.0.0.1:3001");
+          allowed.add("http://localhost:3001");
+        }
+        return allowed.has(u.origin) ? redirect_to : fallback;
+      } catch {
+        return fallback;
+      }
+    })();
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const confirmUrl =
       `${supabaseUrl}/auth/v1/verify?token=${encodeURIComponent(token_hash)}` +
       `&type=${encodeURIComponent(email_action_type)}` +
-      `&redirect_to=${encodeURIComponent(redirect_to || siteUrl() + "/auth/callback")}`;
+      `&redirect_to=${encodeURIComponent(safeRedirect)}`;
 
     const lang = detectLang(payload.user, redirect_to || "");
     const name =

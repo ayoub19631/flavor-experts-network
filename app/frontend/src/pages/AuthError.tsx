@@ -3,11 +3,18 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
+import { usePageMeta } from '@/hooks/use-page-meta';
 import { isOAuthConfiguredError } from '@/lib/oauth';
 
 export default function AuthErrorPage() {
   const [searchParams] = useSearchParams();
   const { t } = useI18n();
+  usePageMeta({
+    title: 'Authentication error',
+    description: 'Something went wrong during sign-in.',
+    path: '/auth/error',
+    noIndex: true,
+  });
   const [countdown, setCountdown] = useState(8);
   const rawMessage =
     searchParams.get('msg') ||

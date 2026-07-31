@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
@@ -16,7 +16,7 @@ export default function HeroSection() {
       {/* Full-bleed brand photograph */}
       <div className="absolute inset-0">
         <img
-          src="/brand/hero-flavor-lab.png"
+          src="/brand/hero-flavor-lab.webp"
           alt=""
           className="h-full w-full object-cover scale-105 animate-[fadeIn_1.2s_ease-out]"
           fetchPriority="high"

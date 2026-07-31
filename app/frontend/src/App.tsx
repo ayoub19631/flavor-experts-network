@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/sonner";
+﻿import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -56,7 +56,7 @@ const PlatformAccessChat = () => {
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-[hsl(208_100%_10%)] relative overflow-hidden">
     <img
-      src="/brand/hero-flavor-lab.png"
+      src="/brand/hero-flavor-lab.webp"
       alt=""
       className="absolute inset-0 h-full w-full object-cover opacity-35"
     />

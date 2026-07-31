@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowUpRight, ArrowDownRight, Minus, Loader2, RefreshCw, Tre
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import { usePageMeta } from "@/hooks/use-page-meta";
 
 type Commodity = {
   name: string;
@@ -42,6 +43,14 @@ export default function MarketPage() {
   const { lang } = useI18n();
   const { isAdmin } = useAuth();
   const isAR = lang === "ar";
+
+  usePageMeta({
+    title: isAR ? "إحاطة السوق" : "Market Briefing",
+    description: isAR
+      ? "موجز يومي لأسواق النكهات والمكونات — أسعار واتجاهات وتنظيمات."
+      : "Daily flavor & ingredient market intelligence — prices, trends and regulations.",
+    path: "/market",
+  });
   const [briefing, setBriefing] = useState<MarketBriefing | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -87,7 +96,7 @@ export default function MarketPage() {
       <Navbar />
       <section className="relative pt-24 pb-10 overflow-hidden">
         <div className="absolute inset-0">
-          <img src="/brand/section-market.jpg" alt="" className="h-full w-full object-cover" />
+          <img src="/brand/section-market.webp" alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.8)] via-[hsl(208_100%_10%/0.88)] to-background" />
         </div>
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

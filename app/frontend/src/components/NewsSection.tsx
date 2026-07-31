@@ -1,4 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
+﻿import { useState, useEffect, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -149,7 +149,7 @@ export default function NewsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative mb-12 overflow-hidden rounded-3xl">
           <img
-            src="/brand/section-market.jpg"
+            src="/brand/section-market.webp"
             alt=""
             className="h-40 sm:h-52 w-full object-cover"
           />

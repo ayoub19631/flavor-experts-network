@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, Globe, Lightbulb, Award, Linkedin, Upload, User, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -89,7 +89,7 @@ export default function AboutSection() {
         {/* Visual anchor */}
         <div className="relative mb-14 overflow-hidden rounded-3xl">
           <img
-            src="/brand/section-community.jpg"
+            src="/brand/section-community.webp"
             alt=""
             className="h-48 sm:h-64 w-full object-cover"
           />

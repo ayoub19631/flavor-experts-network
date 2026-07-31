@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import PaymentModal, { CURRENCIES, convertPrice } from "@/components/PaymentModal";
@@ -82,6 +83,15 @@ export default function PricingPage() {
   const { user, profile, isEmailVerified } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+
+  usePageMeta({
+    title: lang === "ar" ? "الخطط والأسعار" : "Plans & Pricing",
+    description:
+      lang === "ar"
+        ? "خطط العضوية: مجاني، احترافي، ومؤسسي لخبراء النكهات."
+        : "Membership plans: Free, Professional, and Enterprise for flavor experts.",
+    path: "/pricing",
+  });
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);

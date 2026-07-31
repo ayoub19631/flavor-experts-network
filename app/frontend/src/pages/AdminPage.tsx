@@ -24,6 +24,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import type { IndustryNews, EducationalResource, ContactMessage, EnterpriseRequest, Member } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import { SITE } from "@/lib/site-config";
 import { FileUploader, AvatarUploader } from "@/components/ui/file-uploader";
@@ -94,6 +95,12 @@ function StatsCard({ icon: Icon, label, value, color, badge }: { icon: React.Ele
 export default function AdminPage() {
   const { user, profile, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  usePageMeta({
+    title: "Admin",
+    description: "Platform administration.",
+    path: "/admin",
+    noIndex: true,
+  });
   const [lang, setLang] = useState<"ar" | "en">("ar");
 
   // ── Data State ─────────────────────────────────────────────────────────────

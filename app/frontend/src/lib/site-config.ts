@@ -1,4 +1,4 @@
-/** Central branding & contact configuration */
+﻿/** Central branding & contact configuration */
 export const SITE = {
   name: import.meta.env.VITE_APP_TITLE || "Flavor Experts Network",
   tagline: "Flavor Expertise & Science",
@@ -17,10 +17,10 @@ export const SITE = {
     import.meta.env.VITE_ADMIN_EMAIL ||
     "noreply@nexusflavor.com",
   linkedInGroup: "https://www.linkedin.com/groups/13155714/",
-  logo: "/brand/flavor-expertise-science.png",
+  logo: "/brand/flavor-expertise-science.webp",
   ogImage:
     import.meta.env.VITE_OG_IMAGE ||
-    `${(import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, "")}/brand/logo-og.png`,
+    `${(import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, "")}/brand/logo-og.jpg`,
 } as const;
 
 export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";

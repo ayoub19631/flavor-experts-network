@@ -33,6 +33,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
+import { safeHttpUrl } from "@/lib/url";
 import type { EmploymentType, ExperienceLevel, JobListing } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -146,7 +147,7 @@ export default function JobsPage() {
       employment_type: form.employment_type,
       experience_level: form.experience_level,
       salary_range: form.salary_range.trim() || null,
-      apply_url: form.apply_url.trim() || null,
+      apply_url: form.apply_url.trim() ? safeHttpUrl(form.apply_url) : null,
       skills,
       is_published: true,
       status: "open",
@@ -496,9 +497,9 @@ export default function JobsPage() {
                   <div className="whitespace-pre-wrap text-sm text-muted-foreground leading-relaxed">
                     {selected.description}
                   </div>
-                  {selected.apply_url ? (
+                  {selected.apply_url && safeHttpUrl(selected.apply_url) ? (
                     <Button asChild className="w-full gap-2">
-                      <a href={selected.apply_url} target="_blank" rel="noopener noreferrer">
+                      <a href={safeHttpUrl(selected.apply_url)!} target="_blank" rel="noopener noreferrer">
                         <Sparkles className="w-4 h-4" />
                         {t("jobs.apply.external")}
                       </a>

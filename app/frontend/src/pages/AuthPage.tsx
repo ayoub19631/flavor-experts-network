@@ -17,6 +17,7 @@ import BrandLogo from "@/components/BrandLogo";
 import { SITE } from "@/lib/site-config";
 import { useAuth, EMAIL_NOT_CONFIRMED_CODE } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { getAuthRedirectUrl, rememberPendingVerificationEmail } from "@/lib/auth-utils";
@@ -42,6 +43,12 @@ const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"];
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
+  usePageMeta({
+    title: "Sign in",
+    description: "Sign in or create your Flavor Experts Network account.",
+    path: "/auth",
+    noIndex: true,
+  });
   const initialMode = (searchParams.get("mode") as AuthMode) || "login";
   const initialType = (searchParams.get("type") as AccountType) || "individual";
 

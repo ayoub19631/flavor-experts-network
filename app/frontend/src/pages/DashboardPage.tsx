@@ -23,6 +23,8 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { openResourceLink } from "@/lib/resources";
 import { enrichSocialPosts } from "@/lib/social";
+import { safeHttpUrl } from "@/lib/url";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import type { SocialPost } from "@/lib/types";
 import Navbar from "@/components/Navbar";
 import { AvatarUploader } from "@/components/ui/file-uploader";
@@ -104,6 +106,17 @@ export default function DashboardPage() {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
 
+  // Private workspace page — never index.
+  usePageMeta({
+    title: lang === "ar" ? "لوحة التحكم" : "Dashboard",
+    description:
+      lang === "ar"
+        ? "أدر ملفك ومنشوراتك ومواردك وعضويتك."
+        : "Manage your profile, posts, resources and membership.",
+    path: "/dashboard",
+    noIndex: true,
+  });
+
   const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "posts" | "security" | "subscription">("overview");
   const [myPosts, setMyPosts] = useState<SocialPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
@@ -127,7 +140,7 @@ export default function DashboardPage() {
         supabase.from("educational_resources").select("id,title,category,type,description,link").eq("premium", true).eq("is_published", true).limit(4),
         supabase.from("educational_resources").select("id,title,description,link,created_at,premium").eq("type", "webinar").eq("is_published", true).order("created_at", { ascending: false }).limit(3),
         supabase.from("industry_news").select("id", { count: "exact", head: true }).eq("is_published", true),
-        supabase.from("members").select("id", { count: "exact", head: true }),
+        supabase.from("member_directory").select("id", { count: "exact", head: true }),
         supabase.from("resource_secure_links").select("resource_id,url"),
       ]);
 
@@ -372,7 +385,7 @@ export default function DashboardPage() {
     { icon: User, label: lang === "ar" ? "الملف مكتمل" : "Profile Complete", earned: !!(extProfile.role && extProfile.company), color: "text-blue-500" },
     { icon: Crown, label: lang === "ar" ? "عضو مميز" : "Premium Member", earned: localIsPremium, color: "text-primary" },
     { icon: Star, label: lang === "ar" ? "مؤسسي" : "Enterprise", earned: isEnt, color: "text-purple-500" },
-    { icon: Award, label: lang === "ar" ? "من المبكرين" : "Early Adopter", earned: true, color: "text-primary" },
+    { icon: Award, label: lang === "ar" ? "من المبكرين" : "Early Adopter", earned: new Date(user.created_at ?? Date.now()) < new Date("2026-08-01"), color: "text-primary" },
   ];
 
   const PREMIUM_FEATURES = [
@@ -703,8 +716,12 @@ export default function DashboardPage() {
                       <p className="text-white/80 text-sm max-w-lg">{lang === "ar" ? "لديك وصول كامل لجميع الموارد البحثية والندوات الحصرية وتقارير الصناعة" : "You have full access to all research papers, exclusive webinars, and industry reports"}</p>
                       <div className="flex gap-3 mt-4 flex-wrap">
                         <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">{lang === "ar" ? "موارد بحثية مميزة" : "Premium research resources"}</div>
-                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">50+ {lang === "ar" ? "ندوة" : "Webinars"}</div>
-                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">12 {lang === "ar" ? "تقرير شهري" : "Monthly Reports"}</div>
+                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">
+                          {premiumResources.length} {lang === "ar" ? "مورداً في مكتبتك" : "library resources"}
+                        </div>
+                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">
+                          {upcomingWebinars.length} {lang === "ar" ? "ندوات مجدولة" : "scheduled webinars"}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -810,8 +827,8 @@ export default function DashboardPage() {
                               <p className="text-xs text-muted-foreground mt-0.5">{wb.date}</p>
                               {wb.description && <p className="text-xs text-purple-600 mt-0.5">{wb.description}</p>}
                             </div>
-                            {wb.link ? (
-                              <a href={wb.link} target="_blank" rel="noopener noreferrer">
+                            {wb.link && safeHttpUrl(wb.link) ? (
+                              <a href={safeHttpUrl(wb.link)!} target="_blank" rel="noopener noreferrer">
                                 <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white text-xs">
                                   {lang === "ar" ? "سجّل" : "Join"}
                                 </Button>
@@ -831,11 +848,11 @@ export default function DashboardPage() {
                   {isEnt && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {[
-                        { icon: Newspaper, title: lang === "ar" ? "إدارة الإعلانات" : "Manage Ads", desc: lang === "ar" ? "3 إعلانات نشطة شهرياً" : "3 active ads monthly", color: "border-blue-200 bg-blue-50/50 dark:bg-blue-900/10", iconColor: "text-blue-600 bg-blue-100 dark:bg-blue-900/30", cta: lang === "ar" ? "إضافة إعلان" : "Add Ad" },
-                        { icon: FileText, title: lang === "ar" ? "نشر مقالات" : "Publish Articles", desc: lang === "ar" ? "نشر غير محدود على الموقع" : "Unlimited articles on platform", color: "border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10", iconColor: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30", cta: lang === "ar" ? "كتابة مقال" : "Write Article" },
-                        { icon: Layers, title: lang === "ar" ? "شعار الشركة" : "Brand Placement", desc: lang === "ar" ? "شعارك في صفحة الشركاء" : "Logo in Partners section", color: "border-purple-200 bg-purple-50/50 dark:bg-purple-900/10", iconColor: "text-purple-600 bg-purple-100 dark:bg-purple-900/30", cta: lang === "ar" ? "رفع الشعار" : "Upload Logo" },
-                        { icon: BarChart, title: lang === "ar" ? "تقارير الأداء" : "Performance Reports", desc: lang === "ar" ? "تحليلات شهرية مفصلة" : "Monthly detailed analytics", color: "border-primary/30 bg-secondary/50 dark:bg-primary/10", iconColor: "text-primary bg-primary/10 dark:bg-primary/20", cta: lang === "ar" ? "عرض التقرير" : "View Report" },
-                      ].map(({ icon: Icon, title, desc, color, iconColor, cta }) => (
+                        { icon: Newspaper, title: lang === "ar" ? "إدارة الإعلانات" : "Manage Ads", desc: lang === "ar" ? "3 إعلانات نشطة شهرياً" : "3 active ads monthly", color: "border-blue-200 bg-blue-50/50 dark:bg-blue-900/10", iconColor: "text-blue-600 bg-blue-100 dark:bg-blue-900/30", cta: lang === "ar" ? "إضافة إعلان" : "Add Ad", href: "/contact?type=enterprise" },
+                        { icon: FileText, title: lang === "ar" ? "نشر مقالات" : "Publish Articles", desc: lang === "ar" ? "نشر غير محدود على الموقع" : "Unlimited articles on platform", color: "border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10", iconColor: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30", cta: lang === "ar" ? "كتابة مقال" : "Write Article", href: "/contact?type=enterprise&subject=article" },
+                        { icon: Layers, title: lang === "ar" ? "شعار الشركة" : "Brand Placement", desc: lang === "ar" ? "شعارك في صفحة الشركاء" : "Logo in Partners section", color: "border-purple-200 bg-purple-50/50 dark:bg-purple-900/10", iconColor: "text-purple-600 bg-purple-100 dark:bg-purple-900/30", cta: lang === "ar" ? "رفع الشعار" : "Upload Logo", href: "/contact?type=enterprise&subject=brand" },
+                        { icon: BarChart, title: lang === "ar" ? "تقارير الأداء" : "Performance Reports", desc: lang === "ar" ? "تحليلات شهرية مفصلة" : "Monthly detailed analytics", color: "border-primary/30 bg-secondary/50 dark:bg-primary/10", iconColor: "text-primary bg-primary/10 dark:bg-primary/20", cta: lang === "ar" ? "عرض التقرير" : "View Report", href: "/contact?type=enterprise&subject=report" },
+                      ].map(({ icon: Icon, title, desc, color, iconColor, cta, href }) => (
                         <Card key={title} className={`border ${color}`}>
                           <CardContent className="p-4 flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColor}`}>
@@ -845,7 +862,9 @@ export default function DashboardPage() {
                               <p className="font-semibold text-foreground text-sm">{title}</p>
                               <p className="text-xs text-muted-foreground">{desc}</p>
                             </div>
-                            <Button size="sm" variant="outline" className="text-xs whitespace-nowrap">{cta}</Button>
+                            <Button size="sm" variant="outline" className="text-xs whitespace-nowrap" asChild>
+                              <Link to={href}>{cta}</Link>
+                            </Button>
                           </CardContent>
                         </Card>
                       ))}
@@ -1100,11 +1119,11 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Button variant="outline" size="sm" onClick={async () => {
-                        if (!user?.email) return;
+                        if (!user?.id) return;
                         const { data } = await supabase
-                          .from("members")
+                          .from("member_directory")
                           .select("id")
-                          .eq("email", user.email.toLowerCase())
+                          .eq("profile_id", user.id)
                           .maybeSingle();
                         if (data?.id) window.open(`/members/${data.id}`, "_blank");
                         else window.open("/members", "_blank");
@@ -1234,9 +1253,9 @@ export default function DashboardPage() {
                             <div key={label} className="flex items-center gap-2 text-sm">
                               <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                               <span className="text-muted-foreground w-20 flex-shrink-0 text-xs">{label}</span>
-                              {isLink ? (
-                                <a href={value} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs truncate flex items-center gap-1">
-                                  {value.replace("https://", "").substring(0, 30)}... <ExternalLink className="w-3 h-3 inline" />
+                              {isLink && safeHttpUrl(value) ? (
+                                <a href={safeHttpUrl(value)!} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-xs truncate flex items-center gap-1">
+                                  {value.replace(/^https?:\/\//, "").substring(0, 30)}... <ExternalLink className="w-3 h-3 inline" />
                                 </a>
                               ) : (
                                 <span className="text-foreground text-xs font-medium">{value}</span>

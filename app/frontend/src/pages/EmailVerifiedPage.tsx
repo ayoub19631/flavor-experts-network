@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, FlaskConical, ArrowRight, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { isEmailVerified } from "@/lib/auth-utils";
 
 const REDIRECT_SECONDS = 5;
@@ -13,6 +14,12 @@ export default function EmailVerifiedPage() {
   const { user } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  usePageMeta({
+    title: "Email verified",
+    description: "Your email address has been confirmed.",
+    path: "/email-verified",
+    noIndex: true,
+  });
   const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
 
   useEffect(() => {

@@ -13,6 +13,7 @@ import {
   Loader2, Shield, KeyRound,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -42,6 +43,12 @@ const RESEND_COOLDOWN = 60;
 export default function EmailVerificationPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  usePageMeta({
+    title: "Verify your email",
+    description: "Confirm your email address to activate your account.",
+    path: "/verify-email",
+    noIndex: true,
+  });
 
   const params = new URLSearchParams(window.location.search);
   const email = params.get("email") || localStorage.getItem("fen-verify-email") || "";
@@ -84,14 +91,14 @@ export default function EmailVerificationPage() {
       if (session?.user?.email_confirmed_at) {
         hasAutoVerified.current = true;
         localStorage.removeItem("fen-verify-email");
-        toast.success("Email verified successfully!");
+        toast.success(t("verify.success"));
         navigate("/email-verified");
         return true;
       }
     } catch { /* silent */ }
     setChecking(false);
     return false;
-  }, [navigate]);
+  }, [navigate, t]);
 
   useEffect(() => {
     const interval = setInterval(checkVerification, 6000);
@@ -103,12 +110,12 @@ export default function EmailVerificationPage() {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session?.user?.email_confirmed_at) {
         localStorage.removeItem("fen-verify-email");
-        toast.success("Email verified successfully!");
+        toast.success(t("verify.success"));
         navigate("/email-verified");
       }
     });
     return () => listener.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, t]);
 
   // ── OTP Verify ───────────────────────────────────────────────────────────────
   async function handleVerifyOtp(code: string) {
@@ -130,9 +137,9 @@ export default function EmailVerificationPage() {
         const msg = error.message.toLowerCase();
         setOtpError(
           msg.includes("expired")
-            ? "Code expired — please request a new one."
+            ? t("verify.expired")
             : msg.includes("invalid") || msg.includes("otp")
-            ? "Invalid code. Double-check and try again."
+            ? t("verify.invalid")
             : error.message
         );
         setOtp("");
@@ -140,11 +147,11 @@ export default function EmailVerificationPage() {
         setVerified(true);
         hasAutoVerified.current = true;
         localStorage.removeItem("fen-verify-email");
-        toast.success("Email verified successfully!");
+        toast.success(t("verify.success"));
         setTimeout(() => navigate("/email-verified"), 900);
       }
     } catch {
-      setOtpError("Verification failed. Please try again.");
+      setOtpError(t("verify.failed"));
       setOtp("");
     } finally {
       setVerifying(false);
@@ -167,10 +174,10 @@ export default function EmailVerificationPage() {
         setResent(true);
         setResendCount((c) => c + 1);
         setCooldown(RESEND_COOLDOWN);
-        toast.success("New verification code sent! Check your inbox.");
+        toast.success(t("verify.resent"));
       }
     } catch {
-      setOtpError("Failed to resend. Please try again.");
+      setOtpError(t("verify.resend_failed"));
     } finally {
       setResending(false);
     }
@@ -267,20 +274,20 @@ export default function EmailVerificationPage() {
                   </div>
 
                   {verifying && (
-                    <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground" role="status">
                       <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      Verifying your code…
+                      {t("verify.verifying")}
                     </div>
                   )}
                   {otpError && (
-                    <div className="flex items-center gap-2 mt-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
+                    <div role="alert" className="flex items-center gap-2 mt-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />{otpError}
                     </div>
                   )}
                   {resent && !otpError && (
-                    <div className="flex items-center gap-2 mt-3 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 rounded-lg">
+                    <div role="status" className="flex items-center gap-2 mt-3 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 rounded-lg">
                       <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                      New code sent! Check your inbox.
+                      {t("verify.code_sent")}
                       {resendCount > 1 && <span className="ml-auto text-xs opacity-60">×{resendCount}</span>}
                     </div>
                   )}
@@ -290,15 +297,14 @@ export default function EmailVerificationPage() {
                 <div className="flex items-start gap-2.5 bg-amber-50 dark:bg-amber-900/15 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-5">
                   <Shield className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
-                    The code expires in <strong>60 minutes</strong>. Never share it with anyone.
-                    Check spam if you didn't receive it.
+                    {t("verify.expiry_note")}
                   </p>
                 </div>
 
                 {/* Open email shortcuts */}
                 <div className="mb-5">
                   <p className="text-xs text-center text-muted-foreground mb-2 font-medium uppercase tracking-wider">
-                    Open your email app
+                    {t("verify.open_email_app")}
                   </p>
                   <div className="grid grid-cols-3 gap-2">
                     {EMAIL_PROVIDERS.map((p) => (
@@ -324,7 +330,7 @@ export default function EmailVerificationPage() {
                   className="w-full gap-2 mb-3 bg-primary hover:bg-primary/90 text-primary-foreground h-11"
                 >
                   {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
-                  {verifying ? "Verifying…" : "Verify Code"}
+                  {verifying ? t("verify.verifying_short") : t("verify.button")}
                 </Button>
 
                 {/* Resend */}
@@ -335,7 +341,7 @@ export default function EmailVerificationPage() {
                   className="w-full gap-2 mb-3 h-11"
                 >
                   {resending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                  {resending ? "Sending…" : cooldown > 0 ? `Resend in ${cooldown}s` : resendCount > 0 ? "Resend Code Again" : "Resend Code"}
+                  {resending ? t("verify.sending") : cooldown > 0 ? `${t("verify.resend_in")} ${cooldown}s` : resendCount > 0 ? t("verify.resend_again") : t("verify.resend_code")}
                   {cooldown > 0 && (
                     <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="w-3 h-3" />{cooldown}s
@@ -344,15 +350,15 @@ export default function EmailVerificationPage() {
                 </Button>
 
                 {checking && (
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-2">
+                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mb-2" role="status">
                     <RefreshCw className="w-3 h-3 animate-spin" />
-                    Auto-checking verification status…
+                    {t("verify.auto_check")}
                   </div>
                 )}
 
                 <Link to="/auth">
                   <Button variant="ghost" className="w-full text-sm text-muted-foreground">
-                    Back to Login
+                    {t("verify.back_login")}
                   </Button>
                 </Link>
               </>

@@ -213,16 +213,38 @@ async function exchangeCode(provider: Provider, code: string) {
   return profile as Record<string, string>;
 }
 
+type AdminClient = ReturnType<typeof createClient>;
+interface AdminUser {
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+  app_metadata?: Record<string, unknown>;
+}
+
+async function findUserByEmail(admin: AdminClient, email: string): Promise<AdminUser | null> {
+  // Paginate through all users — the first 1000 is not enough at scale.
+  const target = email.toLowerCase();
+  let page = 1;
+  const perPage = 200;
+  // Hard stop after 50 pages (10k users) to bound worst-case latency.
+  while (page <= 50) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const found = data.users.find((u) => u.email?.toLowerCase() === target);
+    if (found) return found as AdminUser;
+    if (data.users.length < perPage) return null;
+    page += 1;
+  }
+  return null;
+}
+
 async function findOrCreateUser(
-  admin: ReturnType<typeof createClient>,
+  admin: AdminClient,
   email: string,
   metadata: Record<string, unknown>,
   provider: string,
 ) {
-  const { data: listData, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-  if (listError) throw listError;
-
-  let user = listData.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+  let user = await findUserByEmail(admin, email);
 
   if (!user) {
     const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -233,8 +255,8 @@ async function findOrCreateUser(
     });
 
     if (createError) {
-      const { data: retryList } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-      user = retryList?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+      // Race: another request created the user between lookup and insert.
+      user = await findUserByEmail(admin, email);
       if (!user) throw createError;
     } else {
       user = created.user;

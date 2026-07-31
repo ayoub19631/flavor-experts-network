@@ -113,6 +113,20 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Durable per-email daily cap — survives isolate restarts (in-memory limit is best-effort only).
+    if (body.form === "contact" || body.form === "enterprise") {
+      const table = body.form === "contact" ? "contact_messages" : "enterprise_requests";
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count, error: countErr } = await supabase
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("email", body.email.trim().toLowerCase())
+        .gte("created_at", since);
+      if (!countErr && (count ?? 0) >= 3) {
+        return json({ error: "Daily submission limit reached. Please try again tomorrow." }, 429);
+      }
+    }
+
     if (body.form === "contact") {
       const name = (body.name || "").trim();
       const subject = (body.subject || "").trim();

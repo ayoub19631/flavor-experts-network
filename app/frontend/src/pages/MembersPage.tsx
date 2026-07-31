@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +50,7 @@ export default function MembersPage() {
     async function load() {
       try {
         const { data, error } = await supabase
-          .from("members")
+          .from("member_directory")
           .select(
             "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, is_featured, title, company, location, bio, member_type, years_experience, website",
           )
@@ -87,7 +87,7 @@ export default function MembersPage() {
 
       <section className="relative pt-28 pb-12 overflow-hidden">
         <div className="absolute inset-0">
-          <img src="/brand/section-community.jpg" alt="" className="h-full w-full object-cover" />
+          <img src="/brand/section-community.webp" alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.82)] via-[hsl(208_100%_10%/0.88)] to-background" />
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

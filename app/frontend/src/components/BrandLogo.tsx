@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils";
+﻿import { cn } from "@/lib/utils";
 import { SITE } from "@/lib/site-config";
 
-const LOGO_HERO = "/brand/flavor-expertise-science.png";
+const LOGO_HERO = "/brand/flavor-expertise-science.webp";
 const LOGO_FULL = "/brand/logo-512.webp";
 const LOGO_NAV = "/brand/logo-128.webp";
 const LOGO_TINY = "/brand/logo-64.webp";

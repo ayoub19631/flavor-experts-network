@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import { toast } from "sonner";
@@ -64,6 +65,14 @@ const stats = [
 
 export default function EnterpriseServicesPage() {
   const { t, lang } = useI18n();
+  usePageMeta({
+    title: lang === "ar" ? "الحلول المؤسسية" : "Enterprise Solutions",
+    description:
+      lang === "ar"
+        ? "حلول مخصصة لشركات النكهات والمكونات — إعلانات، محتوى، وتحليلات."
+        : "Tailored solutions for flavor & ingredient companies — ads, content, and analytics.",
+    path: "/enterprise",
+  });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);

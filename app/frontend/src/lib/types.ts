@@ -31,7 +31,7 @@ export interface UserProfile {
 export interface Member {
   id: string;
   full_name: string;
-  email: string | null;
+  email?: string | null; // admin-only column — not present in public member_directory
   role: string;
   specialty: string | null;
   linkedin_url: string | null;
@@ -45,6 +45,7 @@ export interface Member {
   member_type?: "individual" | "company" | "expert";
   years_experience?: number;
   website?: string;
+  profile_id?: string | null;
 }
 
 export interface IndustryNews {
@@ -251,6 +252,7 @@ export interface SocialPost {
     role?: string | null;
     company?: string | null;
     account_type?: string | null;
+    member_id?: string | null;
   };
   liked_by_me?: boolean;
 }

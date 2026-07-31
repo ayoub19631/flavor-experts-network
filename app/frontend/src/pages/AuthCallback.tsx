@@ -10,6 +10,7 @@ import {
 } from "@/lib/oauth";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
+import { usePageMeta } from "@/hooks/use-page-meta";
 import BrandLogo from "@/components/BrandLogo";
 
 type CallbackState =
@@ -25,6 +26,12 @@ export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const [state, setState] = useState<CallbackState>("loading");
   const { lang } = useI18n();
+  usePageMeta({
+    title: "Signing you in",
+    description: "Completing authentication.",
+    path: "/auth/callback",
+    noIndex: true,
+  });
   const isAR = lang === "ar";
 
   useEffect(() => {

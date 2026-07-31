@@ -20,6 +20,7 @@ import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { enrichSocialPosts, fetchMyLikedPostIds } from "@/lib/social";
+import { safeHttpUrl } from "@/lib/url";
 import type { SocialPost } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -252,28 +253,54 @@ export default function CommunityPage() {
             <div className="space-y-4">
               {posts.map((post) => {
                 const isCompany = post.author?.account_type === "company";
+                const authorName = post.author?.full_name || t("community.member");
+                const memberId = post.author?.member_id;
+                const postImage = safeHttpUrl(post.image_url);
                 return (
                   <Card key={post.id} className="hover:border-primary/20 transition-colors">
                     <CardContent className="p-5 sm:p-6 space-y-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold shrink-0 overflow-hidden">
-                          {post.author?.avatar_url ? (
-                            <img
-                              src={post.author.avatar_url}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            initials(post.author?.full_name)
-                          )}
-                        </div>
+                        {memberId ? (
+                          <Link to={`/members/${memberId}`} className="shrink-0" aria-label={authorName}>
+                            <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold overflow-hidden hover:ring-2 hover:ring-primary/40 transition">
+                              {post.author?.avatar_url ? (
+                                <img
+                                  src={post.author.avatar_url}
+                                  alt={authorName}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                initials(post.author?.full_name)
+                              )}
+                            </div>
+                          </Link>
+                        ) : (
+                          <div className="w-11 h-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold shrink-0 overflow-hidden">
+                            {post.author?.avatar_url ? (
+                              <img
+                                src={post.author.avatar_url}
+                                alt={authorName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              initials(post.author?.full_name)
+                            )}
+                          </div>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-semibold text-foreground">
-                                  {post.author?.full_name || t("community.member")}
-                                </p>
+                                {memberId ? (
+                                  <Link
+                                    to={`/members/${memberId}`}
+                                    className="font-semibold text-foreground hover:text-primary hover:underline transition-colors"
+                                  >
+                                    {authorName}
+                                  </Link>
+                                ) : (
+                                  <p className="font-semibold text-foreground">{authorName}</p>
+                                )}
                                 {isCompany && (
                                   <Badge className="bg-primary/10 text-primary border-0 text-[10px] gap-1">
                                     <Building2 className="w-3 h-3" />
@@ -303,9 +330,9 @@ export default function CommunityPage() {
                           <p className="mt-3 text-[15px] leading-relaxed text-foreground whitespace-pre-wrap">
                             {post.body}
                           </p>
-                          {post.image_url && (
+                          {postImage && (
                             <img
-                              src={post.image_url}
+                              src={postImage}
                               alt=""
                               className="mt-3 rounded-xl max-h-80 w-full object-cover"
                             />
