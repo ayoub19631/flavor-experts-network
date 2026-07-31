@@ -1,45 +1,43 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'net.flavorexperts.app',
-  appName: 'خبراء النكهات',
-  webDir: 'dist',
+  appId: "net.flavorexperts.app",
+  appName: "Flavor Experts",
+  webDir: "dist",
   server: {
-    androidScheme: 'https',
+    androidScheme: "https",
     cleartext: false,
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2500,
+      launchShowDuration: 1500,
       launchAutoHide: true,
-      backgroundColor: '#0f172a',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
-      showSpinner: true,
-      spinnerStyle: 'large',
-      spinnerColor: '#f59e0b',
+      backgroundColor: "#002D54",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: false,
       splashFullScreen: true,
       splashImmersive: true,
     },
     StatusBar: {
-      style: 'DARK',
-      backgroundColor: '#0f172a',
+      style: "DARK",
+      backgroundColor: "#002D54",
       overlaysWebView: false,
     },
     Keyboard: {
-      resize: 'body',
-      style: 'DARK',
+      resize: "body",
+      style: "DARK",
       resizeOnFullScreen: true,
     },
     PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert'],
+      presentationOptions: ["badge", "sound", "alert"],
     },
   },
   android: {
     minWebViewVersion: 60,
     buildOptions: {
-      keystorePath: 'release-keystore.jks',
-      keystoreAlias: 'flavorexperts',
+      keystorePath: "release-keystore.jks",
+      keystoreAlias: "flavorexperts",
     },
   },
 };

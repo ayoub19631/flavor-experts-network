@@ -23,8 +23,15 @@ const store = new Store({
 let mainWindow = null;
 let tray = null;
 const isDev = process.argv.includes('--dev');
-const WEB_URL = isDev ? 'http://localhost:3001' : null;
+const SITE_URL = 'https://flavorexpertsnetwork.com';
+const WEB_URL = isDev ? 'http://localhost:3001' : SITE_URL;
 const WEB_DIR = path.join(__dirname, 'web', 'index.html');
+const ALLOWED_HOSTS = [
+  'localhost',
+  '127.0.0.1',
+  'flavorexpertsnetwork.com',
+  'www.flavorexpertsnetwork.com',
+];
 
 // ─── Security: Prevent new window creation ────────────────────────────────────
 app.on('web-contents-created', (_event, contents) => {
@@ -38,12 +45,13 @@ app.on('web-contents-created', (_event, contents) => {
 
   // Block navigation to untrusted origins
   contents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl);
-    const allowedHosts = ['localhost', '127.0.0.1', 'flavorexperts.net'];
-    if (!allowedHosts.includes(parsedUrl.hostname) && !navigationUrl.startsWith('file://')) {
-      event.preventDefault();
-      shell.openExternal(navigationUrl);
-    }
+    try {
+      const parsedUrl = new URL(navigationUrl);
+      if (!ALLOWED_HOSTS.includes(parsedUrl.hostname) && !navigationUrl.startsWith('file://')) {
+        event.preventDefault();
+        shell.openExternal(navigationUrl);
+      }
+    } catch { /* ignore malformed URLs */ }
   });
 });
 
@@ -81,12 +89,12 @@ function createWindow() {
   // Restore maximized state
   if (isMaximized) mainWindow.maximize();
 
-  // Load the app
-  if (isDev && WEB_URL) {
+  // Load the live platform (always up-to-date); fall back to the bundled
+  // snapshot when offline.
+  if (WEB_URL) {
     mainWindow.loadURL(WEB_URL).catch(() => {
-      // Dev server not running — fall back to local build
-      log.warn('Dev server unavailable, loading local build...');
-      mainWindow.loadFile(WEB_DIR);
+      log.warn('Site unreachable, loading bundled snapshot...');
+      if (existsSync(WEB_DIR)) mainWindow.loadFile(WEB_DIR);
     });
     // DevTools: open manually with Ctrl+Shift+I to avoid remote fetch errors
   } else {
@@ -209,7 +217,7 @@ function setupMenu() {
     {
       label: 'مساعدة',
       submenu: [
-        { label: 'الموقع الرسمي', click: () => shell.openExternal('https://flavorexperts.net') },
+        { label: 'الموقع الرسمي', click: () => shell.openExternal(SITE_URL) },
         { label: 'تواصل معنا', click: () => showPage('/contact') },
         { type: 'separator' },
         { label: 'تحقق من التحديثات', click: () => checkForUpdates() },
@@ -228,8 +236,10 @@ function showPage(route) {
   if (!mainWindow) { createWindow(); return; }
   mainWindow.show();
   mainWindow.focus();
-  if (isDev) {
-    mainWindow.loadURL(`http://localhost:3001${route}`);
+  if (WEB_URL) {
+    mainWindow.loadURL(`${WEB_URL}${route}`).catch(() => {
+      if (existsSync(WEB_DIR)) mainWindow.loadFile(WEB_DIR, { hash: route });
+    });
   } else {
     mainWindow.loadFile(WEB_DIR, { hash: route });
   }

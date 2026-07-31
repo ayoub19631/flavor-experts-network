@@ -44,9 +44,17 @@ function getAllowedOrigins(): string[] {
   ];
 }
 
+function appUrlScheme(): string {
+  return (Deno.env.get("APP_URL_SCHEME") || "flavorexperts").replace(/:$/, "");
+}
+
 function isAllowedRedirect(urlStr: string): boolean {
   try {
     const url = new URL(urlStr);
+    // Native app deep link: flavorexperts://auth/callback
+    if (url.protocol === `${appUrlScheme()}:`) {
+      return url.host === "auth" && url.pathname === "/callback";
+    }
     const allowedOrigins = getAllowedOrigins();
     if (!allowedOrigins.includes(url.origin)) return false;
     return url.pathname === "/auth/callback" || url.pathname === "/email-verified";

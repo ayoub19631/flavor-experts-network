@@ -1,10 +1,12 @@
-﻿allowBuilds:
+allowBuilds:
   '@metagptx/vite-plugin-source-locator': true
   '@swc/core': true
   esbuild: true
+  sharp: true
   simple-git-hooks: true
 onlyBuiltDependencies:
   - '@metagptx/vite-plugin-source-locator'
   - '@swc/core'
   - esbuild
+  - sharp
   - simple-git-hooks

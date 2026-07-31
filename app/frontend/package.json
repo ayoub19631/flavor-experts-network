@@ -14,9 +14,8 @@
     "postinstall": "echo Dependencies installed successfully"
   },
   "dependencies": {
-    "@capacitor/android": "^8.4.0",
     "@capacitor/app": "^8.1.0",
-    "@capacitor/cli": "^8.4.0",
+    "@capacitor/browser": "^8.0.4",
     "@capacitor/core": "^8.4.0",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/keyboard": "^8.0.3",
@@ -80,6 +79,10 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/ios": "^8.4.2",
     "@eslint/js": "^9.9.0",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",

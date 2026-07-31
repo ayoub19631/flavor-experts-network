@@ -2,10 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
     <url>
         <loc>
-            https://flavorexperts.net/
+            https://flavorexpertsnetwork.com/
         </loc>
         <lastmod>
-            2026-06-09T23:57:19.565Z
+            2026-07-31T19:07:25.186Z
         </lastmod>
         <changefreq>
             daily
@@ -16,10 +16,52 @@
     </url>
     <url>
         <loc>
-            https://flavorexperts.net/blog
+            https://flavorexpertsnetwork.com/blog
         </loc>
         <lastmod>
-            2026-06-09T23:57:19.565Z
+            2026-07-31T19:07:25.186Z
+        </lastmod>
+        <changefreq>
+            daily
+        </changefreq>
+        <priority>
+            1.0
+        </priority>
+    </url>
+    <url>
+        <loc>
+            https://flavorexpertsnetwork.com/blog/natural-vs-artificial-flavors
+        </loc>
+        <lastmod>
+            2026-07-31T19:07:25.186Z
+        </lastmod>
+        <changefreq>
+            daily
+        </changefreq>
+        <priority>
+            1.0
+        </priority>
+    </url>
+    <url>
+        <loc>
+            https://flavorexpertsnetwork.com/blog/sensory-evaluation-methods
+        </loc>
+        <lastmod>
+            2026-07-31T19:07:25.186Z
+        </lastmod>
+        <changefreq>
+            daily
+        </changefreq>
+        <priority>
+            1.0
+        </priority>
+    </url>
+    <url>
+        <loc>
+            https://flavorexpertsnetwork.com/blog/understanding-maillard-reaction
+        </loc>
+        <lastmod>
+            2026-07-31T19:07:25.186Z
         </lastmod>
         <changefreq>
             daily

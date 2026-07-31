@@ -1,13 +1,21 @@
 import type { User } from "@supabase/supabase-js";
 import { SITE } from "@/lib/site-config";
+import { isNativeApp } from "@/lib/native";
 
 export const EMAIL_NOT_CONFIRMED_CODE = "EMAIL_NOT_CONFIRMED";
 
 export function getAuthRedirectUrl(path = "/auth/callback"): string {
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}${path.startsWith("/") ? path : `/${path}`}`;
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  // Email links (confirmations, resets) must open the real website — inside a
+  // Capacitor app window.location.origin is https://localhost which is useless
+  // in an email client.
+  if (isNativeApp()) {
+    return `${SITE.url}${suffix}`;
   }
-  return `${SITE.url}${path.startsWith("/") ? path : `/${path}`}`;
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}${suffix}`;
+  }
+  return `${SITE.url}${suffix}`;
 }
 
 export function isEmailVerified(user: User | null | undefined): boolean {

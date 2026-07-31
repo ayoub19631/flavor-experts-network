@@ -1,11 +1,12 @@
 ﻿import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
-import { lazy, Suspense } from "react";
+import { registerDeepLinkListener } from "@/lib/native";
+import { lazy, Suspense, useEffect } from "react";
 import BrandLogo from "./components/BrandLogo";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -115,6 +116,13 @@ const AppRoutes = () => (
   </ErrorBoundary>
 );
 
+// Routes native deep links (flavorexperts://…) into react-router.
+const NativeBridge = () => {
+  const navigate = useNavigate();
+  useEffect(() => registerDeepLinkListener(navigate), [navigate]);
+  return null;
+};
+
 // BrowserRouter wraps AuthProvider so useNavigate works inside auth callbacks
 const App = () => (
   <ThemeProvider>
@@ -126,6 +134,7 @@ const App = () => (
             <TooltipProvider>
               <div className="flex flex-col h-screen">
                 <ElectronTitleBar />
+                <NativeBridge />
                 <div className="flex-1 overflow-auto">
                   <Toaster />
                   <PlatformAccessGuard>

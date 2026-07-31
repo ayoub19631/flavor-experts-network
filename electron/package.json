@@ -9,10 +9,11 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux",
-    "build:all": "electron-builder --win --mac --linux",
+    "sync-web": "node sync-web.mjs",
+    "build:win": "node sync-web.mjs && electron-builder --win",
+    "build:mac": "node sync-web.mjs && electron-builder --mac",
+    "build:linux": "node sync-web.mjs && electron-builder --linux",
+    "build:all": "node sync-web.mjs && electron-builder --win --mac --linux",
     "pack": "electron-builder --dir",
     "postinstall": "electron-builder install-app-deps"
   },
@@ -28,8 +29,8 @@
   },
   "build": {
     "appId": "net.flavorexperts.desktop",
-    "productName": "خبراء النكهات",
-    "copyright": "Copyright © 2024 Flavor Experts",
+    "productName": "Flavor Experts",
+    "copyright": "Copyright © 2026 Flavor Experts",
     "directories": {
       "output": "dist-electron",
       "buildResources": "assets"
@@ -93,8 +94,8 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "flavorexperts",
-      "repo": "desktop-app"
+      "owner": "ayoub19631",
+      "repo": "flavor-experts-network"
     }
   }
 }

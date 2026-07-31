@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { getAuthRedirectUrl } from "@/lib/auth-utils";
+import { appAuthCallbackUrl, isNativeApp } from "@/lib/native";
+import { Browser } from "@capacitor/browser";
 
 export type OAuthProvider = "google" | "linkedin_oidc";
 
@@ -36,7 +38,11 @@ export async function signInWithOAuthProvider(
 ) {
   setOAuthIntent(intent);
 
-  const redirectTo = getAuthRedirectUrl("/auth/callback");
+  // In the native app the flow must end on the custom scheme so the OS
+  // returns the user (and tokens) to the app.
+  const redirectTo = isNativeApp()
+    ? appAuthCallbackUrl()
+    : getAuthRedirectUrl("/auth/callback");
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 
   if (!supabaseUrl) {
@@ -51,6 +57,12 @@ export async function signInWithOAuthProvider(
   startUrl.searchParams.set("provider", provider === "linkedin_oidc" ? "linkedin" : provider);
   startUrl.searchParams.set("redirect_to", redirectTo);
   startUrl.searchParams.set("intent", intent);
+
+  if (isNativeApp()) {
+    // Google/LinkedIn block embedded webviews — open in the system browser.
+    await Browser.open({ url: startUrl.toString() });
+    return { data: { provider, url: startUrl.toString() }, error: null };
+  }
 
   window.location.assign(startUrl.toString());
   return { data: { provider, url: startUrl.toString() }, error: null };
