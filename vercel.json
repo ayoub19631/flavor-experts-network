@@ -1,5 +1,4 @@
 {
-  "framework": "vite",
   "installCommand": "cd app/frontend && corepack enable && pnpm install --frozen-lockfile",
   "buildCommand": "cd app/frontend && corepack enable && pnpm build",
   "outputDirectory": "app/frontend/dist",
