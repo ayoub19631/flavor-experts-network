@@ -1,5 +1,9 @@
 {
-  "rootDirectory": "app/frontend",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npx --yes pnpm@9.15.9 --dir app/frontend install --frozen-lockfile",
+  "buildCommand": "npx --yes pnpm@9.15.9 --dir app/frontend build",
+  "outputDirectory": "app/frontend/dist",
+  "framework": "vite",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
