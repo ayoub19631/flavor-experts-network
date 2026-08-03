@@ -1,7 +1,5 @@
 {
-  "installCommand": "pnpm --dir app/frontend install --frozen-lockfile",
-  "buildCommand": "pnpm --dir app/frontend build",
-  "outputDirectory": "app/frontend/dist",
+  "rootDirectory": "app/frontend",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
