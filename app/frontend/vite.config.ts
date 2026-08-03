@@ -33,6 +33,11 @@ export default defineConfig(({ command, mode }) => {
   env.VITE_APP_DESCRIPTION = escapeHtmlAttr(env.VITE_APP_DESCRIPTION);
   env.VITE_APP_LOGO_URL ??= '/favicon.svg';
   env.VITE_SITE_URL ??= 'https://flavorexpertsnetwork.com';
+  // Vite HTML %VITE_*% replacement reads process.env / mode env files — not the local object.
+  process.env.VITE_APP_TITLE = env.VITE_APP_TITLE;
+  process.env.VITE_APP_DESCRIPTION = env.VITE_APP_DESCRIPTION;
+  process.env.VITE_SITE_URL = env.VITE_SITE_URL;
+  process.env.VITE_APP_LOGO_URL = env.VITE_APP_LOGO_URL;
 
   const isPlatformPrivate = env.VITE_PLATFORM_PRIVATE === 'true';
   const blogPrerenderRoutes = command === 'build' && !isPlatformPrivate ? getBlogRoutes() : [];
