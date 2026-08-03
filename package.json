@@ -3,20 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "description": "Flavor Experts Network — web platform with mobile apps (Capacitor) and desktop app (Electron)",
-  "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm -C app/frontend dev",
-    "build": "pnpm -C app/frontend build",
-    "preview": "pnpm -C app/frontend preview",
-    "test": "pnpm -C app/frontend test",
-    "typecheck": "pnpm -C app/frontend typecheck",
-    "lint": "pnpm -C app/frontend lint",
-    "cap:sync": "pnpm -C app/frontend build && pnpm -C app/frontend exec cap sync",
-    "cap:android": "pnpm -C app/frontend exec cap open android",
-    "cap:ios": "pnpm -C app/frontend exec cap open ios",
-    "assets:generate": "pnpm -C app/frontend exec capacitor-assets generate"
+    "dev": "pnpm --dir app/frontend dev",
+    "build": "pnpm --dir app/frontend build",
+    "preview": "pnpm --dir app/frontend preview",
+    "test": "pnpm --dir app/frontend test",
+    "typecheck": "pnpm --dir app/frontend typecheck",
+    "lint": "pnpm --dir app/frontend lint",
+    "cap:sync": "pnpm --dir app/frontend build && pnpm --dir app/frontend exec cap sync",
+    "cap:android": "pnpm --dir app/frontend exec cap open android",
+    "cap:ios": "pnpm --dir app/frontend exec cap open ios",
+    "assets:generate": "pnpm --dir app/frontend exec capacitor-assets generate"
   }
 }

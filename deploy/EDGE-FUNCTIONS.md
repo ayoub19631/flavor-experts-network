@@ -34,7 +34,7 @@
 | `broadcast` | admin JWT | Batch newsletter/announcement via Resend |
 | `reply` | admin JWT | Reply to contact message |
 | `custom` | admin JWT | Ad-hoc email |
-| `welcome` | internal/admin | Welcome message |
+| `welcome` | internal/admin | Welcome + bilingual platform policy summary (Terms/Privacy) |
 | `contact_ack` / `enterprise_ack` | internal | Form acknowledgments |
 | `newsletter_welcome` | internal | Newsletter confirmation |
 | `security_alert` | internal | Security notices |
@@ -52,7 +52,19 @@ supabase functions deploy send-email --project-ref imucfofvdwfyexdwrsfe
 supabase functions deploy oauth --project-ref imucfofvdwfyexdwrsfe
 supabase functions deploy create-checkout-session --project-ref imucfofvdwfyexdwrsfe
 supabase functions deploy stripe-webhook --project-ref imucfofvdwfyexdwrsfe
+
+# Apply welcome-email + platform policy migration (new accounts)
+supabase db push --project-ref imucfofvdwfyexdwrsfe
+# or run: supabase/migrations/20260803120000_welcome_email_platform_policy.sql
 ```
+
+## Vercel production
+
+Git-connected builds use root `vercel.json` (`pnpm --dir app/frontend …`).  
+If dashboard Root Directory is set to `app/frontend`, prefer CLI/GHA deploy from that folder.
+
+Optional GitHub Actions secrets for `.github/workflows/deploy-vercel.yml`:
+`VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
 
 ## Security notes
 

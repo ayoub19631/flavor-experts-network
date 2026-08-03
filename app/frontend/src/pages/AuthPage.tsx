@@ -547,6 +547,12 @@ export default function AuthPage() {
         <p className="text-center text-xs text-muted-foreground mt-4">
           {t("auth.agree_terms")}{" "}
           <Link to="/terms" className="hover:text-primary underline">{t("auth.terms_link")}</Link>
+          {" "}{t("auth.and")}{" "}
+          <Link to="/privacy" className="hover:text-primary underline">{t("auth.privacy_link")}</Link>
+          .
+        </p>
+        <p className="text-center text-xs text-muted-foreground mt-2">
+          {t("auth.welcome_policy_note")}
         </p>
       </div>
     </div>
