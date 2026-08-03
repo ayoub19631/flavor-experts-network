@@ -16,9 +16,11 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined
     : {
-        command: "pnpm dev -- --host 127.0.0.1 --port 3001",
+        command: "pnpm exec vite --host 127.0.0.1 --port 3001 --strictPort",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        timeout: 180_000,
+        stdout: "pipe",
+        stderr: "pipe",
       },
 });

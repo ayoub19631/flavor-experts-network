@@ -85,6 +85,7 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder
           VITE_SITE_URL: http://127.0.0.1:3001
+          VITE_PORT: "3001"
           VITE_PLATFORM_PRIVATE: "true"
           VITE_PLATFORM_ACCESS_ALLOWLIST: ci@example.com
           VITE_ADMIN_EMAIL: ci@example.com

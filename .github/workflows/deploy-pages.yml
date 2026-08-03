@@ -26,24 +26,30 @@ jobs:
           cache-dependency-path: app/frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: Build for GitHub Pages
-        run: |
-          export VITE_SUPABASE_URL="${VITE_SUPABASE_URL:-https://imucfofvdwfyexdwrsfe.supabase.co}"
-          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
-            echo "::warning::VITE_SUPABASE_ANON_KEY secret is empty — Pages build will lack auth credentials."
-          fi
-          pnpm exec vite build --base=/flavor-experts-network/ --outDir gh-dist
+        # Use default Vite outDir (dist). Custom outDir breaks vite-plugin-sitemap
+        # which always writes robots.txt under dist/.
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_SITE_URL: https://ayoub19631.github.io/flavor-experts-network
+          VITE_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
           VITE_APP_TITLE: Flavor Experts Network
+          VITE_APP_DESCRIPTION: Professional community for flavor scientists — public testing.
           VITE_PLATFORM_PRIVATE: "false"
           VITE_OAUTH_ENABLED: "true"
           VITE_PAYMENTS_ENABLED: "false"
-      - run: cp gh-dist/index.html gh-dist/404.html
+        run: |
+          if [ -z "$VITE_SUPABASE_URL" ]; then
+            export VITE_SUPABASE_URL="https://imucfofvdwfyexdwrsfe.supabase.co"
+          fi
+          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
+            echo "::warning::VITE_SUPABASE_ANON_KEY secret is empty — using CI placeholder so the static shell can build."
+            export VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder"
+          fi
+          pnpm exec vite build --base=/${{ github.event.repository.name }}/
+      - run: cp dist/index.html dist/404.html
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: app/frontend/gh-dist
+          publish_dir: app/frontend/dist
           force_orphan: true
