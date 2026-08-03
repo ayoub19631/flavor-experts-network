@@ -34,7 +34,7 @@
 | `broadcast` | admin JWT | Batch newsletter/announcement via Resend |
 | `reply` | admin JWT | Reply to contact message |
 | `custom` | admin JWT | Ad-hoc email |
-| `welcome` | internal/admin | Welcome message |
+| `welcome` | internal/admin | Welcome + bilingual platform policy summary (Terms/Privacy) |
 | `contact_ack` / `enterprise_ack` | internal | Form acknowledgments |
 | `newsletter_welcome` | internal | Newsletter confirmation |
 | `security_alert` | internal | Security notices |

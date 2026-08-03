@@ -356,26 +356,88 @@ Deno.serve(async (req: Request) => {
       return respond({ ok: true, sent: emails.length, ids });
     }
 
-    // ── Welcome (internal or admin) ─────────────────────────────────────────
+    // ── Welcome (internal or admin) — includes platform policy copy ─────────
     if (body.type === "welcome") {
       if (!isInternalRequest(req) && !(await isPlatformAdmin(authHeader)).ok) {
         return respond({ error: "Unauthorized" }, 403);
       }
       if (!body.to) return respond({ error: "to required" }, 400);
-      const name = body.meta?.name || "Member";
-      const subject = body.subject || "Welcome to Flavor Experts Network";
+      const name = escapeHtml(body.meta?.name || "Member");
+      const site = siteUrl();
+      const subject =
+        body.subject ||
+        "مرحباً بك في شبكة خبراء النكهات | Welcome to Flavor Experts Network";
+      const inner = `
+        <div dir="rtl" style="text-align:right;margin-bottom:28px">
+          <p style="margin:0 0 12px;font-size:16px">أهلاً بك <strong>${name}</strong>،</p>
+          <p style="margin:0 0 12px">يسعدنا انضمامك إلى <strong>شبكة خبراء النكهات</strong> — المجتمع المهني لمتخصصي صناعة النكهات وتكنولوجيا الأغذية.</p>
+          <p style="margin:0 0 16px">كجزء من تفعيل حسابك الجديد، نرسل لك نسخة موجزة من <strong>سياسة المنصة</strong> مع شرح واضح لكيفية عمل العضوية، السلوك المهني، وحماية بياناتك.</p>
+          <div style="background:#F8FAFC;border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;margin:0 0 16px">
+            <p style="margin:0 0 10px;font-weight:700;color:#002D54">ملخص سياسة المنصة</p>
+            <ul style="margin:0;padding-right:18px;color:#374151;line-height:1.75">
+              <li>باستخدامك للمنصة فإنك توافق على الشروط والأحكام وسياسة الخصوصية.</li>
+              <li>المنصة مخصّصة للتواصل المهني، مشاركة المعرفة، والوصول إلى الأخبار والموارد التعليمية.</li>
+              <li>نوفّر خطط عضوية (مجانية / احترافية / مؤسسات) ويمكن إلغاء الاشتراك في أي وقت.</li>
+              <li>يُتوقع الحفاظ على السلوك المهني؛ ويُحظر المحتوى غير اللائق أو المضلل أو المنتهك لحقوق الملكية الفكرية.</li>
+              <li>نجمع البيانات اللازمة لتقديم الخدمة وتحسينها، ولا نبيع بياناتك لأطراف ثالثة.</li>
+              <li>يمكن طلب استرداد خلال 14 يوماً من الاشتراك المدفوع إذا لم تكن راضياً عن الخدمة.</li>
+            </ul>
+          </div>
+          <p style="margin:0 0 16px;font-size:14px">النسخة الكاملة:
+            <a href="${site}/terms" style="color:#002D54;font-weight:600">الشروط والأحكام</a>
+            ·
+            <a href="${site}/privacy" style="color:#002D54;font-weight:600">سياسة الخصوصية</a>
+          </p>
+        </div>
+        <hr style="border:none;border-top:1px solid #EEF2F7;margin:8px 0 24px"/>
+        <div dir="ltr" style="text-align:left">
+          <p style="margin:0 0 12px;font-size:16px">Welcome, <strong>${name}</strong>,</p>
+          <p style="margin:0 0 12px">We’re glad you’ve joined <strong>Flavor Experts Network</strong> — the professional community for flavor scientists and food technologists.</p>
+          <p style="margin:0 0 16px">As part of activating your new account, we’re sharing a concise copy of our <strong>platform policy</strong>, with a clear explanation of membership, professional conduct, and how we handle your data.</p>
+          <div style="background:#F8FAFC;border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;margin:0 0 16px">
+            <p style="margin:0 0 10px;font-weight:700;color:#002D54">Platform policy summary</p>
+            <ul style="margin:0;padding-left:18px;color:#374151;line-height:1.75">
+              <li>By using the platform you agree to our Terms of Service and Privacy Policy.</li>
+              <li>The network is for professional networking, knowledge sharing, industry news, and educational resources.</li>
+              <li>Membership plans include Free, Professional, and Enterprise; you may cancel anytime.</li>
+              <li>Professional conduct is required; inappropriate, misleading, or IP-infringing content is prohibited.</li>
+              <li>We collect only the data needed to deliver and improve the service, and we do not sell your data.</li>
+              <li>Paid subscriptions may be refunded within 14 days if you are not satisfied.</li>
+            </ul>
+          </div>
+          <p style="margin:0 0 20px;font-size:14px">Full documents:
+            <a href="${site}/terms" style="color:#002D54;font-weight:600">Terms of Service</a>
+            ·
+            <a href="${site}/privacy" style="color:#002D54;font-weight:600">Privacy Policy</a>
+          </p>
+          <p style="margin:0 0 8px">
+            <a href="${site}/dashboard" style="display:inline-block;background:#002D54;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Open your dashboard</a>
+          </p>
+          <p style="margin:20px 0 0;font-size:12px;color:#6b7280">If you did not create this account, you can safely ignore this email.</p>
+        </div>`;
       const html = brandShell(
-        `Welcome, ${escapeHtml(name)}`,
-        `<p>Your account is ready. Explore industry news, educational resources, the community forum, and expert consultations.</p>
-         <p><a href="${siteUrl()}/dashboard" style="display:inline-block;background:#0a3d6b;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Open your dashboard</a></p>`,
-        "Welcome to Flavor Experts Network",
+        `مرحباً بك، ${name}`,
+        inner,
+        "Welcome to Flavor Experts Network — your account is ready, plus our platform policy.",
+        "ar",
       );
+      const text = [
+        `أهلاً بك ${body.meta?.name || "Member"} في شبكة خبراء النكهات.`,
+        "كجزء من تفعيل حسابك، إليك ملخص سياسة المنصة: الالتزام بالشروط، السلوك المهني، حماية البيانات، وخطط العضوية.",
+        `الشروط: ${site}/terms`,
+        `الخصوصية: ${site}/privacy`,
+        "",
+        `Welcome to Flavor Experts Network. Platform policy summary and full documents:`,
+        `${site}/terms`,
+        `${site}/privacy`,
+        `${site}/dashboard`,
+      ].join("\n");
       const result = await sendResend({
         from,
         to: [body.to],
         subject,
         html,
-        text: `Welcome to Flavor Experts Network, ${name}! Visit ${siteUrl()}/dashboard`,
+        text,
         idempotencyKey: `welcome-email/${body.to}`,
       });
       await logEmail("welcome", body.to, subject, result.id, "sent");
