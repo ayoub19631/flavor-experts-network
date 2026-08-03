@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm install && pnpm build"
+  command = "corepack enable && pnpm install --frozen-lockfile && pnpm build"
   publish = "dist"
 
 [[redirects]]
@@ -8,4 +8,4 @@
   status = 200
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"

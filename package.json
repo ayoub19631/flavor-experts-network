@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Flavor Experts Network — web platform with mobile apps (Capacitor) and desktop app (Electron)",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "pnpm -C app/frontend dev",
     "build": "pnpm -C app/frontend build",

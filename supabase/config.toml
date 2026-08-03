@@ -20,7 +20,14 @@ port = 54323
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:3001"
-additional_redirect_urls = ["http://127.0.0.1:3001/auth/callback", "https://flavorexpertsnetwork.com/auth/callback"]
+additional_redirect_urls = [
+  "http://127.0.0.1:3001/auth/callback",
+  "http://localhost:3001/auth/callback",
+  "https://flavorexpertsnetwork.com/auth/callback",
+  "https://www.flavorexpertsnetwork.com/auth/callback",
+  "https://ayoub19631.github.io/flavor-experts-network/auth/callback",
+  "flavorexperts://auth/callback"
+]
 
 [functions.oauth]
 verify_jwt = false

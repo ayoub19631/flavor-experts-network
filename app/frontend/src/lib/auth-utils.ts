@@ -4,6 +4,11 @@ import { isNativeApp } from "@/lib/native";
 
 export const EMAIL_NOT_CONFIRMED_CODE = "EMAIL_NOT_CONFIRMED";
 
+function viteBasePath(): string {
+  const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+  return !base || base === "/" ? "" : base;
+}
+
 export function getAuthRedirectUrl(path = "/auth/callback"): string {
   const suffix = path.startsWith("/") ? path : `/${path}`;
   // Email links (confirmations, resets) must open the real website — inside a
@@ -13,7 +18,8 @@ export function getAuthRedirectUrl(path = "/auth/callback"): string {
     return `${SITE.url}${suffix}`;
   }
   if (typeof window !== "undefined") {
-    return `${window.location.origin}${suffix}`;
+    // Include Vite base (e.g. /flavor-experts-network) for GitHub Pages deploys.
+    return `${window.location.origin}${viteBasePath()}${suffix}`;
   }
   return `${SITE.url}${suffix}`;
 }

@@ -1,9 +1,16 @@
+# Single-package workspace so pnpm 9 (CI) and pnpm 10/11 (Vercel/local) both work.
+# Without `packages`, pnpm 9 fails with: "packages field missing or empty".
+packages:
+  - '.'
+
+# pnpm 10.15+ / 11 — allow native builds during install (ignored by pnpm 9).
 allowBuilds:
   '@metagptx/vite-plugin-source-locator': true
   '@swc/core': true
   esbuild: true
   sharp: true
   simple-git-hooks: true
+
 onlyBuiltDependencies:
   - '@metagptx/vite-plugin-source-locator'
   - '@swc/core'

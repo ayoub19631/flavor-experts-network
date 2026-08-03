@@ -5,10 +5,14 @@ on:
     paths:
       - "app/frontend/**"
       - ".github/workflows/frontend-ci.yml"
+      - "vercel.json"
+      - "package.json"
   pull_request:
     paths:
       - "app/frontend/**"
       - ".github/workflows/frontend-ci.yml"
+      - "vercel.json"
+      - "package.json"
 
 defaults:
   run:
@@ -22,7 +26,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.15.9
 
       - uses: actions/setup-node@v4
         with:
@@ -61,7 +65,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.15.9
 
       - uses: actions/setup-node@v4
         with:
@@ -87,4 +91,3 @@ jobs:
           VITE_APP_TITLE: Flavor Experts Network
           VITE_APP_DESCRIPTION: Under development
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:3001
-

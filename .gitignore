@@ -7,8 +7,10 @@ pnpm-debug.log*
 
 # ── Build output ──────────────────────────────────────────────────────────────
 dist/
+gh-dist/
 build/
 .vite/
+.vercel/
 
 # ── Environment variables ──────────────────────────────────────────────────────
 .env

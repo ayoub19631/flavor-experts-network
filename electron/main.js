@@ -33,10 +33,31 @@ const ALLOWED_HOSTS = [
   'www.flavorexpertsnetwork.com',
 ];
 
+const ALLOWED_HOST_SUFFIXES = ['.supabase.co'];
+const OAUTH_HOSTS = new Set([
+  'accounts.google.com',
+  'www.linkedin.com',
+  'linkedin.com',
+  'github.com',
+  'login.microsoftonline.com',
+]);
+
+function isAllowedNavigationHost(hostname) {
+  if (ALLOWED_HOSTS.includes(hostname)) return true;
+  if (OAUTH_HOSTS.has(hostname)) return true;
+  return ALLOWED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
+}
+
 // ─── Security: Prevent new window creation ────────────────────────────────────
 app.on('web-contents-created', (_event, contents) => {
   contents.setWindowOpenHandler(({ url }) => {
-    // Open external links in browser
+    try {
+      const parsed = new URL(url);
+      // Keep OAuth / Supabase popups inside the app shell when possible.
+      if (isAllowedNavigationHost(parsed.hostname)) {
+        return { action: 'allow' };
+      }
+    } catch { /* fall through */ }
     if (url.startsWith('http://') || url.startsWith('https://')) {
       shell.openExternal(url);
     }
@@ -47,7 +68,7 @@ app.on('web-contents-created', (_event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     try {
       const parsedUrl = new URL(navigationUrl);
-      if (!ALLOWED_HOSTS.includes(parsedUrl.hostname) && !navigationUrl.startsWith('file://')) {
+      if (!isAllowedNavigationHost(parsedUrl.hostname) && !navigationUrl.startsWith('file://')) {
         event.preventDefault();
         shell.openExternal(navigationUrl);
       }

@@ -10,15 +10,20 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      # Fail loudly on misconfiguration: a silently-skipped cron means stale market data.
+      # Skip cleanly when secrets are missing (e.g. public mirror repo).
+      # Fail loudly only on workflow_dispatch so misconfig is still visible.
       - name: Curate industry news wire
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           SUPABASE_FUNCTIONS_URL: https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "::error::CRON_SECRET is not configured in repository secrets — market curation cannot run."
-            exit 1
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::CRON_SECRET is not configured in repository secrets — market curation cannot run."
+              exit 1
+            fi
+            echo "::warning::CRON_SECRET missing — skipping scheduled market curation on this repository."
+            exit 0
           fi
           curl -sf -X POST "$SUPABASE_FUNCTIONS_URL/curate-industry-news" \
             -H "Content-Type: application/json" \
@@ -31,8 +36,12 @@ jobs:
           SUPABASE_FUNCTIONS_URL: https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "::error::CRON_SECRET is not configured in repository secrets — market briefing cannot run."
-            exit 1
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "::error::CRON_SECRET is not configured in repository secrets — market briefing cannot run."
+              exit 1
+            fi
+            echo "::warning::CRON_SECRET missing — skipping scheduled market briefing on this repository."
+            exit 0
           fi
           curl -sf -X POST "$SUPABASE_FUNCTIONS_URL/refresh-market-briefing" \
             -H "Content-Type: application/json" \

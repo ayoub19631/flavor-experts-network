@@ -33,10 +33,23 @@ function getStateSecret(): string {
   return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "dev-only-oauth-state-secret";
 }
 
+function getSiteUrl(): string {
+  return (Deno.env.get("SITE_URL") || "https://flavorexpertsnetwork.com").replace(/\/$/, "");
+}
+
+function originOf(urlStr: string): string {
+  try {
+    return new URL(urlStr).origin;
+  } catch {
+    return urlStr.replace(/\/$/, "");
+  }
+}
+
 function getAllowedOrigins(): string[] {
-  const siteUrl = (Deno.env.get("SITE_URL") || "https://flavorexpertsnetwork.com").replace(/\/$/, "");
+  const siteUrl = getSiteUrl();
   return [
-    siteUrl,
+    originOf(siteUrl),
+    "https://ayoub19631.github.io",
     "http://127.0.0.1:3001",
     "http://127.0.0.1:5173",
     "http://localhost:3001",
@@ -48,6 +61,16 @@ function appUrlScheme(): string {
   return (Deno.env.get("APP_URL_SCHEME") || "flavorexperts").replace(/:$/, "");
 }
 
+function isAllowedAuthPath(pathname: string): boolean {
+  const normalized = pathname.replace(/\/$/, "") || "/";
+  return (
+    normalized === "/auth/callback" ||
+    normalized === "/email-verified" ||
+    normalized.endsWith("/auth/callback") ||
+    normalized.endsWith("/email-verified")
+  );
+}
+
 function isAllowedRedirect(urlStr: string): boolean {
   try {
     const url = new URL(urlStr);
@@ -57,7 +80,7 @@ function isAllowedRedirect(urlStr: string): boolean {
     }
     const allowedOrigins = getAllowedOrigins();
     if (!allowedOrigins.includes(url.origin)) return false;
-    return url.pathname === "/auth/callback" || url.pathname === "/email-verified";
+    return isAllowedAuthPath(url.pathname);
   } catch {
     return false;
   }
