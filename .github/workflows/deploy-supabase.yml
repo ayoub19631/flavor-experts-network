@@ -1,0 +1,85 @@
+name: Deploy Supabase Welcome Email
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/send-email/**"
+      - "supabase/migrations/20260803120000_welcome_email_platform_policy.sql"
+      - ".github/workflows/deploy-supabase.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check credentials
+        id: creds
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "access_token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "access_token=false" >> "$GITHUB_OUTPUT"
+            echo "::error::SUPABASE_ACCESS_TOKEN secret is missing. Add a personal access token from https://supabase.com/dashboard/account/tokens"
+          fi
+          if [ -n "$SUPABASE_DB_PASSWORD" ]; then
+            echo "db_password=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "db_password=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.creds.outputs.access_token == 'true'
+
+      - uses: supabase/setup-cli@v1
+        if: steps.creds.outputs.access_token == 'true'
+        with:
+          version: latest
+
+      - name: Link project
+        if: steps.creds.outputs.access_token == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          if [ -n "$SUPABASE_DB_PASSWORD" ]; then
+            supabase link --project-ref imucfofvdwfyexdwrsfe --password "$SUPABASE_DB_PASSWORD"
+          else
+            supabase link --project-ref imucfofvdwfyexdwrsfe
+          fi
+
+      - name: Apply welcome-email migration
+        if: steps.creds.outputs.access_token == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          # Prefer database push when DB password is available; otherwise execute SQL via Management API helper.
+          if [ -n "$SUPABASE_DB_PASSWORD" ]; then
+            supabase db push --include-all --yes
+          else
+            echo "No SUPABASE_DB_PASSWORD — applying welcome migration SQL via --linked query file"
+            supabase db query --linked -f supabase/migrations/20260803120000_welcome_email_platform_policy.sql
+          fi
+
+      - name: Deploy send-email edge function
+        if: steps.creds.outputs.access_token == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy send-email --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
+
+      - name: Verify welcome trigger exists
+        if: steps.creds.outputs.access_token == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          supabase db query --linked "select pg_get_functiondef('public.notify_welcome_email()'::regprocedure) ilike '%سياسة المنصة%' as has_policy_copy;"
+
+      - name: Fail if credentials missing
+        if: steps.creds.outputs.access_token != 'true'
+        run: exit 1
