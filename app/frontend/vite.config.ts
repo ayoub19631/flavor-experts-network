@@ -20,12 +20,19 @@ function escapeHtmlAttr(str: string): string {
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
+  const defaultDescription =
+    "A professional community for flavor scientists, food technologists, and industry specialists.";
   env.VITE_APP_TITLE ??= process.env.OVERVIEW_TITLE ?? 'Flavor Experts Network';
   env.VITE_APP_DESCRIPTION ??=
-    process.env.OVERVIEW_DESCRIPTION ?? "The world's largest flavor industry professional community";
+    process.env.OVERVIEW_DESCRIPTION ?? defaultDescription;
+  // Stale Vercel env leftovers from private preview should not ship in public HTML.
+  if (/under development|قيد التطوير/i.test(env.VITE_APP_DESCRIPTION || '')) {
+    env.VITE_APP_DESCRIPTION = defaultDescription;
+  }
   env.VITE_APP_TITLE = escapeHtmlAttr(env.VITE_APP_TITLE);
   env.VITE_APP_DESCRIPTION = escapeHtmlAttr(env.VITE_APP_DESCRIPTION);
   env.VITE_APP_LOGO_URL ??= '/favicon.svg';
+  env.VITE_SITE_URL ??= 'https://flavorexpertsnetwork.com';
 
   const isPlatformPrivate = env.VITE_PLATFORM_PRIVATE === 'true';
   const blogPrerenderRoutes = command === 'build' && !isPlatformPrivate ? getBlogRoutes() : [];
