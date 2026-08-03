@@ -1,0 +1,72 @@
+name: Deploy Vercel Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/frontend/**"
+      - "vercel.json"
+      - "package.json"
+      - ".github/workflows/deploy-vercel.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Skip cleanly when Vercel secrets are not configured in this mirror.
+    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ORG_ID != '' && secrets.VERCEL_PROJECT_ID != '' }}
+    defaults:
+      run:
+        working-directory: app/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/frontend/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SITE_URL: https://flavorexpertsnetwork.com
+          VITE_APP_TITLE: Flavor Experts Network
+          VITE_APP_DESCRIPTION: Professional community for flavor scientists and food technologists
+          VITE_PLATFORM_PRIVATE: "false"
+          VITE_OAUTH_ENABLED: "true"
+          VITE_PAYMENTS_ENABLED: ${{ vars.VITE_PAYMENTS_ENABLED || 'false' }}
+
+      - name: Pull Vercel project config
+        run: pnpm dlx vercel@39 pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build Vercel output
+        run: pnpm dlx vercel@39 build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SITE_URL: https://flavorexpertsnetwork.com
+          VITE_APP_TITLE: Flavor Experts Network
+          VITE_APP_DESCRIPTION: Professional community for flavor scientists and food technologists
+          VITE_PLATFORM_PRIVATE: "false"
+          VITE_OAUTH_ENABLED: "true"
+
+      - name: Deploy prebuilt to production
+        run: pnpm dlx vercel@39 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

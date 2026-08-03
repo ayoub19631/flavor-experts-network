@@ -1,6 +1,6 @@
 {
-  "installCommand": "corepack enable && cd app/frontend && pnpm install --frozen-lockfile",
-  "buildCommand": "cd app/frontend && pnpm build",
+  "installCommand": "pnpm --dir app/frontend install --frozen-lockfile",
+  "buildCommand": "pnpm --dir app/frontend build",
   "outputDirectory": "app/frontend/dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
@@ -13,7 +13,7 @@
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "X-Frame-Options", "value": "DENY" }
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
       ]
     }
   ]
