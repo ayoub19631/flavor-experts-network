@@ -27,8 +27,17 @@ import { safeHttpUrl } from "@/lib/url";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import type { SocialPost } from "@/lib/types";
 import Navbar from "@/components/Navbar";
-import { AvatarUploader } from "@/components/ui/file-uploader";
+import { AvatarUploader, FileUploader } from "@/components/ui/file-uploader";
 import { SITE } from "@/lib/site-config";
+import {
+  asEducation,
+  asProjects,
+  asWorkExperience,
+  formatPipeLines,
+  formatSkills,
+  parsePipeLines,
+  parseSkills,
+} from "@/lib/profile-details";
 import { toast } from "sonner";
 
 interface ExtendedProfile {
@@ -45,6 +54,14 @@ interface ExtendedProfile {
   is_admin?: boolean;
   created_at?: string;
   avatar_url?: string;
+  cover_url?: string;
+  specialty?: string;
+  years_experience?: number | null;
+  skills?: string[];
+  skills_text?: string;
+  education_text?: string;
+  work_text?: string;
+  projects_text?: string;
 }
 
 const TIER_CONFIG = {
@@ -183,6 +200,9 @@ export default function DashboardPage() {
         .single()
         .then(({ data }) => {
           const meta = user.user_metadata || {};
+          const education = asEducation(data?.education);
+          const work = asWorkExperience(data?.work_experience);
+          const projects = asProjects(data?.projects);
           const merged: ExtendedProfile = {
             full_name: data?.full_name || meta.full_name || profile?.full_name || "",
             role: data?.role || meta.role || "",
@@ -196,6 +216,15 @@ export default function DashboardPage() {
             subscription_tier: data?.subscription_tier || meta.subscription_tier || "free",
             created_at: data?.created_at,
             avatar_url: data?.avatar_url || meta.avatar_url || "",
+            cover_url: data?.cover_url || "",
+            specialty: data?.specialty || "",
+            years_experience:
+              typeof data?.years_experience === "number" ? data.years_experience : null,
+            skills: Array.isArray(data?.skills) ? data.skills : [],
+            skills_text: formatSkills(Array.isArray(data?.skills) ? data.skills : []),
+            education_text: formatPipeLines(education, ["school", "degree", "year"]),
+            work_text: formatPipeLines(work, ["title", "company", "period", "description"]),
+            projects_text: formatPipeLines(projects, ["name", "description", "url"]),
           };
           setExtProfile(merged);
         });
@@ -272,6 +301,14 @@ export default function DashboardPage() {
       website_url: extProfile.website_url || meta.website_url || "",
       phone: extProfile.phone || meta.phone || "",
       avatar_url: extProfile.avatar_url || meta.avatar_url || "",
+      cover_url: extProfile.cover_url || "",
+      specialty: extProfile.specialty || "",
+      years_experience: extProfile.years_experience ?? null,
+      skills: extProfile.skills || [],
+      skills_text: extProfile.skills_text || formatSkills(extProfile.skills),
+      education_text: extProfile.education_text || "",
+      work_text: extProfile.work_text || "",
+      projects_text: extProfile.projects_text || "",
     });
     setEditing(true);
     setSaveSuccess(false);
@@ -289,6 +326,28 @@ export default function DashboardPage() {
     setSaveError(null);
     try {
       const fullName = editData.full_name.trim();
+      const skills = parseSkills(editData.skills_text || formatSkills(editData.skills));
+      const education = parsePipeLines<{ school: string; degree: string; year: string }>(
+        editData.education_text || "",
+        ["school", "degree", "year"],
+      );
+      const work_experience = parsePipeLines<{
+        title: string;
+        company: string;
+        period: string;
+        description: string;
+      }>(editData.work_text || "", ["title", "company", "period", "description"]);
+      const projects = parsePipeLines<{ name: string; description: string; url: string }>(
+        editData.projects_text || "",
+        ["name", "description", "url"],
+      );
+
+      const yearsRaw = editData.years_experience;
+      const years_experience =
+        yearsRaw === null || yearsRaw === undefined || String(yearsRaw).trim() === "" || Number.isNaN(Number(yearsRaw))
+          ? null
+          : Math.max(0, Math.min(80, Math.round(Number(yearsRaw))));
+
       const payload = {
         full_name: fullName,
         role: (editData.role || "").trim(),
@@ -299,9 +358,28 @@ export default function DashboardPage() {
         website_url: (editData.website_url || "").trim(),
         phone: (editData.phone || "").trim(),
         avatar_url: (editData.avatar_url || "").trim(),
+        cover_url: (editData.cover_url || "").trim(),
+        specialty: (editData.specialty || "").trim(),
+        years_experience,
+        skills,
+        education,
+        work_experience,
+        projects,
       };
 
-      const { error: metaError } = await supabase.auth.updateUser({ data: payload });
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: {
+          full_name: payload.full_name,
+          role: payload.role,
+          company: payload.company,
+          location: payload.location,
+          bio: payload.bio,
+          linkedin_url: payload.linkedin_url,
+          website_url: payload.website_url,
+          phone: payload.phone,
+          avatar_url: payload.avatar_url,
+        },
+      });
       if (metaError) throw metaError;
 
       // Single profile update — errors must surface so members sync is reliable
@@ -321,7 +399,19 @@ export default function DashboardPage() {
       });
       if (profileResult.error) throw new Error(profileResult.error);
 
-      setExtProfile((prev) => ({ ...prev, ...payload }));
+      setExtProfile((prev) => ({
+        ...prev,
+        ...payload,
+        skills_text: formatSkills(payload.skills),
+        education_text: formatPipeLines(payload.education, ["school", "degree", "year"]),
+        work_text: formatPipeLines(payload.work_experience, [
+          "title",
+          "company",
+          "period",
+          "description",
+        ]),
+        projects_text: formatPipeLines(payload.projects, ["name", "description", "url"]),
+      }));
       setSaveSuccess(true);
       setEditing(false);
       toast.success(lang === "ar" ? "تم حفظ الملف الشخصي" : "Profile saved");
@@ -367,24 +457,24 @@ export default function DashboardPage() {
     ...(localIsPremium ? [{ key: "premium" as const, label: lang === "ar" ? (isEnt ? "لوحة الشركة" : "المميزات الاحترافية") : (isEnt ? "Enterprise Hub" : "Premium Access"), icon: isEnt ? Building2 : Sparkles }] : []),
     { key: "profile", label: lang === "ar" ? "ملفي الشخصي" : "My Profile", icon: User },
     { key: "posts", label: lang === "ar" ? "منشوراتي" : "My Posts", icon: MessageSquareText },
-    { key: "subscription", label: lang === "ar" ? "اشتراكي" : "My Subscription", icon: CreditCard },
+    { key: "subscription", label: lang === "ar" ? "عضويتي" : "My Membership", icon: CreditCard },
     { key: "security", label: lang === "ar" ? "الأمان" : "Security", icon: Lock },
   ] as const;
 
   const QUICK_ACTIONS = [
-    { icon: Briefcase, label: lang === "ar" ? "فرص العمل" : "Job Opportunities", desc: localIsPremium ? (lang === "ar" ? "ابحث أو انشر وظائف" : "Search or post roles") : (lang === "ar" ? "للأعضاء المميزين" : "Premium members only"), color: "bg-primary/10 dark:bg-primary/20", iconColor: "text-primary", href: "/jobs" },
+    { icon: Briefcase, label: lang === "ar" ? "فرص العمل" : "Job Opportunities", desc: lang === "ar" ? "ابحث أو انشر وظائف" : "Search or post roles", color: "bg-primary/10 dark:bg-primary/20", iconColor: "text-primary", href: "/jobs" },
     { icon: MessageSquareText, label: lang === "ar" ? "المجتمع المهني" : "Community Feed", desc: lang === "ar" ? "انشر وتابع التحديثات" : "Publish & follow updates", color: "bg-blue-100 dark:bg-blue-900/30", iconColor: "text-blue-600", href: "/community" },
     { icon: Users, label: lang === "ar" ? "دليل الأعضاء" : "Members Directory", desc: lang === "ar" ? "تواصل مع المتخصصين" : "Connect with professionals", color: "bg-purple-100 dark:bg-purple-900/30", iconColor: "text-purple-600", href: "/members" },
     { icon: TrendingUp, label: lang === "ar" ? "أخبار الصناعة" : "Industry News", desc: lang === "ar" ? "آخر تطورات علوم النكهات" : "Latest flavor science updates", color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#news" },
-    { icon: Star, label: localIsPremium ? (lang === "ar" ? "اشتراكي" : "My Subscription") : (lang === "ar" ? "ترقية الخطة" : "Upgrade Plan"), desc: localIsPremium ? (lang === "ar" ? "إدارة خطتك" : "Manage your plan") : (lang === "ar" ? "افتح الوظائف والمحتوى" : "Unlock jobs & premium content"), color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: localIsPremium ? undefined : "/pricing", onClick: localIsPremium ? () => setActiveTab("subscription") : undefined },
+    { icon: Star, label: lang === "ar" ? "عضويتي" : "My Membership", desc: lang === "ar" ? "منصة مجانية بالكامل" : "Fully free platform access", color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: undefined, onClick: () => setActiveTab("subscription") },
     { icon: ExternalLink, label: lang === "ar" ? "مجموعة لينكد إن" : "LinkedIn Group", desc: lang === "ar" ? "مجتمع محترفي النكهات" : "Flavor professionals community", color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: "https://www.linkedin.com/groups/13155714/" },
   ];
 
   const ACHIEVEMENTS = [
     { icon: CheckCircle, label: lang === "ar" ? "البريد موثق" : "Email Verified", earned: !!user.email_confirmed_at, color: "text-emerald-500" },
     { icon: User, label: lang === "ar" ? "الملف مكتمل" : "Profile Complete", earned: !!(extProfile.role && extProfile.company), color: "text-blue-500" },
-    { icon: Crown, label: lang === "ar" ? "عضو مميز" : "Premium Member", earned: localIsPremium, color: "text-primary" },
-    { icon: Star, label: lang === "ar" ? "مؤسسي" : "Enterprise", earned: isEnt, color: "text-purple-500" },
+    { icon: Crown, label: lang === "ar" ? "وصول كامل" : "Full Access", earned: !!user, color: "text-primary" },
+    { icon: Star, label: lang === "ar" ? "حساب شركة" : "Company Account", earned: isEnt || localIsEnterprise || profile?.account_type === "company", color: "text-purple-500" },
     { icon: Award, label: lang === "ar" ? "من المبكرين" : "Early Adopter", earned: new Date(user.created_at ?? Date.now()) < new Date("2026-08-01"), color: "text-primary" },
   ];
 
@@ -541,20 +631,18 @@ export default function DashboardPage() {
               </Card>
 
               {/* Profile completion */}
-              {!localIsPremium && (
-                <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Rocket className="w-4 h-4 text-primary" />
-                      <p className="text-sm font-semibold text-primary">{lang === "ar" ? "اكتمال الملف" : "Profile Strength"}</p>
-                    </div>
-                    <Progress value={
-                      [extProfile.full_name, extProfile.role, extProfile.company, extProfile.location, extProfile.bio, extProfile.linkedin_url].filter(Boolean).length * (100/6)
-                    } className="h-1.5 mb-2" />
-                    <p className="text-xs text-muted-foreground">{lang === "ar" ? "أكمل ملفك لزيادة الظهور" : "Complete profile for more visibility"}</p>
-                  </CardContent>
-                </Card>
-              )}
+              <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Rocket className="w-4 h-4 text-primary" />
+                    <p className="text-sm font-semibold text-primary">{lang === "ar" ? "اكتمال الملف" : "Profile Strength"}</p>
+                  </div>
+                  <Progress value={
+                    [extProfile.full_name, extProfile.role, extProfile.company, extProfile.location, extProfile.bio, extProfile.linkedin_url].filter(Boolean).length * (100/6)
+                  } className="h-1.5 mb-2" />
+                  <p className="text-xs text-muted-foreground">{lang === "ar" ? "أكمل ملفك لزيادة الظهور" : "Complete profile for more visibility"}</p>
+                </CardContent>
+              </Card>
             </div>
 
             {/* ─── Main Content ──────────────────── */}
@@ -565,7 +653,7 @@ export default function DashboardPage() {
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { icon: Crown, label: lang === "ar" ? "الخطة" : "Plan", value: lang === "ar" ? tierCfg.labelAr : tierCfg.label, color: "text-primary bg-primary/10" },
+                      { icon: Crown, label: lang === "ar" ? "العضوية" : "Membership", value: lang === "ar" ? "مجانية" : "Free", color: "text-primary bg-primary/10" },
                       { icon: Calendar, label: lang === "ar" ? "عضو منذ" : "Member Since", value: memberSince, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
                       { icon: CheckCircle, label: lang === "ar" ? "الحالة" : "Status", value: lang === "ar" ? "نشط" : "Active", color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
                     ].map(({ icon: Icon, label, value, color }) => (
@@ -614,28 +702,6 @@ export default function DashboardPage() {
                         <Button size="sm" className="ml-auto bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap" onClick={() => setActiveTab("premium")}>
                           {lang === "ar" ? "لوحتي" : "My Hub"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Upgrade Banner (if free) */}
-                  {!localIsPremium && (
-                    <Card className="border border-primary/30 dark:border-primary/40 bg-gradient-to-r from-secondary via-accent/30 to-secondary dark:from-primary/20 dark:to-primary/10">
-                      <CardContent className="p-4 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-accent flex items-center justify-center">
-                            <Zap className="w-4 h-4 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-primary text-sm">{lang === "ar" ? "افتح الوصول المميز" : "Unlock Premium Access"}</p>
-                            <p className="text-xs text-primary/80">{lang === "ar" ? "وصول كامل للأبحاث وبيانات الصناعة والمزيد" : "Get full access to research papers, industry data & more"}</p>
-                          </div>
-                        </div>
-                        <Link to="/pricing">
-                          <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap">
-                            {lang === "ar" ? "ترقية الآن" : "Upgrade Now"}
-                          </Button>
-                        </Link>
                       </CardContent>
                     </Card>
                   )}
@@ -898,50 +964,36 @@ export default function DashboardPage() {
                 </>
               )}
 
-              {/* ══ If free and clicked premium, show upgrade page ══ */}
-              {activeTab === "premium" && !localIsPremium && (
-                <div className="text-center py-16">
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                    <Crown className="w-10 h-10 text-primary" />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">{lang === "ar" ? "افتح العضوية الاحترافية" : "Unlock Professional Access"}</h2>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">{lang === "ar" ? "ترقّ للاستمتاع بالأوراق البحثية والندوات الحصرية وتقارير الصناعة" : "Upgrade to enjoy research papers, exclusive webinars, and industry reports"}</p>
-                  <Link to="/pricing">
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 px-8">
-                      <ArrowUpCircle className="w-4 h-4" /> {lang === "ar" ? "عرض الخطط" : "View Plans"}
-                    </Button>
-                  </Link>
-                </div>
-              )}
-
-              {/* ══ TAB: Subscription ══ */}
+              {/* ══ TAB: Membership (fully free) ══ */}
               {activeTab === "subscription" && (
                 <div className="space-y-5">
-                  {/* Current Plan Card */}
-                  <Card className={`border-2 ${isPro ? "border-primary/40" : isEnt ? "border-primary/40" : "border-border"} overflow-hidden`}>
-                    <div className={`h-3 bg-gradient-to-r ${tierCfg.gradient}`} />
+                  <Card className="border-2 border-primary/40 overflow-hidden">
+                    <div className="h-3 bg-gradient-to-r from-primary via-primary/70 to-primary/40" />
                     <CardContent className="p-5">
                       <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${tierCfg.gradient} flex items-center justify-center`}>
-                            {tierCfg.icon ? <tierCfg.icon className="w-6 h-6 text-white" /> : <Zap className="w-6 h-6 text-white" />}
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                            <Zap className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-foreground text-lg">{lang === "ar" ? tierCfg.labelAr : tierCfg.label}</h3>
-                            <p className="text-sm text-muted-foreground">{lang === "ar" ? "خطتك الحالية" : "Your current plan"}</p>
+                            <h3 className="font-bold text-foreground text-lg">
+                              {lang === "ar" ? "عضوية مجانية بالكامل" : "Fully Free Membership"}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {lang === "ar" ? "وصول كامل للأفراد والشركات — بدون اشتراك" : "Full access for individuals and companies — no subscription"}
+                            </p>
                           </div>
                         </div>
-                        <Badge className={`text-sm px-3 py-1 ${tierCfg.color}`}>
-                          {lang === "ar" ? "نشط" : "Active"}
+                        <Badge className="text-sm px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                          {lang === "ar" ? "مجاني" : "Free"}
                         </Badge>
                       </div>
                       <Separator className="mb-4" />
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                         {[
-                          { label: lang === "ar" ? "السعر" : "Price", value: currentTier === "free" ? "$0" : currentTier === "professional" ? "$29" : "$99" },
-                          { label: lang === "ar" ? "الفوترة" : "Billing", value: currentTier === "free" ? (lang === "ar" ? "مجاناً" : "Free") : (lang === "ar" ? "شهري" : "Monthly") },
+                          { label: lang === "ar" ? "السعر" : "Price", value: "$0" },
+                          { label: lang === "ar" ? "الفوترة" : "Billing", value: lang === "ar" ? "لا يوجد" : "None" },
                           { label: lang === "ar" ? "عضو منذ" : "Since", value: memberSince },
-                          { label: lang === "ar" ? "التجديد" : "Renewal", value: localIsPremium ? (lang === "ar" ? "تلقائي" : "Auto") : "—" },
                         ].map(({ label, value }) => (
                           <div key={label} className="p-3 rounded-xl bg-muted/50">
                             <p className="text-xs text-muted-foreground mb-1">{label}</p>
@@ -952,36 +1004,23 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Plan Features */}
                   <Card className="border border-border">
                     <CardHeader className="p-4 pb-3">
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <Gift className="w-4 h-4 text-primary" />
-                        {lang === "ar" ? "ما يشمله اشتراكك" : "What's Included"}
+                        {lang === "ar" ? "ما تشمله عضويتك" : "What's Included"}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {(currentTier === "free" ? [
-                          lang === "ar" ? "الوصول للأخبار والمقالات العامة" : "Access to public news & articles",
-                          lang === "ar" ? "الوصول لمنتدى المجتمع" : "Community forum access",
-                          lang === "ar" ? "النشرة الإخبارية الشهرية" : "Monthly newsletter",
-                          lang === "ar" ? "مكتبة الموارد الأساسية" : "Basic resource library",
-                        ] : currentTier === "professional" ? [
-                          lang === "ar" ? "جميع ميزات الخطة المجانية" : "All Free features",
-                          lang === "ar" ? "أوراق بحثية مميزة" : "Premium research papers",
-                          lang === "ar" ? "ندوات وورش عمل حصرية" : "Exclusive webinars & workshops",
-                          lang === "ar" ? "تقارير وتحليلات الصناعة" : "Industry reports & analytics",
-                          lang === "ar" ? "أولوية في فعاليات التواصل" : "Priority networking events",
-                          lang === "ar" ? "استشارات مباشرة مع الخبراء" : "Direct expert consultations",
-                        ] : [
-                          lang === "ar" ? "جميع ميزات الخطة الاحترافية" : "All Professional features",
-                          lang === "ar" ? "3 إعلانات شهرية للشركة" : "3 company ads per month",
-                          lang === "ar" ? "نشر مقالات الشركة على الموقع" : "Publish company articles on site",
-                          lang === "ar" ? "شعار الشركة في قسم الشركاء" : "Company logo in Partners section",
-                          lang === "ar" ? "تقارير أداء شهرية مفصلة" : "Monthly performance reports",
-                          lang === "ar" ? "مدير حساب مخصص" : "Dedicated account manager",
-                        ]).map((feat) => (
+                        {[
+                          lang === "ar" ? "الأخبار والمقالات والموارد التعليمية" : "News, articles, and educational resources",
+                          lang === "ar" ? "فرص العمل والتقديم عليها" : "Job listings and applications",
+                          lang === "ar" ? "المجتمع والمنتدى ودليل الأعضاء" : "Community, forum, and members directory",
+                          lang === "ar" ? "الدورات والاستشارات والسوق" : "Courses, consultations, and market",
+                          lang === "ar" ? "حسابات الشركات مجانية بالكامل" : "Company accounts fully free",
+                          lang === "ar" ? "بدون اشتراكات أو مدفوعات" : "No subscriptions or payments",
+                        ].map((feat) => (
                           <div key={feat} className="flex items-center gap-2 text-sm">
                             <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                             <span>{feat}</span>
@@ -991,40 +1030,18 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Actions */}
-                  {!localIsPremium ? (
-                    <Card className="border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-                      <CardContent className="p-5 flex items-center justify-between gap-4 flex-wrap">
-                        <div>
-                          <p className="font-semibold text-foreground">{lang === "ar" ? "جاهز للترقية؟" : "Ready to upgrade?"}</p>
-                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "ابدأ بـ $29/شهر للوصول الاحترافي الكامل" : "Start at $29/month for full professional access"}</p>
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                          <Link to="/pricing">
-                            <Button className="gap-2"><Crown className="w-4 h-4" /> {lang === "ar" ? "ترقية لـ Pro" : "Upgrade to Pro"}</Button>
-                          </Link>
-                          <Link to="/enterprise">
-                            <Button variant="outline" className="gap-2"><Building2 className="w-4 h-4" /> {lang === "ar" ? "خطة الشركات" : "Enterprise"}</Button>
-                          </Link>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="flex gap-3 flex-wrap">
-                      <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
-                        <a href={`mailto:${SITE.billingEmail}?subject=${encodeURIComponent("Subscription management — Flavor Experts Network")}`}>
-                        <RefreshCw className="w-4 h-4" /> {t("dashboard.manage_sub")}
-                        </a>
+                  <div className="flex gap-3 flex-wrap">
+                    <Link to="/enterprise" className="flex-1">
+                      <Button variant="outline" className="w-full gap-2">
+                        <Building2 className="w-4 h-4" /> {lang === "ar" ? "خدمات الشركات" : "Enterprise services"}
                       </Button>
-                      {!isEnt && (
-                        <Link to="/pricing" className="flex-1">
-                          <Button variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-secondary">
-                            <ArrowUpCircle className="w-4 h-4" /> {t("dashboard.upgrade_ent")}
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  )}
+                    </Link>
+                    <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
+                      <a href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Membership support — Flavor Experts Network")}`}>
+                        <RefreshCw className="w-4 h-4" /> {lang === "ar" ? "الدعم" : "Support"}
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -1171,7 +1188,29 @@ export default function DashboardPage() {
                     )}
                     {editing ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* Avatar Upload */}
+                        <div className="sm:col-span-2 space-y-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">
+                            {lang === "ar" ? "صورة الغلاف" : "Cover photo"}
+                          </Label>
+                          <FileUploader
+                            accept="image"
+                            bucket="platform-uploads"
+                            folder="avatars/covers"
+                            currentUrl={editData.cover_url || ""}
+                            maxSizeMB={8}
+                            showUrlFallback={false}
+                            label={lang === "ar" ? "رفع صورة غلاف" : "Upload cover image"}
+                            onUpload={(url) => {
+                              setEditData((p) => ({ ...p, cover_url: url }));
+                              setExtProfile((p) => ({ ...p, cover_url: url }));
+                            }}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            {lang === "ar"
+                              ? "يفضّل صورة أفقية بعرض واسع (مثل 1600×400)."
+                              : "Prefer a wide landscape image (e.g. 1600×400)."}
+                          </p>
+                        </div>
                         <div className="sm:col-span-2 flex justify-center py-2">
                           <AvatarUploader
                             currentUrl={editData.avatar_url || ""}
@@ -1203,6 +1242,22 @@ export default function DashboardPage() {
                           <Input value={editData.location || ""} onChange={(e) => setEditData((p) => ({ ...p, location: e.target.value }))} placeholder={lang === "ar" ? "الرياض، المملكة" : "Riyadh, Saudi Arabia"} />
                         </div>
                         <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "سنوات الخبرة" : "Years of experience"}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={80}
+                            value={editData.years_experience ?? ""}
+                            onChange={(e) =>
+                              setEditData((p) => ({
+                                ...p,
+                                years_experience: e.target.value === "" ? null : Number(e.target.value),
+                              }))
+                            }
+                            placeholder="10"
+                          />
+                        </div>
+                        <div>
                           <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الهاتف" : "Phone"}</Label>
                           <Input value={editData.phone || ""} onChange={(e) => setEditData((p) => ({ ...p, phone: e.target.value }))} placeholder="+966 5X XXX XXXX" />
                         </div>
@@ -1218,9 +1273,82 @@ export default function DashboardPage() {
                           <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "نبذة شخصية" : "Bio / About"}</Label>
                           <Textarea value={editData.bio || ""} onChange={(e) => setEditData((p) => ({ ...p, bio: e.target.value }))} placeholder={lang === "ar" ? "شارك خبراتك ومسيرتك المهنية..." : "Share your expertise and background..."} rows={3} className="resize-none" />
                         </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "مجالات التخصص" : "Focus areas / specialties"}</Label>
+                          <Input
+                            value={editData.specialty || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, specialty: e.target.value }))}
+                            placeholder={lang === "ar" ? "نكهات طبيعية, تقييم حسي, تركيب" : "Natural flavors, Sensory, Formulation"}
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            {lang === "ar" ? "افصل التخصصات بفاصلة." : "Separate specialties with commas."}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المهارات" : "Skills"}</Label>
+                          <Input
+                            value={editData.skills_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, skills_text: e.target.value }))}
+                            placeholder={lang === "ar" ? "GC-MS, QDA, Encapsulation" : "GC-MS, QDA, Encapsulation"}
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الخبرات المهنية" : "Work experience"}</Label>
+                          <Textarea
+                            value={editData.work_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, work_text: e.target.value }))}
+                            placeholder={
+                              lang === "ar"
+                                ? "المسمى | الشركة | الفترة | الوصف\nخبير نكهات | شركة النكهات | 2020-الآن | تطوير تركيبات"
+                                : "Title | Company | Period | Description\nFlavor Scientist | Acme Flavors | 2020-Present | Led formulation"
+                            }
+                            rows={4}
+                            className="resize-none font-mono text-xs"
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            {lang === "ar" ? "سطر لكل خبرة، افصل الحقول بـ |" : "One line per role; separate fields with |"}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "التعليم" : "Education"}</Label>
+                          <Textarea
+                            value={editData.education_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, education_text: e.target.value }))}
+                            placeholder={
+                              lang === "ar"
+                                ? "الجامعة | الدرجة | السنة\nجامعة الملك سعود | بكالوريوس علوم الأغذية | 2018"
+                                : "School | Degree | Year\nKing Saud University | BSc Food Science | 2018"
+                            }
+                            rows={3}
+                            className="resize-none font-mono text-xs"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المشاريع" : "Projects"}</Label>
+                          <Textarea
+                            value={editData.projects_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, projects_text: e.target.value }))}
+                            placeholder={
+                              lang === "ar"
+                                ? "الاسم | الوصف | الرابط\nمنصة النكهات | شبكة مهنية | https://example.com"
+                                : "Name | Description | URL\nFlavor Platform | Professional network | https://example.com"
+                            }
+                            rows={3}
+                            className="resize-none font-mono text-xs"
+                          />
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-4">
+                        {extProfile.cover_url ? (
+                          <div className="h-28 sm:h-36 rounded-xl overflow-hidden border border-border">
+                            <img
+                              src={extProfile.cover_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : null}
                         <div className="flex items-start gap-4">
                           {extProfile.avatar_url ? (
                             <img
@@ -1246,6 +1374,7 @@ export default function DashboardPage() {
                             { icon: Mail, label: lang === "ar" ? "البريد" : "Email", value: user.email },
                             { icon: Building2, label: lang === "ar" ? "الشركة" : "Company", value: extProfile.company },
                             { icon: MapPin, label: lang === "ar" ? "الموقع" : "Location", value: extProfile.location },
+                            { icon: Briefcase, label: lang === "ar" ? "سنوات الخبرة" : "Experience", value: extProfile.years_experience ? `${extProfile.years_experience}+` : undefined },
                             { icon: Phone, label: lang === "ar" ? "الهاتف" : "Phone", value: extProfile.phone },
                             { icon: Linkedin, label: "LinkedIn", value: extProfile.linkedin_url, isLink: true },
                             { icon: Globe, label: lang === "ar" ? "الموقع الإلكتروني" : "Website", value: extProfile.website_url, isLink: true },

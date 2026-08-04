@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/send-email/**"
-      - "supabase/migrations/20260803120000_welcome_email_platform_policy.sql"
+      - "supabase/migrations/**"
       - ".github/workflows/deploy-supabase.yml"
   workflow_dispatch:
 

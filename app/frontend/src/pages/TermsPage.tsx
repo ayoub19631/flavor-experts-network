@@ -53,9 +53,9 @@ export default function TermsPage() {
                 </section>
 
                 <section>
-                  <h2 className="text-xl font-bold text-foreground mb-3">3. العضوية والاشتراكات</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-3">3. العضوية</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    نقدم خطط عضوية متعددة (مجانية، احترافية، مؤسسات). تتم معالجة المدفوعات بشكل آمن عبر مزودي خدمات الدفع المعتمدين. يمكنك إلغاء اشتراكك في أي وقت.
+                    المنصة مجانية بالكامل للأفراد والشركات. لا توجد اشتراكات مدفوعة ولا رسوم عضوية للوصول إلى ميزات المنصة.
                   </p>
                 </section>
 
@@ -81,9 +81,9 @@ export default function TermsPage() {
                 </section>
 
                 <section>
-                  <h2 className="text-xl font-bold text-foreground mb-3">7. سياسة الاسترداد</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-3">7. الرسوم والمدفوعات</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    يمكنك طلب استرداد المبلغ خلال 14 يومًا من الاشتراك إذا لم تكن راضيًا عن الخدمة. بعد هذه الفترة، لا يمكن استرداد المبلغ.
+                    لا نفرض حالياً أي رسوم اشتراك. إذا تغيّرت سياسة التسعير مستقبلاً، سيتم إخطار الأعضاء مسبقاً عبر البريد الإلكتروني.
                   </p>
                 </section>
 
@@ -118,9 +118,9 @@ export default function TermsPage() {
                 </section>
 
                 <section>
-                  <h2 className="text-xl font-bold text-foreground mb-3">3. Membership & Subscriptions</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-3">3. Membership</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    We offer multiple membership plans (Free, Professional, Enterprise). Payments are processed securely through authorized payment service providers. You may cancel your subscription at any time.
+                    The platform is fully free for individuals and companies. There are no paid subscriptions or membership fees to access platform features.
                   </p>
                 </section>
 
@@ -146,9 +146,9 @@ export default function TermsPage() {
                 </section>
 
                 <section>
-                  <h2 className="text-xl font-bold text-foreground mb-3">7. Refund Policy</h2>
+                  <h2 className="text-xl font-bold text-foreground mb-3">7. Fees & Payments</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    You may request a refund within 14 days of subscription if you are not satisfied with the service. After this period, refunds are not available.
+                    We do not currently charge subscription fees. If pricing policy changes in the future, members will be notified in advance by email.
                   </p>
                 </section>
 

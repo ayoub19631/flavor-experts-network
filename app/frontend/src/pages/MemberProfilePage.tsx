@@ -1,13 +1,17 @@
-﻿import { useEffect, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  Briefcase,
   Building2,
   ExternalLink,
   Globe,
+  GraduationCap,
   Linkedin,
   Loader2,
   MapPin,
+  FolderKanban,
+  Sparkles,
   Star,
   User,
 } from "lucide-react";
@@ -20,6 +24,11 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import { SITE } from "@/lib/site-config";
+import {
+  asEducation,
+  asProjects,
+  asWorkExperience,
+} from "@/lib/profile-details";
 
 function getInitials(name: string) {
   return name
@@ -30,6 +39,9 @@ function getInitials(name: string) {
     .join("")
     .toUpperCase();
 }
+
+const MEMBER_SELECT =
+  "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, cover_url, is_featured, title, company, location, bio, member_type, years_experience, website, profile_id, skills, education, work_experience, projects";
 
 export default function MemberProfilePage() {
   const { id } = useParams<{ id: string }>();
@@ -49,9 +61,7 @@ export default function MemberProfilePage() {
       setLoading(true);
       const { data, error } = await supabase
         .from("member_directory")
-        .select(
-          "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, is_featured, title, company, location, bio, member_type, years_experience, website",
-        )
+        .select(MEMBER_SELECT)
         .eq("id", id)
         .maybeSingle();
       if (cancelled) return;
@@ -82,7 +92,7 @@ export default function MemberProfilePage() {
     title,
     description,
     path: id ? `/members/${id}` : "/members",
-    image: member?.avatar_url || SITE.ogImage,
+    image: member?.avatar_url || member?.cover_url || SITE.ogImage,
   });
 
   const joinedLabel = member?.joined_at
@@ -94,25 +104,46 @@ export default function MemberProfilePage() {
 
   const linkedinHref = safeHttpUrl(member?.linkedin_url);
   const websiteHref = safeHttpUrl(member?.website);
+  const coverSrc = member?.cover_url?.trim() || "/brand/hero-flavor-lab.webp";
+
+  const specialties = useMemo(
+    () =>
+      (member?.specialty || "")
+        .split(/[|,]/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    [member?.specialty],
+  );
+  const skills = useMemo(
+    () => (member?.skills || []).map((s) => String(s).trim()).filter(Boolean),
+    [member?.skills],
+  );
+  const education = useMemo(() => asEducation(member?.education), [member?.education]);
+  const experience = useMemo(
+    () => asWorkExperience(member?.work_experience),
+    [member?.work_experience],
+  );
+  const projects = useMemo(() => asProjects(member?.projects), [member?.projects]);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <section className="relative pt-20">
-        <div className="absolute inset-x-0 top-0 h-56 sm:h-64 overflow-hidden">
+      <section className="relative pt-16">
+        <div className="relative h-48 sm:h-64 md:h-72 overflow-hidden">
           <img
-            src="/brand/hero-flavor-lab.webp"
+            src={coverSrc}
             alt=""
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.55)] via-[hsl(208_100%_10%/0.72)] to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.35)] via-[hsl(208_100%_10%/0.45)] to-background" />
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 -mt-20 sm:-mt-24">
           <Link
             to="/members"
-            className="inline-flex items-center gap-2 text-sm text-white/85 hover:text-white mb-8 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-white/90 hover:text-white mb-4 sm:mb-6 transition-colors drop-shadow"
           >
             <ArrowLeft className="w-4 h-4" />
             {t("profile.back")}
@@ -123,7 +154,7 @@ export default function MemberProfilePage() {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : notFound || !member ? (
-            <div className="mt-16 rounded-2xl border border-border bg-card p-10 text-center">
+            <div className="mt-8 rounded-2xl border border-border bg-card p-10 text-center">
               <User className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
               <h1 className="text-xl font-semibold mb-2">{t("profile.not_found")}</h1>
               <p className="text-muted-foreground mb-6">{t("profile.not_found.desc")}</p>
@@ -132,27 +163,27 @@ export default function MemberProfilePage() {
               </Button>
             </div>
           ) : (
-            <div className="mt-10 space-y-6 animate-[fadeIn_0.5s_ease-out]">
-              <div className="rounded-2xl border border-border/80 bg-card/95 backdrop-blur shadow-xl overflow-hidden">
+            <div className="space-y-6 animate-[fadeIn_0.5s_ease-out]">
+              <div className="rounded-2xl border border-border/80 bg-card shadow-xl overflow-hidden">
                 <div className="p-6 sm:p-8">
                   <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
-                    <div className="relative shrink-0">
+                    <div className="relative shrink-0 -mt-16 sm:-mt-20">
                       {member.avatar_url ? (
                         <img
                           src={member.avatar_url}
                           alt={member.full_name}
-                          className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover ring-4 ring-background shadow-lg"
+                          className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover ring-4 ring-card shadow-lg"
                         />
                       ) : (
-                        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-br from-[hsl(208_100%_18%)] to-[hsl(208_70%_28%)] flex items-center justify-center ring-4 ring-background shadow-lg">
+                        <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-gradient-to-br from-[hsl(208_100%_18%)] to-[hsl(208_70%_28%)] flex items-center justify-center ring-4 ring-card shadow-lg">
                           <span className="text-3xl font-bold text-[hsl(47_23%_85%)]">
                             {getInitials(member.full_name)}
                           </span>
                         </div>
                       )}
                       {member.is_featured && (
-                        <span className="absolute -bottom-2 -end-2 inline-flex items-center gap-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold px-2 py-1 shadow">
-                          <Star className="w-3 h-3 fill-white" />
+                        <span className="absolute -bottom-2 -end-2 inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-1 shadow">
+                          <Star className="w-3 h-3 fill-current" />
                           {t("profile.featured")}
                         </span>
                       )}
@@ -188,6 +219,16 @@ export default function MemberProfilePage() {
                             {member.location}
                           </span>
                         )}
+                        {typeof member.years_experience === "number" &&
+                          member.years_experience > 0 && (
+                            <span className="inline-flex items-center gap-1.5">
+                              <Briefcase className="w-3.5 h-3.5" />
+                              {t("profile.experience").replace(
+                                "{years}",
+                                String(member.years_experience),
+                              )}
+                            </span>
+                          )}
                         {joinedLabel && (
                           <span>
                             {t("members.joined")} {joinedLabel}
@@ -223,48 +264,151 @@ export default function MemberProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 sm:p-7">
-                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    {t("profile.about")}
-                  </h2>
-                  {member.bio?.trim() ? (
-                    <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">
-                      {member.bio}
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground leading-relaxed">
-                      {t("profile.about.empty")}
-                    </p>
-                  )}
+                <div className="lg:col-span-2 space-y-5">
+                  <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      {t("profile.about")}
+                    </h2>
+                    {member.bio?.trim() ? (
+                      <p className="text-foreground/90 leading-relaxed whitespace-pre-wrap">
+                        {member.bio}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground leading-relaxed">
+                        {t("profile.about.empty")}
+                      </p>
+                    )}
+                  </section>
+
+                  <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 inline-flex items-center gap-2">
+                      <Briefcase className="w-4 h-4" />
+                      {t("profile.work")}
+                    </h2>
+                    {experience.length ? (
+                      <ul className="space-y-4">
+                        {experience.map((item) => (
+                          <li
+                            key={`${item.title}-${item.company}-${item.period}`}
+                            className="relative ps-4 border-s-2 border-primary/25"
+                          >
+                            <p className="font-semibold text-foreground">{item.title}</p>
+                            {(item.company || item.period) && (
+                              <p className="text-sm text-primary/90 mt-0.5">
+                                {[item.company, item.period].filter(Boolean).join(" · ")}
+                              </p>
+                            )}
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
+                                {item.description}
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("profile.work.empty")}</p>
+                    )}
+                  </section>
+
+                  <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 inline-flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4" />
+                      {t("profile.education")}
+                    </h2>
+                    {education.length ? (
+                      <ul className="space-y-3">
+                        {education.map((item) => (
+                          <li key={`${item.school}-${item.degree}-${item.year}`}>
+                            <p className="font-semibold text-foreground">{item.school}</p>
+                            {(item.degree || item.year) && (
+                              <p className="text-sm text-muted-foreground">
+                                {[item.degree, item.year].filter(Boolean).join(" · ")}
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("profile.education.empty")}</p>
+                    )}
+                  </section>
+
+                  <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 inline-flex items-center gap-2">
+                      <FolderKanban className="w-4 h-4" />
+                      {t("profile.projects")}
+                    </h2>
+                    {projects.length ? (
+                      <ul className="space-y-4">
+                        {projects.map((item) => {
+                          const href = safeHttpUrl(item.url);
+                          return (
+                            <li key={`${item.name}-${item.url}`}>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="font-semibold text-foreground">{item.name}</p>
+                                {href && (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                  >
+                                    {t("profile.project_link")}
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
+                              {item.description && (
+                                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                                  {item.description}
+                                </p>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("profile.projects.empty")}</p>
+                    )}
+                  </section>
                 </div>
 
-                <div className="space-y-5">
+                <aside className="space-y-5">
                   <div className="rounded-2xl border border-border bg-card p-6">
-                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3 inline-flex items-center gap-2">
+                      <Sparkles className="w-4 h-4" />
                       {t("profile.focus")}
                     </h2>
                     <div className="flex flex-wrap gap-2">
-                      {(member.specialty || "")
-                        .split(/[|,]/)
-                        .map((s) => s.trim())
-                        .filter(Boolean)
-                        .map((tag) => (
-                          <Badge key={tag} variant="secondary" className="font-normal">
-                            {tag}
-                          </Badge>
-                        ))}
-                      {!member.specialty?.trim() && (
+                      {specialties.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="font-normal">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {!specialties.length && (
                         <p className="text-sm text-muted-foreground">{t("profile.focus.empty")}</p>
                       )}
                     </div>
-                    {typeof member.years_experience === "number" && member.years_experience > 0 && (
-                      <p className="mt-4 text-sm text-muted-foreground">
-                        {t("profile.experience").replace(
-                          "{years}",
-                          String(member.years_experience),
-                        )}
-                      </p>
-                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      {t("profile.skills")}
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {skills.map((skill) => (
+                        <Badge
+                          key={skill}
+                          className="bg-primary/10 text-primary border-0 font-normal"
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                      {!skills.length && (
+                        <p className="text-sm text-muted-foreground">{t("profile.skills.empty")}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="rounded-2xl border border-border bg-card p-6 overflow-hidden relative">
@@ -285,7 +429,7 @@ export default function MemberProfilePage() {
                       </Button>
                     </div>
                   </div>
-                </div>
+                </aside>
               </div>
             </div>
           )}

@@ -257,9 +257,9 @@ export default function EnterpriseServicesPage() {
                   <p className="text-muted-foreground mb-6">
                     {t("enterprise.form.success_desc")}
                   </p>
-                  <Link to="/pricing">
+                  <Link to="/dashboard">
                     <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      {t("enterprise.form.view_pricing")}
+                      {t("nav.dashboard")}
                     </Button>
                   </Link>
                 </div>

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
 import BrandLogo from "@/components/BrandLogo";
-import { PAYMENTS_LIVE } from "@/lib/site-config";
+import { PAYMENTS_LIVE, PLATFORM_ALWAYS_FREE } from "@/lib/site-config";
 
 const STORAGE_KEY = "fen-beta-notice-acknowledged-v1";
 
@@ -20,6 +20,7 @@ export default function BetaLaunchNotice() {
   const isAR = lang === "ar";
   const [open, setOpen] = useState(false);
   const enabled =
+    !PLATFORM_ALWAYS_FREE &&
     !PAYMENTS_LIVE &&
     String(import.meta.env.VITE_SHOW_TESTING_UI || "false").toLowerCase() === "true";
 

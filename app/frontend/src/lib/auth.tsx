@@ -11,6 +11,8 @@ import {
   EMAIL_NOT_CONFIRMED_CODE,
 } from "./auth-utils";
 import { resolvePlatformAccess } from "./platform-access";
+import { PLATFORM_ALWAYS_FREE } from "./site-config";
+
 
 export { EMAIL_NOT_CONFIRMED_CODE };
 
@@ -186,10 +188,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const tier = profile?.subscription_tier;
   const active = profile?.subscription_active !== false;
-  const isPremium =
-    active &&
-    (tier === "professional" || tier === "enterprise");
-  const isEnterprise = active && tier === "enterprise";
+  // Fully free platform: every signed-in member gets full access.
+  const isPremium = PLATFORM_ALWAYS_FREE
+    ? !!user
+    : active && (tier === "professional" || tier === "enterprise");
+  const isEnterprise = PLATFORM_ALWAYS_FREE
+    ? !!user && profile?.account_type === "company"
+    : active && tier === "enterprise";
   const isAdmin = profile?.is_admin === true;
 
   const isEmailVerified = checkEmailVerified(user);

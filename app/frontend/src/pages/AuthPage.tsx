@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -21,8 +20,6 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { getAuthRedirectUrl, rememberPendingVerificationEmail } from "@/lib/auth-utils";
-import { CURRENCIES } from "@/components/PaymentModal";
-
 type AuthMode = "login" | "signup" | "reset" | "new-password";
 type AccountType = "individual" | "company";
 
@@ -78,9 +75,6 @@ export default function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [companyCreated, setCompanyCreated] = useState(false);
-  const [preferredCurrency, setPreferredCurrency] = useState(
-    localStorage.getItem("fen-preferred-currency") || "USD"
-  );
 
   const { signIn, signUp } = useAuth();
   const { t } = useI18n();
@@ -256,7 +250,6 @@ export default function AuthPage() {
                 </button>
                 <button onClick={() => switchType("company")} className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${accountType === "company" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                   <Building2 className="w-4 h-4" />{t("auth.company_tab")}
-                  <Badge className="bg-primary/10 text-primary border-0 text-xs px-1.5 py-0 h-5">Pro</Badge>
                 </button>
               </div>
             )}
@@ -487,46 +480,6 @@ export default function AuthPage() {
                         </div>
                       )}
                       {error && <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">{error}</div>}
-
-                      {mode === "signup" && (
-                        <div className="space-y-2">
-                          <Label htmlFor="currency">{t("auth.currency")}</Label>
-                          <Select
-                            value={preferredCurrency}
-                            onValueChange={code => {
-                              setPreferredCurrency(code);
-                              localStorage.setItem("fen-preferred-currency", code);
-                            }}
-                          >
-                            <SelectTrigger id="currency" className="h-10">
-                              <SelectValue>
-                                {(() => {
-                                  const c = CURRENCIES.find(x => x.code === preferredCurrency);
-                                  return c ? (
-                                    <span className="flex items-center gap-2">
-                                      <span>{c.flag}</span>
-                                      <span className="font-medium">{c.code}</span>
-                                      <span className="text-muted-foreground text-xs">— {c.name}</span>
-                                    </span>
-                                  ) : null;
-                                })()}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent className="max-h-64">
-                              {CURRENCIES.map(c => (
-                                <SelectItem key={c.code} value={c.code}>
-                                  <span className="flex items-center gap-2">
-                                    <span>{c.flag}</span>
-                                    <span className="font-medium w-10">{c.code}</span>
-                                    <span className="text-muted-foreground text-xs">{c.name}</span>
-                                  </span>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-muted-foreground">{t("auth.currency_hint")}</p>
-                        </div>
-                      )}
 
                       <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                         {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}

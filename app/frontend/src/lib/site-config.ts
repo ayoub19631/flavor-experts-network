@@ -25,8 +25,15 @@ export const SITE = {
 
 export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";
 
-/** Explicit kill-switch for checkout. Default off until payments go live. */
+/**
+ * Platform policy: everything is free for individuals and companies.
+ * When true, premium gates are unlocked and checkout UI stays off.
+ */
+export const PLATFORM_ALWAYS_FREE = true;
+
+/** Explicit kill-switch for checkout. Forced off while the platform is fully free. */
 export const PAYMENTS_LIVE =
+  !PLATFORM_ALWAYS_FREE &&
   String(import.meta.env.VITE_PAYMENTS_ENABLED || "").toLowerCase() === "true";
 
 export function isAuthorizedAdminEmail(email: string | undefined | null): boolean {

@@ -3,11 +3,31 @@
 
 export type SubscriptionTier = "free" | "professional" | "enterprise";
 
+export interface ProfileEducation {
+  school: string;
+  degree?: string;
+  year?: string;
+}
+
+export interface ProfileWorkExperience {
+  title: string;
+  company?: string;
+  period?: string;
+  description?: string;
+}
+
+export interface ProfileProject {
+  name: string;
+  description?: string;
+  url?: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
   full_name: string;
   avatar_url: string;
+  cover_url?: string | null;
   subscription_tier: SubscriptionTier;
   subscription_active: boolean;
   is_admin: boolean;
@@ -21,6 +41,12 @@ export interface UserProfile {
   linkedin_url?: string;
   website_url?: string;
   phone?: string;
+  specialty?: string | null;
+  years_experience?: number | null;
+  skills?: string[] | null;
+  education?: ProfileEducation[] | null;
+  work_experience?: ProfileWorkExperience[] | null;
+  projects?: ProfileProject[] | null;
   is_verified?: boolean;
   is_active?: boolean;
   last_seen?: string | null;
@@ -37,6 +63,7 @@ export interface Member {
   linkedin_url: string | null;
   joined_at: string;
   avatar_url: string | null;
+  cover_url?: string | null;
   is_featured: boolean;
   title?: string;
   company?: string;
@@ -46,6 +73,10 @@ export interface Member {
   years_experience?: number;
   website?: string;
   profile_id?: string | null;
+  skills?: string[] | null;
+  education?: ProfileEducation[] | null;
+  work_experience?: ProfileWorkExperience[] | null;
+  projects?: ProfileProject[] | null;
 }
 
 export interface IndustryNews {
