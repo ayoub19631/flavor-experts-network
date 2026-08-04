@@ -64,7 +64,7 @@ export default function ResourcesSection() {
   const [dataSource, setDataSource] = useState<"db" | "empty">("empty");
   const [search, setSearch] = useState("");
   const { t } = useI18n();
-  const { isPremium } = useAuth();
+  const { user, isPremium } = useAuth();
 
   useEffect(() => {
     async function fetchResources() {
@@ -170,7 +170,8 @@ export default function ResourcesSection() {
               })
               .map((resource) => {
               const IconComp = iconMap[resource.type] || BookOpen;
-              const isLocked = resource.premium && !isPremium;
+              // Members get full free access; guests sign in for member resources.
+              const isLocked = resource.premium && !isPremium && !user;
 
               return (
                 <Card
@@ -189,11 +190,6 @@ export default function ResourcesSection() {
                         <IconComp className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex items-center gap-2">
-                        {resource.premium && (
-                          <Badge className="bg-amber-100 text-amber-700 text-xs">
-                            {t("resources.premium")}
-                          </Badge>
-                        )}
                         <Badge
                           className={`text-xs font-medium ${typeColors[resource.type] || "bg-gray-100 text-gray-700"}`}
                         >
@@ -212,10 +208,10 @@ export default function ResourcesSection() {
                         {resource.category}
                       </span>
                       {isLocked ? (
-                        <Link to="/pricing">
-                          <Button variant="ghost" size="sm" className="gap-1 text-xs text-amber-600 hover:text-amber-700 h-7 px-2">
+                        <Link to="/auth?mode=signup">
+                          <Button variant="ghost" size="sm" className="gap-1 text-xs text-primary hover:text-primary/80 h-7 px-2">
                             <Lock className="w-3 h-3" />
-                            {t("resources.upgrade")}
+                            {t("nav.signup")}
                           </Button>
                         </Link>
                       ) : (

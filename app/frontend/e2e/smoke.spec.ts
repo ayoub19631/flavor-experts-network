@@ -38,12 +38,10 @@ test.describe("public pages smoke", () => {
     expect(page.url()).toMatch(/auth|dashboard|^https?:\/\/[^/]+\/?$/);
   });
 
-  test("pricing is gated or loads", async ({ page }) => {
+  test("pricing redirects to free home", async ({ page }) => {
     await page.goto("/pricing");
+    await page.waitForURL((url) => !url.pathname.includes("/pricing"), { timeout: 20_000 });
     await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
-    await expect(
-      page.getByText(/قيد التطوير|Under Development|professional|enterprise|أسعار|اشتراك/i).first(),
-    ).toBeVisible({ timeout: 20_000 });
   });
 
   test("privacy page loads when allowed", async ({ page }) => {

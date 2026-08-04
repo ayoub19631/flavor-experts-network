@@ -45,7 +45,6 @@ export default function Navbar() {
     { href: "/forum", label: t("nav.forum") },
     { href: "/courses", label: t("nav.courses") },
     { href: "/blog", label: t("nav.blog") },
-    { href: "/pricing", label: t("nav.pricing") },
     { href: "/enterprise", label: t("nav.enterprise") },
     { href: "/#contact", label: t("nav.contact") },
   ];

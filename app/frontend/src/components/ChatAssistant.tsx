@@ -17,40 +17,23 @@ Flavor Experts Network is a professional community connecting flavor scientists,
 
 ## Website Pages & Navigation
 - **/** — Home page (hero, features, testimonials, news preview)
-- **/pricing** — Subscription plans (Free, Professional, Enterprise)
-- **/auth** — Login & Registration (individual or company)
+- **/auth** — Login & Registration (individual or company) — fully free
 - **/dashboard** — Member dashboard (after login)
 - **/members** — Member directory
-- **/enterprise** — Enterprise services page
+- **/jobs** — Job board (free for members; companies post for free)
+- **/enterprise** — Enterprise / company services page (free to inquire)
 - **/terms** — Terms of service
 - **/privacy** — Privacy policy
 - **/blog** — Industry blog & articles
 
-## Pricing Plans (Exact)
-### 🆓 Free Plan — $0/forever
-- Public news & articles access
-- Community forum participation
-- Monthly newsletter
-- Basic resource library
-
-### ⭐ Professional Plan — $29/month (or $23/month billed annually — save 20%)
-- Everything in Free
-- Premium research papers and resources
-- Exclusive webinars & workshops  
-- Industry reports & analytics
-- Priority networking events
-- Direct expert consultations
-
-### 🏢 Enterprise Plan — $99/month (or $79/month billed annually — save 20%)
-- Everything in Professional
-- 3 targeted company advertisements per month
-- Publish company articles on the platform
-- Company logo featured in Partners section
-- Detailed monthly performance reports
-- Dedicated account manager
-
-## Supported Currencies
-32 currencies: USD, EUR, GBP, AED, SAR, KWD, QAR, BHD, OMR, JOD, EGP, MAD, JPY, CAD, AUD, CHF, CNY, INR, SGD, HKD, MYR, NZD, BRL, ZAR, TRY, SEK, NOK, DKK, KRW, IDR, THB, PKR. Prices auto-convert.
+## Membership (Exact)
+The platform is **fully free** for individuals and companies. There are no paid subscription plans, no checkout, and no membership fees.
+Members get full access to:
+- News, articles, and educational resources
+- Community, forum, and members directory
+- Jobs (browse/apply); company accounts can post jobs
+- Courses, consultations, and market tools
+- Company services inquiries via /enterprise
 
 ## Registration Process
 1. Go to /auth on the platform
@@ -58,14 +41,11 @@ Flavor Experts Network is a professional community connecting flavor scientists,
 3. For individuals: name, email, password, specialty
 4. For companies: company name, industry, size, contact info
 5. Verify email via 6-digit OTP code sent to inbox
-6. Choose preferred currency (shown during signup)
-7. Optionally sign in with LinkedIn for quick access
+6. Optionally sign in with LinkedIn for quick access
 
-## Payment & Invoicing
-- Secure card payment (Visa, Mastercard, Amex)
-- Professional invoice generated instantly after payment
-- Invoice sent to billing email
-- Invoice number format: FEN-YYYYMMDD-XXXXX
+## Payments
+- No payments or subscriptions are required
+- The entire platform is free for all account types
 
 ## Platform Features Detail
 ### Member Directory
@@ -97,7 +77,7 @@ Flavor Experts Network is a professional community connecting flavor scientists,
 ## Technical Support
 - Email: ${SITE.supportEmail}
 - Response within 24 hours
-- Common issues: login problems, email verification, payment questions, profile setup
+- Common issues: login problems, email verification, profile setup
 
 ## Flavor Science Knowledge Base
 You are also an expert in flavor science. Topics you can address:
@@ -130,7 +110,7 @@ CRITICAL: Always respond in the SAME language as the user's most recent message.
 - Use bullet points for lists
 - Bold key terms with **text**
 - End with a helpful follow-up question or suggestion
-- For pricing, always mention both monthly and annual options
+- If asked about pricing, clearly state the platform is fully free
 - For technical issues, always provide the support email
 
 ## Brand Voice
@@ -152,11 +132,11 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   // Prefer explicit script in the message; otherwise follow site language
   const isAr = hasArabic && !hasLatin ? true : hasLatin && !hasArabic ? false : preferredLang === "ar";
 
-  // Pricing
-  if (/price|pricing|cost|plan|subscription|package|اشتراك|سعر|تكلفة|خطة|باقة|اسعار/.test(m)) {
+  // Pricing / membership
+  if (/price|pricing|cost|plan|subscription|package|اشتراك|سعر|تكلفة|خطة|باقة|اسعار|مجاني|free/.test(m)) {
     return isAr
-      ? `لدينا 3 خطط اشتراك:\n\n🆓 **مجانية** — $0 للأبد\nالأخبار، المجتمع، النشرة الشهرية\n\n⭐ **احترافية** — $29/شهر\nأو $23/شهر (سنوي — وفّر 20%)\nموارد بحثية مميزة، ندوات حصرية، استشارات مع خبراء\n\n🏢 **مؤسسية** — $99/شهر\nأو $79/شهر (سنوي — وفّر 20%)\nإعلانات، نشر مقالات، مدير حساب مخصص\n\n💳 ندعم 32 عملة بما فيها: درهم، ريال، دولار، يورو، جنيه...\n\nهل تريد تفاصيل إضافية عن خطة معينة؟`
-      : `We offer 3 subscription plans:\n\n🆓 **Free** — $0 forever\nNews, community, newsletter\n\n⭐ **Professional** — $29/month\nor $23/month (annual — save 20%)\nPremium research resources, webinars, expert consultations\n\n🏢 **Enterprise** — $99/month\nor $79/month (annual — save 20%)\nCompany ads, article publishing, dedicated manager\n\n💳 32 currencies supported — AED, SAR, USD, EUR and more!\n\nWould you like details on a specific plan?`;
+      ? `المنصة **مجانية بالكامل** للأفراد والشركات 🎉\n\nلا توجد خطط مدفوعة ولا اشتراكات.\nبعد إنشاء حساب مجاني تحصل على:\n• الأخبار والموارد التعليمية\n• المجتمع والمنتدى ودليل الأعضاء\n• الوظائف (تصفح وتقديم)\n• الدورات والاستشارات والسوق\n• حسابات الشركات تنشر الوظائف مجاناً\n\nابدأ من **/auth**\nهل تريد مساعدة في التسجيل؟`
+      : `The platform is **fully free** for individuals and companies 🎉\n\nThere are no paid plans and no subscriptions.\nWith a free account you get:\n• News and educational resources\n• Community, forum, and members directory\n• Jobs (browse and apply)\n• Courses, consultations, and market\n• Company accounts can post jobs for free\n\nStart at **/auth**\nNeed help creating an account?`;
   }
 
   // Registration / signup
@@ -183,15 +163,15 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   // Enterprise
   if (/enterprise|company.?plan|corporate|b2b|شركة|مؤسسة|شراكة|إعلان/.test(m)) {
     return isAr
-      ? `خطة المؤسسات مصممة للشركات المتخصصة في صناعة النكهات:\n\n🏢 **3 إعلانات مستهدفة** شهرياً للخبراء والمتخصصين\n📝 **نشر مقالات** شركتك على المنصة مباشرة\n🏅 **شعار شركتك** في قسم الشركاء البارز\n📊 **تقارير أداء** شهرية مفصلة ودقيقة\n👤 **مدير حساب مخصص** لخدمتك\n\n💰 **السعر:** $99/شهر أو $79/شهر (سنوي)\n\nللتواصل مع فريق المبيعات:\n📧 ${SITE.supportEmail}\n\nهل تريد جدولة استشارة مع فريقنا؟`
-      : `The Enterprise plan is designed for flavor industry companies:\n\n🏢 **3 targeted ads/month** reaching professionals worldwide\n📝 **Publish articles** from your company directly\n🏅 **Company logo** in the prominent Partners section\n📊 **Detailed monthly** performance reports\n👤 **Dedicated account manager** for your team\n\n💰 **Pricing:** $99/month or $79/month (annual)\n\nContact our sales team:\n📧 ${SITE.supportEmail}\n\nWould you like to schedule a consultation?`;
+      ? `خدمات الشركات متاحة **مجاناً** على المنصة:\n\n🏢 حساب شركة مجاني بالكامل\n📝 نشر وظائف وتحديثات الشركة\n🤝 الوصول للمجتمع ودليل الأعضاء\n📊 الموارد والأخبار الصناعية\n\nاطلب خدمات إضافية أو شراكات عبر **/enterprise**\n📧 ${SITE.supportEmail}\n\nهل تريد مساعدة في تسجيل حساب شركة؟`
+      : `Company services are available **for free** on the platform:\n\n🏢 Fully free company accounts\n📝 Post jobs and company updates\n🤝 Community and members directory access\n📊 Industry resources and news\n\nRequest partnerships or extra services via **/enterprise**\n📧 ${SITE.supportEmail}\n\nNeed help creating a company account?`;
   }
 
   // Contact / support
   if (/contact|support|help|email|reach|problem|issue|تواصل|دعم|مساعدة|بريد|مشكلة/.test(m)) {
     return isAr
-      ? `فريق الدعم جاهز لمساعدتك:\n\n📧 **البريد الإلكتروني:** ${SITE.supportEmail}\n🌐 **الموقع:** ${SITE.domain}\n⏱️ **وقت الرد:** خلال 24 ساعة\n\nنتعامل مع:\n• مشاكل تسجيل الدخول أو الحساب\n• أسئلة الدفع والفواتير\n• المشاكل التقنية\n• استفسارات خطة المؤسسات\n\nهل يمكنني مساعدتك بأي استفسار محدد قبل التواصل معهم؟`
-      : `Our support team is ready to help:\n\n📧 **Email:** ${SITE.supportEmail}\n🌐 **Website:** ${SITE.domain}\n⏱️ **Response time:** Within 24 hours\n\nWe handle:\n• Login & account issues\n• Payment & billing questions\n• Technical problems\n• Enterprise inquiries\n\nCan I help with a specific question before you contact support?`;
+      ? `فريق الدعم جاهز لمساعدتك:\n\n📧 **البريد الإلكتروني:** ${SITE.supportEmail}\n🌐 **الموقع:** ${SITE.domain}\n⏱️ **وقت الرد:** خلال 24 ساعة\n\nنتعامل مع:\n• مشاكل تسجيل الدخول أو الحساب\n• المشاكل التقنية\n• استفسارات الشركات والشراكات\n\nهل يمكنني مساعدتك بأي استفسار محدد قبل التواصل معهم؟`
+      : `Our support team is ready to help:\n\n📧 **Email:** ${SITE.supportEmail}\n🌐 **Website:** ${SITE.domain}\n⏱️ **Response time:** Within 24 hours\n\nWe handle:\n• Login & account issues\n• Technical problems\n• Company & partnership inquiries\n\nCan I help with a specific question before you contact support?`;
   }
 
   // Flavor science — Maillard
@@ -215,20 +195,20 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
       : `Sensory Evaluation — the foundation of flavor development:\n\n**Key Methods:**\n🔺 **Triangle Test** — Detecting differences between samples\n📊 **QDA** (Quantitative Descriptive Analysis) — Precise profiling\n❤️ **Hedonic Scaling** — Preference measurement (9-point scale)\n⏱️ **TDS** (Temporal Dominance) — Tracking attributes over time\n🔬 **Descriptive Analysis** — Trained panel profiling\n\n**Essential Protocols:**\n• Control lighting, temperature, sample order\n• Palate cleansing between samples\n• ANOVA/MANOVA statistical analysis\n\nNeed info on a specific methodology or panel setup?`;
   }
 
-  // Currency
-  if (/currency|currenc|عملة|عملات|دولار|درهم|ريال/.test(m)) {
+  // Currency / money questions → free platform
+  if (/currency|currenc|عملة|عملات|دولار|درهم|ريال|payment|دفع|فاتورة/.test(m)) {
     return isAr
-      ? `ندعم **32 عملة** بتحويل تلقائي للأسعار:\n\n🇦🇪 درهم إماراتي (AED) · 🇸🇦 ريال سعودي (SAR)\n🇰🇼 دينار كويتي (KWD) · 🇶🇦 ريال قطري (QAR)\n🇺🇸 دولار (USD) · 🇪🇺 يورو (EUR) · 🇬🇧 جنيه (GBP)\n🇪🇬 جنيه مصري (EGP) · 🇲🇦 درهم مغربي (MAD)\n\nبالإضافة لـ: JPY, CAD, AUD, CHF, CNY, INR, SGD وأكثر...\n\nيمكنك تغيير عملتك من:\n• صفحة الأسعار **/pricing**\n• عند إنشاء الحساب\n• داخل نافذة الدفع\n\nأي عملة تريد التحقق من السعر بها؟`
-      : `We support **32 currencies** with automatic conversion:\n\n🇦🇪 AED · 🇸🇦 SAR · 🇰🇼 KWD · 🇶🇦 QAR · 🇧🇭 BHD\n🇺🇸 USD · 🇪🇺 EUR · 🇬🇧 GBP · 🇨🇭 CHF · 🇯🇵 JPY\n🇨🇳 CNY · 🇮🇳 INR · 🇪🇬 EGP · 🇲🇦 MAD · + 18 more\n\nChange your currency from:\n• Pricing page **/pricing**\n• During account registration\n• Inside the payment window\n\nWhich currency would you like to check the price in?`;
+      ? `المنصة **مجانية بالكامل** — لا مدفوعات ولا عملات مطلوبة للاستخدام.\n\nأنشئ حساباً مجانياً من **/auth** وابدأ فوراً.\nهل تحتاج مساعدة في التسجيل؟`
+      : `The platform is **fully free** — no payments or currencies are required to use it.\n\nCreate a free account at **/auth** and get started.\nNeed help registering?`;
   }
 
   // Arabic default
   if (isAr) {
-    return `شكراً على سؤالك! أنا **FlavorBot** 🤖، مساعذك الذكي في شبكة خبراء النكهات.\n\nيمكنني مساعدتك في:\n💰 الأسعار والخطط · 📝 التسجيل · 🔬 ميزات المنصة\n🏢 خدمات المؤسسات · 📧 الدعم التقني · 🌿 علم النكهات\n\nما الذي تودّ معرفته بالتحديد؟`;
+    return `شكراً على سؤالك! أنا **FlavorBot** 🤖، مساعذك الذكي في شبكة خبراء النكهات.\n\nيمكنني مساعدتك في:\n🆓 العضوية المجانية · 📝 التسجيل · 🔬 ميزات المنصة\n🏢 خدمات الشركات · 📧 الدعم التقني · 🌿 علم النكهات\n\nما الذي تودّ معرفته بالتحديد؟`;
   }
 
   // English default
-  return `Thanks for reaching out! I'm **FlavorBot** 🤖, the AI assistant for Flavor Experts Network.\n\nI can help you with:\n💰 Pricing & plans · 📝 Registration · 🔬 Platform features\n🏢 Enterprise services · 📧 Technical support · 🌿 Flavor science\n\nWhat would you like to know?`;
+  return `Thanks for reaching out! I'm **FlavorBot** 🤖, the AI assistant for Flavor Experts Network.\n\nI can help you with:\n🆓 Free membership · 📝 Registration · 🔬 Platform features\n🏢 Company services · 📧 Technical support · 🌿 Flavor science\n\nWhat would you like to know?`;
 }
 
 // ─── OpenAI via Supabase Edge Function (key stays server-side) ───────────────
@@ -248,9 +228,9 @@ async function callAI(
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const WELCOME_MSG_AR = `مرحباً! أنا **FlavorBot** 🤖✨\n\nمساعدك الذكي الرسمي في **شبكة خبراء النكهات**.\n\nيمكنني مساعدتك في:\n• الأسعار والاشتراكات 💰\n• التسجيل واستخدام المنصة 📝\n• علم النكهات والغذاء 🔬\n• خدمات المؤسسات والشركات 🏢\n\nاكتب سؤالك بالعربي أو الإنجليزي وسأجيبك فوراً 😊`;
+const WELCOME_MSG_AR = `مرحباً! أنا **FlavorBot** 🤖✨\n\nمساعدك الذكي الرسمي في **شبكة خبراء النكهات**.\n\nيمكنني مساعدتك في:\n• العضوية المجانية الكاملة 🆓\n• التسجيل واستخدام المنصة 📝\n• علم النكهات والغذاء 🔬\n• خدمات الشركات والشراكات 🏢\n\nاكتب سؤالك بالعربي أو الإنجليزي وسأجيبك فوراً 😊`;
 
-const WELCOME_MSG_EN = `Hello! I'm **FlavorBot** 🤖✨\n\nYour official AI assistant for **Flavor Experts Network**.\n\nI can help you with:\n• Pricing & subscriptions 💰\n• Registration & platform navigation 📝\n• Flavor science & food technology 🔬\n• Enterprise services & partnerships 🏢\n\nAsk me anything in Arabic or English! 😊`;
+const WELCOME_MSG_EN = `Hello! I'm **FlavorBot** 🤖✨\n\nYour official AI assistant for **Flavor Experts Network**.\n\nI can help you with:\n• Fully free membership 🆓\n• Registration & platform navigation 📝\n• Flavor science & food technology 🔬\n• Company services & partnerships 🏢\n\nAsk me anything in Arabic or English! 😊`;
 
 // Detect browser language for welcome message
 const initialWelcome = () =>
@@ -259,18 +239,18 @@ const initialWelcome = () =>
     : WELCOME_MSG_EN);
 
 const QUICK_CHIPS_AR = [
-  { label: "💰 الأسعار", q: "ما هي خطط الاشتراك والأسعار؟" },
+  { label: "🆓 مجاني؟", q: "هل المنصة مجانية بالكامل؟" },
   { label: "📝 التسجيل", q: "كيف أسجل في المنصة؟" },
-  { label: "🏢 المؤسسات", q: "ما هي خدمات المؤسسات والشركات؟" },
+  { label: "🏢 الشركات", q: "ما هي خدمات الشركات؟" },
   { label: "🔬 علم النكهات", q: "ما هي مجالات علم النكهات؟" },
   { label: "⭐ المميزات", q: "ما هي ميزات المنصة؟" },
   { label: "📧 الدعم", q: "كيف أتواصل مع الدعم التقني؟" },
 ];
 
 const QUICK_CHIPS_EN = [
-  { label: "💰 Pricing", q: "What are the subscription plans and pricing?" },
+  { label: "🆓 Free?", q: "Is the platform fully free?" },
   { label: "📝 Register", q: "How do I register on the platform?" },
-  { label: "🏢 Enterprise", q: "What enterprise services do you offer?" },
+  { label: "🏢 Companies", q: "What company services do you offer?" },
   { label: "🔬 Flavor Science", q: "What flavor science topics can you help with?" },
   { label: "⭐ Features", q: "What are the platform features?" },
   { label: "📧 Support", q: "How do I contact technical support?" },

@@ -1,7 +1,7 @@
 ﻿import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
@@ -21,7 +21,6 @@ const Index = lazy(() => import("./pages/Index"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const EmailVerificationPage = lazy(() => import("./pages/EmailVerificationPage"));
 const EmailVerifiedPage = lazy(() => import("./pages/EmailVerifiedPage"));
-const PricingPage = lazy(() => import("./pages/PricingPage"));
 const EnterpriseServicesPage = lazy(() => import("./pages/EnterpriseServicesPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const TermsPage = lazy(() => import("./pages/TermsPage"));
@@ -91,7 +90,7 @@ const AppRoutes = () => (
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/verify-email" element={<EmailVerificationPage />} />
       <Route path="/email-verified" element={<ProtectedRoute requireEmailVerified={false}><EmailVerifiedPage /></ProtectedRoute>} />
-      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/pricing" element={<Navigate to="/" replace />} />
       <Route path="/enterprise" element={<EnterpriseServicesPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/terms" element={<TermsPage />} />

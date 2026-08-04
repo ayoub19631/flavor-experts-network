@@ -377,10 +377,10 @@ Deno.serve(async (req: Request) => {
             <ul style="margin:0;padding-right:18px;color:#374151;line-height:1.75">
               <li>باستخدامك للمنصة فإنك توافق على الشروط والأحكام وسياسة الخصوصية.</li>
               <li>المنصة مخصّصة للتواصل المهني، مشاركة المعرفة، والوصول إلى الأخبار والموارد التعليمية.</li>
-              <li>نوفّر خطط عضوية (مجانية / احترافية / مؤسسات) ويمكن إلغاء الاشتراك في أي وقت.</li>
+              <li>المنصة مجانية بالكامل للأفراد والشركات — بدون اشتراكات مدفوعة.</li>
               <li>يُتوقع الحفاظ على السلوك المهني؛ ويُحظر المحتوى غير اللائق أو المضلل أو المنتهك لحقوق الملكية الفكرية.</li>
               <li>نجمع البيانات اللازمة لتقديم الخدمة وتحسينها، ولا نبيع بياناتك لأطراف ثالثة.</li>
-              <li>يمكن طلب استرداد خلال 14 يوماً من الاشتراك المدفوع إذا لم تكن راضياً عن الخدمة.</li>
+              <li>لا نفرض رسوم عضوية حالياً للوصول إلى ميزات المنصة.</li>
             </ul>
           </div>
           <p style="margin:0 0 16px;font-size:14px">النسخة الكاملة:
@@ -399,10 +399,10 @@ Deno.serve(async (req: Request) => {
             <ul style="margin:0;padding-left:18px;color:#374151;line-height:1.75">
               <li>By using the platform you agree to our Terms of Service and Privacy Policy.</li>
               <li>The network is for professional networking, knowledge sharing, industry news, and educational resources.</li>
-              <li>Membership plans include Free, Professional, and Enterprise; you may cancel anytime.</li>
+              <li>The platform is fully free for individuals and companies — no paid subscriptions.</li>
               <li>Professional conduct is required; inappropriate, misleading, or IP-infringing content is prohibited.</li>
               <li>We collect only the data needed to deliver and improve the service, and we do not sell your data.</li>
-              <li>Paid subscriptions may be refunded within 14 days if you are not satisfied.</li>
+              <li>We do not currently charge membership fees for platform features.</li>
             </ul>
           </div>
           <p style="margin:0 0 20px;font-size:14px">Full documents:

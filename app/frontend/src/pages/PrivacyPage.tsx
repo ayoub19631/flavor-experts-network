@@ -58,7 +58,7 @@ export default function PrivacyPage() {
                     <li><strong>بيانات الملف الشخصي:</strong> الشركة، الدور الوظيفي، الموقع الجغرافي، رابط LinkedIn</li>
                     <li><strong>بيانات الاستخدام:</strong> الصفحات التي تزورها، الموارد التي تطلع عليها</li>
                     <li><strong>بيانات الاتصال:</strong> الرسائل التي ترسلها عبر نماذج التواصل وطلبات الشركات</li>
-                    <li><strong>بيانات الدفع (عند التفعيل):</strong> تُعالَج عبر Stripe ولا نخزّن أرقام البطاقات كاملة لدينا</li>
+                    <li><strong>بيانات الدفع:</strong> لا نجمع بيانات بطاقات الدفع حالياً لأن المنصة مجانية بالكامل</li>
                   </ul>
                 </section>
 
@@ -83,7 +83,6 @@ export default function PrivacyPage() {
                     <li><strong>Supabase:</strong> قاعدة البيانات، المصادقة، التخزين</li>
                     <li><strong>Resend:</strong> إرسال رسائل البريد المعاملاتية</li>
                     <li><strong>OpenAI:</strong> تشغيل مساعد FlavorBot (عند تفعيله)</li>
-                    <li><strong>Stripe:</strong> معالجة المدفوعات والاشتراكات (عند التفعيل)</li>
                     <li><strong>Vercel:</strong> استضافة الواجهة الأمامية</li>
                     <li>السلطات القانونية عند الطلب وفقاً للقانون المعمول به</li>
                   </ul>
@@ -94,7 +93,7 @@ export default function PrivacyPage() {
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>بيانات الحساب: طوال فترة نشاط الحساب</li>
                     <li>رسائل التواصل: حتى 24 شهراً ما لم يُطلب الحذف مبكراً</li>
-                    <li>سجلات الاشتراك/الدفع: وفق متطلبات المحاسبة المعمول بها</li>
+                    <li>سجلات الفوترة (إن وُجدت لاحقاً): وفق متطلبات المحاسبة المعمول بها</li>
                     <li>عند حذف الحساب: نحذف أو نُعمّي البيانات الشخصية خلال 30 يوماً ما لم يفرض القانون الاحتفاظ</li>
                   </ul>
                 </section>
@@ -149,7 +148,7 @@ export default function PrivacyPage() {
                     <li><strong>Profile data:</strong> Company, job role, location, LinkedIn URL</li>
                     <li><strong>Usage data:</strong> Pages visited, resources accessed</li>
                     <li><strong>Contact data:</strong> Messages sent through contact and enterprise forms</li>
-                    <li><strong>Payment data (when enabled):</strong> Processed by Stripe; we do not store full card numbers</li>
+                    <li><strong>Payment data:</strong> We do not collect card payment data because the platform is fully free</li>
                   </ul>
                 </section>
 
@@ -174,7 +173,6 @@ export default function PrivacyPage() {
                     <li><strong>Supabase:</strong> Database, authentication, storage</li>
                     <li><strong>Resend:</strong> Transactional email delivery</li>
                     <li><strong>OpenAI:</strong> FlavorBot assistant (when enabled)</li>
-                    <li><strong>Stripe:</strong> Payments and subscriptions (when enabled)</li>
                     <li><strong>Vercel:</strong> Frontend hosting</li>
                     <li>Legal authorities when required by applicable law</li>
                   </ul>
@@ -185,7 +183,7 @@ export default function PrivacyPage() {
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>Account data: for the life of the active account</li>
                     <li>Contact messages: up to 24 months unless earlier deletion is requested</li>
-                    <li>Subscription/payment records: as required for accounting compliance</li>
+                    <li>Billing records (if any arise later): as required for accounting compliance</li>
                     <li>On account deletion: personal data is deleted or anonymized within 30 days unless law requires retention</li>
                   </ul>
                 </section>

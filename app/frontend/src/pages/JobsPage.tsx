@@ -5,7 +5,6 @@ import {
   Briefcase,
   Building2,
   Clock,
-  Crown,
   Loader2,
   Lock,
   MapPin,
@@ -50,12 +49,13 @@ function formatDate(date: string, lang: string) {
 
 export default function JobsPage() {
   const { t, lang } = useI18n();
-  const { user, profile, isPremium, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   usePageMeta({ title: t("jobs.title"), description: t("jobs.desc"), path: "/jobs" });
 
   const isCompany = profile?.account_type === "company";
-  const canPost = !!user && isCompany && isPremium;
-  const canBrowse = !!user && isPremium;
+  // Fully free: any signed-in member can browse; companies can post.
+  const canPost = !!user && isCompany;
+  const canBrowse = !!user;
 
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,7 +221,7 @@ export default function JobsPage() {
             )}
           </div>
 
-          {/* Premium gate */}
+          {/* Sign-in gate (platform is fully free) */}
           {!authLoading && !canBrowse && (
             <Card className="mb-8 border-primary/20 overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/30" />
@@ -232,27 +232,16 @@ export default function JobsPage() {
                 <h2 className="text-xl font-bold">{t("jobs.locked.title")}</h2>
                 <p className="text-muted-foreground max-w-lg mx-auto">{t("jobs.locked.desc")}</p>
                 <div className="flex flex-wrap justify-center gap-3 pt-2">
-                  {!user ? (
-                    <Button asChild>
-                      <Link to="/auth?mode=login">{t("nav.login")}</Link>
-                    </Button>
-                  ) : (
-                    <Button asChild className="gap-2">
-                      <Link to="/pricing">
-                        <Crown className="w-4 h-4" />
-                        {t("jobs.locked.upgrade")}
-                      </Link>
-                    </Button>
-                  )}
-                  {user && !isCompany && (
-                    <Button asChild variant="outline">
-                      <Link to="/auth?mode=signup&type=company">{t("jobs.company_signup")}</Link>
-                    </Button>
-                  )}
+                  <Button asChild>
+                    <Link to="/auth?mode=login">{t("nav.login")}</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/auth?mode=signup">{t("nav.signup")}</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/auth?mode=signup&type=company">{t("jobs.company_signup")}</Link>
+                  </Button>
                 </div>
-                {isCompany && user && !isPremium && (
-                  <p className="text-xs text-muted-foreground">{t("jobs.company_need_premium")}</p>
-                )}
               </CardContent>
             </Card>
           )}

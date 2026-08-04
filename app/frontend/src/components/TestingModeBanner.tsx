@@ -1,12 +1,13 @@
 import { FlaskConical } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { PAYMENTS_LIVE } from "@/lib/site-config";
+import { PAYMENTS_LIVE, PLATFORM_ALWAYS_FREE } from "@/lib/site-config";
 
 /** Shown only while payments are off and testing UI is not explicitly disabled. */
 export default function TestingModeBanner() {
   const { lang } = useI18n();
   const isAR = lang === "ar";
   const show =
+    !PLATFORM_ALWAYS_FREE &&
     !PAYMENTS_LIVE &&
     String(import.meta.env.VITE_SHOW_TESTING_UI || "false").toLowerCase() === "true";
 
