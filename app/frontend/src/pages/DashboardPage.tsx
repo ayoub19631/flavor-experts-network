@@ -27,8 +27,17 @@ import { safeHttpUrl } from "@/lib/url";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import type { SocialPost } from "@/lib/types";
 import Navbar from "@/components/Navbar";
-import { AvatarUploader } from "@/components/ui/file-uploader";
+import { AvatarUploader, FileUploader } from "@/components/ui/file-uploader";
 import { SITE } from "@/lib/site-config";
+import {
+  asEducation,
+  asProjects,
+  asWorkExperience,
+  formatPipeLines,
+  formatSkills,
+  parsePipeLines,
+  parseSkills,
+} from "@/lib/profile-details";
 import { toast } from "sonner";
 
 interface ExtendedProfile {
@@ -45,6 +54,14 @@ interface ExtendedProfile {
   is_admin?: boolean;
   created_at?: string;
   avatar_url?: string;
+  cover_url?: string;
+  specialty?: string;
+  years_experience?: number | null;
+  skills?: string[];
+  skills_text?: string;
+  education_text?: string;
+  work_text?: string;
+  projects_text?: string;
 }
 
 const TIER_CONFIG = {
@@ -183,6 +200,9 @@ export default function DashboardPage() {
         .single()
         .then(({ data }) => {
           const meta = user.user_metadata || {};
+          const education = asEducation(data?.education);
+          const work = asWorkExperience(data?.work_experience);
+          const projects = asProjects(data?.projects);
           const merged: ExtendedProfile = {
             full_name: data?.full_name || meta.full_name || profile?.full_name || "",
             role: data?.role || meta.role || "",
@@ -196,6 +216,15 @@ export default function DashboardPage() {
             subscription_tier: data?.subscription_tier || meta.subscription_tier || "free",
             created_at: data?.created_at,
             avatar_url: data?.avatar_url || meta.avatar_url || "",
+            cover_url: data?.cover_url || "",
+            specialty: data?.specialty || "",
+            years_experience:
+              typeof data?.years_experience === "number" ? data.years_experience : null,
+            skills: Array.isArray(data?.skills) ? data.skills : [],
+            skills_text: formatSkills(Array.isArray(data?.skills) ? data.skills : []),
+            education_text: formatPipeLines(education, ["school", "degree", "year"]),
+            work_text: formatPipeLines(work, ["title", "company", "period", "description"]),
+            projects_text: formatPipeLines(projects, ["name", "description", "url"]),
           };
           setExtProfile(merged);
         });
@@ -272,6 +301,14 @@ export default function DashboardPage() {
       website_url: extProfile.website_url || meta.website_url || "",
       phone: extProfile.phone || meta.phone || "",
       avatar_url: extProfile.avatar_url || meta.avatar_url || "",
+      cover_url: extProfile.cover_url || "",
+      specialty: extProfile.specialty || "",
+      years_experience: extProfile.years_experience ?? null,
+      skills: extProfile.skills || [],
+      skills_text: extProfile.skills_text || formatSkills(extProfile.skills),
+      education_text: extProfile.education_text || "",
+      work_text: extProfile.work_text || "",
+      projects_text: extProfile.projects_text || "",
     });
     setEditing(true);
     setSaveSuccess(false);
@@ -289,6 +326,28 @@ export default function DashboardPage() {
     setSaveError(null);
     try {
       const fullName = editData.full_name.trim();
+      const skills = parseSkills(editData.skills_text || formatSkills(editData.skills));
+      const education = parsePipeLines<{ school: string; degree: string; year: string }>(
+        editData.education_text || "",
+        ["school", "degree", "year"],
+      );
+      const work_experience = parsePipeLines<{
+        title: string;
+        company: string;
+        period: string;
+        description: string;
+      }>(editData.work_text || "", ["title", "company", "period", "description"]);
+      const projects = parsePipeLines<{ name: string; description: string; url: string }>(
+        editData.projects_text || "",
+        ["name", "description", "url"],
+      );
+
+      const yearsRaw = editData.years_experience;
+      const years_experience =
+        yearsRaw === null || yearsRaw === undefined || String(yearsRaw).trim() === "" || Number.isNaN(Number(yearsRaw))
+          ? null
+          : Math.max(0, Math.min(80, Math.round(Number(yearsRaw))));
+
       const payload = {
         full_name: fullName,
         role: (editData.role || "").trim(),
@@ -299,9 +358,28 @@ export default function DashboardPage() {
         website_url: (editData.website_url || "").trim(),
         phone: (editData.phone || "").trim(),
         avatar_url: (editData.avatar_url || "").trim(),
+        cover_url: (editData.cover_url || "").trim(),
+        specialty: (editData.specialty || "").trim(),
+        years_experience,
+        skills,
+        education,
+        work_experience,
+        projects,
       };
 
-      const { error: metaError } = await supabase.auth.updateUser({ data: payload });
+      const { error: metaError } = await supabase.auth.updateUser({
+        data: {
+          full_name: payload.full_name,
+          role: payload.role,
+          company: payload.company,
+          location: payload.location,
+          bio: payload.bio,
+          linkedin_url: payload.linkedin_url,
+          website_url: payload.website_url,
+          phone: payload.phone,
+          avatar_url: payload.avatar_url,
+        },
+      });
       if (metaError) throw metaError;
 
       // Single profile update — errors must surface so members sync is reliable
@@ -321,7 +399,19 @@ export default function DashboardPage() {
       });
       if (profileResult.error) throw new Error(profileResult.error);
 
-      setExtProfile((prev) => ({ ...prev, ...payload }));
+      setExtProfile((prev) => ({
+        ...prev,
+        ...payload,
+        skills_text: formatSkills(payload.skills),
+        education_text: formatPipeLines(payload.education, ["school", "degree", "year"]),
+        work_text: formatPipeLines(payload.work_experience, [
+          "title",
+          "company",
+          "period",
+          "description",
+        ]),
+        projects_text: formatPipeLines(payload.projects, ["name", "description", "url"]),
+      }));
       setSaveSuccess(true);
       setEditing(false);
       toast.success(lang === "ar" ? "تم حفظ الملف الشخصي" : "Profile saved");
@@ -1098,7 +1188,29 @@ export default function DashboardPage() {
                     )}
                     {editing ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* Avatar Upload */}
+                        <div className="sm:col-span-2 space-y-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">
+                            {lang === "ar" ? "صورة الغلاف" : "Cover photo"}
+                          </Label>
+                          <FileUploader
+                            accept="image"
+                            bucket="platform-uploads"
+                            folder="avatars/covers"
+                            currentUrl={editData.cover_url || ""}
+                            maxSizeMB={8}
+                            showUrlFallback={false}
+                            label={lang === "ar" ? "رفع صورة غلاف" : "Upload cover image"}
+                            onUpload={(url) => {
+                              setEditData((p) => ({ ...p, cover_url: url }));
+                              setExtProfile((p) => ({ ...p, cover_url: url }));
+                            }}
+                          />
+                          <p className="text-[11px] text-muted-foreground">
+                            {lang === "ar"
+                              ? "يفضّل صورة أفقية بعرض واسع (مثل 1600×400)."
+                              : "Prefer a wide landscape image (e.g. 1600×400)."}
+                          </p>
+                        </div>
                         <div className="sm:col-span-2 flex justify-center py-2">
                           <AvatarUploader
                             currentUrl={editData.avatar_url || ""}
@@ -1130,6 +1242,22 @@ export default function DashboardPage() {
                           <Input value={editData.location || ""} onChange={(e) => setEditData((p) => ({ ...p, location: e.target.value }))} placeholder={lang === "ar" ? "الرياض، المملكة" : "Riyadh, Saudi Arabia"} />
                         </div>
                         <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "سنوات الخبرة" : "Years of experience"}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            max={80}
+                            value={editData.years_experience ?? ""}
+                            onChange={(e) =>
+                              setEditData((p) => ({
+                                ...p,
+                                years_experience: e.target.value === "" ? null : Number(e.target.value),
+                              }))
+                            }
+                            placeholder="10"
+                          />
+                        </div>
+                        <div>
                           <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الهاتف" : "Phone"}</Label>
                           <Input value={editData.phone || ""} onChange={(e) => setEditData((p) => ({ ...p, phone: e.target.value }))} placeholder="+966 5X XXX XXXX" />
                         </div>
@@ -1145,9 +1273,82 @@ export default function DashboardPage() {
                           <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "نبذة شخصية" : "Bio / About"}</Label>
                           <Textarea value={editData.bio || ""} onChange={(e) => setEditData((p) => ({ ...p, bio: e.target.value }))} placeholder={lang === "ar" ? "شارك خبراتك ومسيرتك المهنية..." : "Share your expertise and background..."} rows={3} className="resize-none" />
                         </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "مجالات التخصص" : "Focus areas / specialties"}</Label>
+                          <Input
+                            value={editData.specialty || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, specialty: e.target.value }))}
+                            placeholder={lang === "ar" ? "نكهات طبيعية, تقييم حسي, تركيب" : "Natural flavors, Sensory, Formulation"}
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            {lang === "ar" ? "افصل التخصصات بفاصلة." : "Separate specialties with commas."}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المهارات" : "Skills"}</Label>
+                          <Input
+                            value={editData.skills_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, skills_text: e.target.value }))}
+                            placeholder={lang === "ar" ? "GC-MS, QDA, Encapsulation" : "GC-MS, QDA, Encapsulation"}
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الخبرات المهنية" : "Work experience"}</Label>
+                          <Textarea
+                            value={editData.work_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, work_text: e.target.value }))}
+                            placeholder={
+                              lang === "ar"
+                                ? "المسمى | الشركة | الفترة | الوصف\nخبير نكهات | شركة النكهات | 2020-الآن | تطوير تركيبات"
+                                : "Title | Company | Period | Description\nFlavor Scientist | Acme Flavors | 2020-Present | Led formulation"
+                            }
+                            rows={4}
+                            className="resize-none font-mono text-xs"
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            {lang === "ar" ? "سطر لكل خبرة، افصل الحقول بـ |" : "One line per role; separate fields with |"}
+                          </p>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "التعليم" : "Education"}</Label>
+                          <Textarea
+                            value={editData.education_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, education_text: e.target.value }))}
+                            placeholder={
+                              lang === "ar"
+                                ? "الجامعة | الدرجة | السنة\nجامعة الملك سعود | بكالوريوس علوم الأغذية | 2018"
+                                : "School | Degree | Year\nKing Saud University | BSc Food Science | 2018"
+                            }
+                            rows={3}
+                            className="resize-none font-mono text-xs"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المشاريع" : "Projects"}</Label>
+                          <Textarea
+                            value={editData.projects_text || ""}
+                            onChange={(e) => setEditData((p) => ({ ...p, projects_text: e.target.value }))}
+                            placeholder={
+                              lang === "ar"
+                                ? "الاسم | الوصف | الرابط\nمنصة النكهات | شبكة مهنية | https://example.com"
+                                : "Name | Description | URL\nFlavor Platform | Professional network | https://example.com"
+                            }
+                            rows={3}
+                            className="resize-none font-mono text-xs"
+                          />
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-4">
+                        {extProfile.cover_url ? (
+                          <div className="h-28 sm:h-36 rounded-xl overflow-hidden border border-border">
+                            <img
+                              src={extProfile.cover_url}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : null}
                         <div className="flex items-start gap-4">
                           {extProfile.avatar_url ? (
                             <img
@@ -1173,6 +1374,7 @@ export default function DashboardPage() {
                             { icon: Mail, label: lang === "ar" ? "البريد" : "Email", value: user.email },
                             { icon: Building2, label: lang === "ar" ? "الشركة" : "Company", value: extProfile.company },
                             { icon: MapPin, label: lang === "ar" ? "الموقع" : "Location", value: extProfile.location },
+                            { icon: Briefcase, label: lang === "ar" ? "سنوات الخبرة" : "Experience", value: extProfile.years_experience ? `${extProfile.years_experience}+` : undefined },
                             { icon: Phone, label: lang === "ar" ? "الهاتف" : "Phone", value: extProfile.phone },
                             { icon: Linkedin, label: "LinkedIn", value: extProfile.linkedin_url, isLink: true },
                             { icon: Globe, label: lang === "ar" ? "الموقع الإلكتروني" : "Website", value: extProfile.website_url, isLink: true },

@@ -39,9 +39,9 @@ test.describe("public pages smoke", () => {
   });
 
   test("pricing redirects to free home", async ({ page }) => {
-    await page.goto("/pricing");
-    await page.waitForURL((url) => !url.pathname.includes("/pricing"), { timeout: 20_000 });
-    await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
+    await page.goto("/pricing", { waitUntil: "networkidle" });
+    await expect(page).toHaveURL(/\/(?:$|\?|#)/, { timeout: 20_000 });
+    await expect(page.locator("body")).toBeVisible();
   });
 
   test("privacy page loads when allowed", async ({ page }) => {
