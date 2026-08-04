@@ -38,10 +38,18 @@ test.describe("public pages smoke", () => {
     expect(page.url()).toMatch(/auth|dashboard|^https?:\/\/[^/]+\/?$/);
   });
 
-  test("pricing redirects to free home", async ({ page }) => {
-    await page.goto("/pricing", { waitUntil: "networkidle" });
-    await expect(page).toHaveURL(/\/(?:$|\?|#)/, { timeout: 20_000 });
-    await expect(page.locator("body")).toBeVisible();
+  test("pricing is retired from navigation", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.locator('a[href="/pricing"]')).toHaveCount(0);
+    await page.goto("/pricing", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
+    // Prefer redirect home; if private-mode gate keeps the path, still no paid checkout.
+    const url = page.url();
+    if (url.includes("/pricing")) {
+      await expect(page.getByText(/Subscribe Now|\$29|\$99|اشترك الآن/i)).toHaveCount(0);
+    } else {
+      await expect(page).toHaveURL(/\/(?:$|\?|#)/);
+    }
   });
 
   test("privacy page loads when allowed", async ({ page }) => {

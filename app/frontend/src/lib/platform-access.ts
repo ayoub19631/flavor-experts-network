@@ -46,6 +46,8 @@ const AUTH_EXEMPT_PATHS = new Set([
   "/auth/callback",
   "/auth/error",
   "/verify-email",
+  // Allow client redirect away from retired pricing route even in private mode.
+  "/pricing",
 ]);
 
 export function isPlatformAuthExemptPath(pathname: string): boolean {
