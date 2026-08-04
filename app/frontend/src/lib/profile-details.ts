@@ -38,13 +38,13 @@ export function parsePipeLines<T extends Record<string, string>>(
     .filter((item) => Boolean(Object.values(item).some((v) => String(v || "").trim())));
 }
 
-export function formatPipeLines(
-  items: Array<Record<string, string | undefined>> | null | undefined,
-  keys: string[],
-): string {
-  if (!items?.length) return "";
+export function formatPipeLines(items: unknown, keys: string[]): string {
+  if (!Array.isArray(items) || !items.length) return "";
   return items
-    .map((item) => keys.map((k) => String(item[k] || "").trim()).join(" | "))
+    .map((raw) => {
+      const item = (raw || {}) as Record<string, unknown>;
+      return keys.map((k) => String(item[k] ?? "").trim()).join(" | ");
+    })
     .join("\n");
 }
 
