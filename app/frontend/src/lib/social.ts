@@ -7,7 +7,7 @@ export async function enrichSocialPosts(posts: SocialPost[]): Promise<SocialPost
 
   const [{ data: profiles }, { data: directory }] = await Promise.all([
     supabase
-      .from("user_profiles")
+      .from("public_author_profiles")
       .select("id, full_name, avatar_url, role, company, account_type")
       .in("id", ids),
     // Public directory maps profiles → public member pages (no emails exposed).

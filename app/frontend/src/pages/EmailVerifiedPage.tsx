@@ -45,15 +45,15 @@ export default function EmailVerifiedPage() {
   const FEATURES = lang === "ar"
     ? [
         "الوصول إلى مجتمع متخصصي النكهات",
-        "موارد تعليمية وبحثية مميزة",
+        "موارد تعليمية وبحثية مجانية بالكامل",
         "أخبار الصناعة ورؤى السوق",
-        "فرص تواصل مهني مع الشركات",
+        "وظائف وفرص تواصل مهني مع الشركات",
       ]
     : [
         "Access to the flavor professional community",
-        "Premium educational resources & research papers",
+        "Fully free educational resources & research",
         "Industry news and market insights",
-        "Enterprise networking opportunities",
+        "Jobs and professional networking with companies",
       ];
 
   return (

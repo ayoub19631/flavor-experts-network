@@ -1,8 +1,15 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowLeft,
   Search,
@@ -45,6 +52,9 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [specialtyFilter, setSpecialtyFilter] = useState("all");
+  const [locationFilter, setLocationFilter] = useState("all");
+  const [featuredOnly, setFeaturedOnly] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -52,7 +62,7 @@ export default function MembersPage() {
         const { data, error } = await supabase
           .from("member_directory")
           .select(
-            "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, is_featured, title, company, location, bio, member_type, years_experience, website",
+            "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, cover_url, is_featured, title, company, location, bio, member_type, years_experience, website, skills",
           )
           .order("is_featured", { ascending: false })
           .order("joined_at", { ascending: false });
@@ -70,16 +80,56 @@ export default function MembersPage() {
     load();
   }, []);
 
+  const specialties = useMemo(() => {
+    const set = new Set<string>();
+    members.forEach((m) => {
+      (m.specialty || "")
+        .split(/[|,]/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((s) => set.add(s));
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [members]);
+
+  const locations = useMemo(() => {
+    const set = new Set<string>();
+    members.forEach((m) => {
+      const loc = (m.location || "").trim();
+      if (loc) set.add(loc);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [members]);
+
   const filtered = members.filter((m) => {
     const q = search.toLowerCase();
-    return (
+    const matchesSearch =
+      !q ||
       (m.full_name || "").toLowerCase().includes(q) ||
       (m.role || "").toLowerCase().includes(q) ||
       (m.specialty || "").toLowerCase().includes(q) ||
       (m.company || "").toLowerCase().includes(q) ||
-      (m.location || "").toLowerCase().includes(q)
-    );
+      (m.location || "").toLowerCase().includes(q) ||
+      (m.skills || []).some((s) => String(s).toLowerCase().includes(q));
+
+    const memberSpecs = (m.specialty || "")
+      .split(/[|,]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const matchesSpecialty =
+      specialtyFilter === "all" || memberSpecs.includes(specialtyFilter);
+    const matchesLocation =
+      locationFilter === "all" || (m.location || "").trim() === locationFilter;
+    const matchesFeatured = !featuredOnly || m.is_featured;
+
+    return matchesSearch && matchesSpecialty && matchesLocation && matchesFeatured;
   });
+
+  const hasFilters =
+    search.trim() !== "" ||
+    specialtyFilter !== "all" ||
+    locationFilter !== "all" ||
+    featuredOnly;
 
   return (
     <div className="min-h-screen bg-background">
@@ -120,15 +170,65 @@ export default function MembersPage() {
       </section>
 
       <section className="py-6 border-b border-border sticky top-16 bg-background/95 backdrop-blur z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder={t("members.search")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10"
-            />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder={t("members.search")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-10"
+              />
+            </div>
+            <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={t("members.filter.specialty")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("members.filter.all")}</SelectItem>
+                {specialties.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={t("members.filter.location")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("members.filter.all")}</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant={featuredOnly ? "default" : "outline"}
+                className="h-10 flex-1 gap-1.5"
+                onClick={() => setFeaturedOnly((v) => !v)}
+              >
+                <Star className={`w-3.5 h-3.5 ${featuredOnly ? "fill-current" : ""}`} />
+                {t("members.filter.featured")}
+              </Button>
+              {hasFilters && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-10 px-3"
+                  onClick={() => {
+                    setSearch("");
+                    setSpecialtyFilter("all");
+                    setLocationFilter("all");
+                    setFeaturedOnly(false);
+                  }}
+                >
+                  {t("members.filter.clear")}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -195,7 +295,7 @@ export default function MembersPage() {
                                 {member.full_name}
                               </h3>
                               {member.is_featured && (
-                                <Star className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 fill-amber-500" />
+                                <Star className="w-3.5 h-3.5 text-primary flex-shrink-0 fill-primary" />
                               )}
                             </div>
                             <p className="text-xs text-primary font-medium truncate">

@@ -1,11 +1,12 @@
 # Flavor Experts Network — شبكة خبراء النكهات
 
-Professional community platform for flavor scientists and food technologists across the Arab world and Gulf region.
+Free professional network for flavor scientists and food technologists — jobs, community, education, and industry knowledge.
 
 | | |
 |---|---|
 | **Website** | [flavorexpertsnetwork.com](https://flavorexpertsnetwork.com) |
-| **Stack** | React 18 · TypeScript · Vite · Supabase · Stripe |
+| **Stack** | React 18 · TypeScript · Vite · Supabase |
+| **Policy** | Fully free for individuals and companies |
 | **Apps** | Web · Electron · Capacitor (Android) |
 
 ---
@@ -17,9 +18,9 @@ Professional community platform for flavor scientists and food technologists acr
 ├── electron/              Desktop shell (Electron)
 ├── database/              SQL reference & setup scripts
 ├── supabase/
-│   ├── functions/         Edge Functions (OAuth, Stripe, FlavorBot, email)
+│   ├── functions/         Edge Functions (OAuth, FlavorBot, email, cron)
 │   └── migrations/        Versioned database migrations
-├── deploy/                Hosting, OAuth, Stripe & ops docs
+├── deploy/                Hosting, OAuth & ops docs/scripts
 └── build.mjs              Unified web → electron / android build
 ```
 
@@ -42,13 +43,15 @@ cp .env.example .env
 cp .env.production.example .env.production
 ```
 
-Fill values from the Supabase dashboard. Never put secret API keys (OpenAI, Stripe secret, service role) in `VITE_*` variables — they ship to the browser. Store secrets only in Supabase Edge Function secrets.
+Fill values from the Supabase dashboard. Never put secret API keys (OpenAI, service role) in `VITE_*` variables — they ship to the browser. Store secrets only in Supabase Edge Function secrets.
 
 ```env
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=<your-anon-key>
 VITE_APP_TITLE=Flavor Experts Network
 VITE_SITE_URL=https://flavorexpertsnetwork.com
+VITE_PAYMENTS_ENABLED=false
+VITE_PLATFORM_PRIVATE=false
 ```
 
 ### 3. Develop
@@ -71,9 +74,9 @@ pnpm test:e2e
 
 ## Database
 
-1. Run `database/MASTER-SETUP.sql` once (new projects only)
-2. Apply versioned migrations in `supabase/migrations/`
-3. Or re-run phase files under `database/PHASE*.sql` if migrating manually
+1. Run `database/MASTER-SETUP.sql` once (**new projects only** — do not re-run on production)
+2. Apply versioned migrations in `supabase/migrations/` with `supabase db push`
+3. Or use `deploy/apply-platform-updates.sh` with `SUPABASE_ACCESS_TOKEN`
 
 Admin access: `user_profiles.is_admin = true` (service role / SQL only — never from the client).  
 Admin panel: `/admin`
@@ -89,9 +92,8 @@ Admin panel: `/admin`
 | Backend | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
 | Routing | React Router v6 |
 | i18n | Custom EN/AR provider (RTL) |
-| State | TanStack Query + React Context (+ Zustand) |
-| Forms | react-hook-form + Zod |
-| Payments | Stripe (Checkout + Webhooks) |
+| State | TanStack Query + React Context |
+| Membership | Fully free (`PLATFORM_ALWAYS_FREE`) |
 | Desktop / Mobile | Electron 32 + Capacitor 8 |
 | Quality | ESLint, Vitest, Playwright, GitHub Actions |
 | Observability | Sentry (optional via `VITE_SENTRY_DSN`) |
@@ -103,8 +105,11 @@ Admin panel: `/admin`
 - Landing page with live DB content (News, Resources, Members)
 - Authentication — individual & company accounts + OAuth
 - Email verification flow
-- Professional dashboard with profile editing & avatar upload
-- Premium & Enterprise subscription tiers (Stripe)
+- Professional dashboard with cover photo, skills, experience, education, projects
+- Members directory with search + specialty/location filters
+- Jobs board (free browse/apply for members; free posting for companies)
+- Community feed + forum
+- Market briefings, courses catalog, consultations inquiry form
 - Admin control panel (News, Resources, Members, Users, Messages, Enterprise)
 - File uploads — images & PDFs (Supabase Storage)
 - FlavorBot assistant (Edge Function — OpenAI key server-side)
@@ -113,6 +118,12 @@ Admin panel: `/admin`
 - Responsive design (mobile-first)
 
 ---
+
+## Ops notes
+
+- Production code deploys via Vercel GitHub integration on `main`.
+- Apply pending Supabase migrations with `deploy/apply-platform-updates.sh` (needs `SUPABASE_ACCESS_TOKEN`).
+- Legacy Stripe checkout UI was removed from the frontend. Older edge-function stubs may still exist under `supabase/functions/` but are unused while `PLATFORM_ALWAYS_FREE` is true.
 
 ## License
 

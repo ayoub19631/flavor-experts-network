@@ -59,6 +59,7 @@ export default function JobsPage() {
 
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [guestJobCount, setGuestJobCount] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
@@ -77,6 +78,22 @@ export default function JobsPage() {
     apply_url: "",
     skills: "",
   });
+
+  useEffect(() => {
+    if (authLoading || canBrowse) return;
+    let cancelled = false;
+    (async () => {
+      const { count } = await supabase
+        .from("job_listings")
+        .select("id", { count: "exact", head: true })
+        .eq("is_published", true)
+        .eq("status", "open");
+      if (!cancelled) setGuestJobCount(typeof count === "number" ? count : null);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, canBrowse]);
 
   const loadJobs = async () => {
     if (!canBrowse && !canPost) {
@@ -225,18 +242,38 @@ export default function JobsPage() {
           {!authLoading && !canBrowse && (
             <Card className="mb-8 border-primary/20 overflow-hidden">
               <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/30" />
-              <CardContent className="p-8 sm:p-10 text-center space-y-4">
+              <CardContent className="p-8 sm:p-10 text-center space-y-5">
                 <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <Lock className="w-7 h-7 text-primary" />
                 </div>
-                <h2 className="text-xl font-bold">{t("jobs.locked.title")}</h2>
-                <p className="text-muted-foreground max-w-lg mx-auto">{t("jobs.locked.desc")}</p>
-                <div className="flex flex-wrap justify-center gap-3 pt-2">
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold">{t("jobs.locked.title")}</h2>
+                  <p className="text-muted-foreground max-w-lg mx-auto">{t("jobs.locked.desc")}</p>
+                  {guestJobCount != null && guestJobCount > 0 && (
+                    <p className="text-sm font-medium text-primary">
+                      {lang === "ar"
+                        ? `${guestJobCount} وظيفة مفتوحة بانتظارك — مجاناً بعد تسجيل الدخول`
+                        : `${guestJobCount} open roles waiting — free after sign-in`}
+                    </p>
+                  )}
+                </div>
+                <ul className="max-w-md mx-auto text-sm text-muted-foreground space-y-2 text-start">
+                  {(lang === "ar"
+                    ? ["تصفح الوظائف والتقديم مجاناً", "حسابات الشركات تنشر وظائف بدون رسوم", "لا اشتراكات ولا بطاقات دفع"]
+                    : ["Browse and apply to jobs for free", "Companies post openings at no cost", "No subscriptions or payment cards"]
+                  ).map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap justify-center gap-3 pt-1">
                   <Button asChild>
-                    <Link to="/auth?mode=login">{t("nav.login")}</Link>
+                    <Link to="/auth?mode=signup">{t("jobs.locked.upgrade")}</Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link to="/auth?mode=signup">{t("nav.signup")}</Link>
+                    <Link to="/auth?mode=login">{t("nav.login")}</Link>
                   </Button>
                   <Button asChild variant="outline">
                     <Link to="/auth?mode=signup&type=company">{t("jobs.company_signup")}</Link>
