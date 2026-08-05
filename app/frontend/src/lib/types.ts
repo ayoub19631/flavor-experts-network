@@ -235,6 +235,30 @@ export interface Course {
   created_at: string;
 }
 
+export interface LearningPath {
+  id: string;
+  slug: string;
+  title: string;
+  title_ar?: string | null;
+  description?: string | null;
+  description_ar?: string | null;
+  level: string;
+  image_url?: string | null;
+  sort_order: number;
+  is_published: boolean;
+}
+
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "cancelled";
+
+export interface MemberConnection {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: ConnectionStatus;
+  message?: string | null;
+  created_at: string;
+}
+
 export type EmploymentType = "full_time" | "part_time" | "contract" | "remote" | "internship";
 export type ExperienceLevel = "entry" | "mid" | "senior" | "lead" | "executive";
 

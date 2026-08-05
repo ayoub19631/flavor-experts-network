@@ -49,9 +49,10 @@ Members get full access to:
 
 ## Platform Features Detail
 ### Member Directory
-- Browse expert profiles with specialties, bio, LinkedIn
-- Filter by specialty, country, experience level
-- Direct connection requests
+- Browse expert profiles with specialties, bio, LinkedIn, skills, and cover photos
+- Filter by specialty, location, and recommended members
+- Send free professional connection requests between members
+- See similar professionals by shared skills
 
 ### Industry News
 - Real-time flavor & food industry news

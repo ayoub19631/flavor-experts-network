@@ -1,0 +1,75 @@
+import { supabase } from "./supabase";
+
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "cancelled";
+
+export interface MemberConnection {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: ConnectionStatus;
+  message?: string | null;
+  created_at: string;
+}
+
+/** Resolve auth user id from a member_directory row (profile_id or linked user). */
+export async function resolveMemberUserId(member: {
+  id: string;
+  profile_id?: string | null;
+}): Promise<string | null> {
+  if (member.profile_id) return member.profile_id;
+  const { data } = await supabase
+    .from("user_profiles")
+    .select("id")
+    .eq("id", member.id)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+export async function getConnectionBetween(
+  userId: string,
+  otherUserId: string,
+): Promise<MemberConnection | null> {
+  const { data } = await supabase
+    .from("member_connections")
+    .select("id, requester_id, addressee_id, status, message, created_at")
+    .or(
+      `and(requester_id.eq.${userId},addressee_id.eq.${otherUserId}),and(requester_id.eq.${otherUserId},addressee_id.eq.${userId})`,
+    )
+    .maybeSingle();
+  return (data as MemberConnection) || null;
+}
+
+export async function sendConnectionRequest(
+  requesterId: string,
+  addresseeId: string,
+  message?: string,
+): Promise<{ error?: string }> {
+  const { error } = await supabase.from("member_connections").insert({
+    requester_id: requesterId,
+    addressee_id: addresseeId,
+    status: "pending",
+    message: message?.trim() || null,
+  });
+  return error ? { error: error.message } : {};
+}
+
+export async function respondToConnection(
+  connectionId: string,
+  status: "accepted" | "declined" | "cancelled",
+): Promise<{ error?: string }> {
+  const { error } = await supabase
+    .from("member_connections")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", connectionId);
+  return error ? { error: error.message } : {};
+}
+
+export async function listPendingIncoming(userId: string): Promise<MemberConnection[]> {
+  const { data } = await supabase
+    .from("member_connections")
+    .select("id, requester_id, addressee_id, status, message, created_at")
+    .eq("addressee_id", userId)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+  return (data as MemberConnection[]) || [];
+}

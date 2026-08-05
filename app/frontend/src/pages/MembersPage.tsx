@@ -19,12 +19,15 @@ import {
   Loader2,
   MapPin,
   Building2,
+  Sparkles,
 } from "lucide-react";
 import { supabase, type Member } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
+import { rankBySkillOverlap, tokenizeSkills } from "@/lib/matching";
 
 function getInitials(name: string) {
   return name
@@ -48,6 +51,7 @@ const AVATAR_COLORS = [
 
 export default function MembersPage() {
   const { t, lang } = useI18n();
+  const { user, profile } = useAuth();
   usePageMeta({ title: t("members.title"), description: t("members.desc"), path: "/members" });
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +66,7 @@ export default function MembersPage() {
         const { data, error } = await supabase
           .from("member_directory")
           .select(
-            "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, cover_url, is_featured, title, company, location, bio, member_type, years_experience, website, skills",
+            "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, cover_url, is_featured, title, company, location, bio, member_type, years_experience, website, profile_id, skills",
           )
           .order("is_featured", { ascending: false })
           .order("joined_at", { ascending: false });
@@ -130,6 +134,20 @@ export default function MembersPage() {
     specialtyFilter !== "all" ||
     locationFilter !== "all" ||
     featuredOnly;
+
+  const recommended = useMemo(() => {
+    if (!user) return [];
+    const mySkills = tokenizeSkills(profile?.skills, profile?.specialty || profile?.role);
+    return rankBySkillOverlap(
+      members,
+      (m) => tokenizeSkills(m.skills, m.specialty),
+      mySkills,
+      {
+        exclude: (m) => m.profile_id === user.id || m.id === user.id,
+        limit: 4,
+      },
+    );
+  }, [user, profile?.skills, profile?.specialty, profile?.role, members]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -255,6 +273,31 @@ export default function MembersPage() {
             </div>
           ) : (
             <>
+              {recommended.length > 0 && !hasFilters && (
+                <div className="mb-10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("members.recommended")}
+                    </h2>
+                  </div>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {recommended.map((m) => (
+                      <Link
+                        key={`rec-${m.id}`}
+                        to={`/members/${m.id}`}
+                        className="rounded-xl border border-primary/20 bg-primary/5 p-4 hover:border-primary/40 transition-colors"
+                      >
+                        <p className="font-medium text-sm truncate">{m.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate mt-1">{m.role || m.specialty}</p>
+                        <Badge className="mt-3 bg-primary/10 text-primary border-0 text-[10px]">
+                          {m.matchScore} {t("profile.match")}
+                        </Badge>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground mb-6">
                 {t("members.showing")} {filtered.length}{" "}
                 {filtered.length !== 1 ? t("members.members") : t("members.member")}

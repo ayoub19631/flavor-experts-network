@@ -34,6 +34,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { safeHttpUrl } from "@/lib/url";
 import type { EmploymentType, ExperienceLevel, JobListing } from "@/lib/types";
+import { skillOverlapScore, tokenizeSkills } from "@/lib/matching";
 import { toast } from "sonner";
 
 const EMP_TYPES: EmploymentType[] = ["full_time", "part_time", "contract", "remote", "internship"];
@@ -56,6 +57,7 @@ export default function JobsPage() {
   // Fully free: any signed-in member can browse; companies can post.
   const canPost = !!user && isCompany;
   const canBrowse = !!user;
+  const mySkills = tokenizeSkills(profile?.skills, profile?.specialty || profile?.role);
 
   const [jobs, setJobs] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -395,7 +397,7 @@ export default function JobsPage() {
             </Card>
           )}
 
-          {/* Search (premium) */}
+          {/* Search */}
           {canBrowse && (
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
               <div className="relative flex-1">
@@ -483,10 +485,22 @@ export default function JobsPage() {
                                 </div>
                               )}
                             </div>
-                            <div className="shrink-0">
+                            <div className="shrink-0 flex flex-col items-end gap-2">
                               <Badge className="bg-primary/10 text-primary border-0">
                                 {expLabel(job.experience_level)}
                               </Badge>
+                              {(() => {
+                                const score = skillOverlapScore(
+                                  mySkills,
+                                  tokenizeSkills(job.skills, null),
+                                );
+                                return score > 0 ? (
+                                  <Badge variant="outline" className="text-[10px] gap-1">
+                                    <Sparkles className="w-3 h-3 text-primary" />
+                                    {score} {lang === "ar" ? "مهارات مطابقة" : "skill match"}
+                                  </Badge>
+                                ) : null;
+                              })()}
                             </div>
                           </div>
                         </button>

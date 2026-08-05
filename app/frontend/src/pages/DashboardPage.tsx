@@ -39,6 +39,11 @@ import {
   parseSkills,
 } from "@/lib/profile-details";
 import { toast } from "sonner";
+import {
+  listPendingIncoming,
+  respondToConnection,
+  type MemberConnection,
+} from "@/lib/connections";
 
 interface ExtendedProfile {
   full_name?: string;
@@ -150,6 +155,32 @@ export default function DashboardPage() {
   const [premiumResources, setPremiumResources] = useState<PremiumResource[]>([]);
   const [upcomingWebinars, setUpcomingWebinars] = useState<WebinarResource[]>([]);
   const [enterpriseStats, setEnterpriseStats] = useState<EnterpriseStatItem[]>([]);
+  const [pendingConnections, setPendingConnections] = useState<MemberConnection[]>([]);
+  const [connectionNames, setConnectionNames] = useState<Record<string, string>>({});
+  const [connectionBusy, setConnectionBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadPending() {
+      if (!user?.id) return;
+      const rows = await listPendingIncoming(user.id);
+      setPendingConnections(rows);
+      const ids = rows.map((r) => r.requester_id);
+      if (ids.length === 0) {
+        setConnectionNames({});
+        return;
+      }
+      const { data } = await supabase
+        .from("public_author_profiles")
+        .select("id, full_name")
+        .in("id", ids);
+      const map: Record<string, string> = {};
+      (data || []).forEach((p: { id: string; full_name: string }) => {
+        map[p.id] = p.full_name;
+      });
+      setConnectionNames(map);
+    }
+    loadPending();
+  }, [user?.id]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -676,6 +707,68 @@ export default function DashboardPage() {
               {/* ══ TAB: Overview ══ */}
               {activeTab === "overview" && (
                 <>
+                  {pendingConnections.length > 0 && (
+                    <Card className="border-primary/25">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          {lang === "ar" ? "طلبات تواصل واردة" : "Incoming connection requests"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 space-y-2">
+                        {pendingConnections.map((req) => (
+                          <div key={req.id} className="flex flex-wrap items-center gap-2 justify-between rounded-lg border border-border p-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {connectionNames[req.requester_id] || (lang === "ar" ? "عضو" : "Member")}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(req.created_at).toLocaleDateString(lang === "ar" ? "ar" : "en")}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="h-8"
+                                disabled={connectionBusy === req.id}
+                                onClick={async () => {
+                                  setConnectionBusy(req.id);
+                                  const { error } = await respondToConnection(req.id, "accepted");
+                                  setConnectionBusy(null);
+                                  if (error) toast.error(error);
+                                  else {
+                                    toast.success(lang === "ar" ? "تم القبول" : "Accepted");
+                                    setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
+                                  }
+                                }}
+                              >
+                                {lang === "ar" ? "قبول" : "Accept"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                disabled={connectionBusy === req.id}
+                                onClick={async () => {
+                                  setConnectionBusy(req.id);
+                                  const { error } = await respondToConnection(req.id, "declined");
+                                  setConnectionBusy(null);
+                                  if (error) toast.error(error);
+                                  else {
+                                    toast.message(lang === "ar" ? "تم الرفض" : "Declined");
+                                    setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
+                                  }
+                                }}
+                              >
+                                {lang === "ar" ? "رفض" : "Decline"}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-3">
                     {[

@@ -106,11 +106,13 @@ Admin panel: `/admin`
 - Authentication — individual & company accounts + OAuth
 - Email verification flow
 - Professional dashboard with cover photo, skills, experience, education, projects
-- Members directory with search + specialty/location filters
-- Jobs board (free browse/apply for members; free posting for companies)
-- Community feed + forum
-- Market briefings, courses catalog, consultations inquiry form
-- Admin control panel (News, Resources, Members, Users, Messages, Enterprise)
+- Members directory with search, filters, talent matching, and connection requests
+- Jobs board with skill-match hints (free browse/apply; free company posting)
+- Community feed + forum with admin moderation tools
+- Market briefings with archive + commodity filters
+- Learning paths and free course enrollment
+- Admin analytics overview + broadcast + moderation
+- Consultations inquiry form
 - File uploads — images & PDFs (Supabase Storage)
 - FlavorBot assistant (Edge Function — OpenAI key server-side)
 - Bilingual EN/AR with RTL support

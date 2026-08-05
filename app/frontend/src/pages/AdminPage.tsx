@@ -28,6 +28,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import { PLATFORM_ALWAYS_FREE, SITE } from "@/lib/site-config";
 import { FileUploader, AvatarUploader } from "@/components/ui/file-uploader";
+import AdminModerationPanel from "@/components/admin/AdminModerationPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type NewsItem = IndustryNews;
@@ -56,6 +57,10 @@ interface Stats {
   newMessages: number;
   newEnterprise: number;
   newsletterSubscribers: number;
+  jobs: number;
+  posts: number;
+  topics: number;
+  connections: number;
 }
 
 // ─── Authorized Admins: server-side is_admin flag (RLS enforced) ───────────────
@@ -104,7 +109,7 @@ export default function AdminPage() {
   const [lang, setLang] = useState<"ar" | "en">("ar");
 
   // ── Data State ─────────────────────────────────────────────────────────────
-  const [stats, setStats] = useState<Stats>({ news: 0, resources: 0, messages: 0, enterprise: 0, members: 0, users: 0, newMessages: 0, newEnterprise: 0, newsletterSubscribers: 0 });
+  const [stats, setStats] = useState<Stats>({ news: 0, resources: 0, messages: 0, enterprise: 0, members: 0, users: 0, newMessages: 0, newEnterprise: 0, newsletterSubscribers: 0, jobs: 0, posts: 0, topics: 0, connections: 0 });
   const [news, setNews] = useState<NewsItem[]>([]);
   const [resources, setResources] = useState<ResourceItem[]>([]);
   const [messages, setMessages] = useState<ContactMsg[]>([]);
@@ -199,10 +204,19 @@ export default function AdminPage() {
       .select("id, email, full_name, subscription_tier, is_admin, platform_preview_access, subscription_active, created_at")
       .order("created_at", { ascending: false });
 
-    const { count: newsletterCount } = await supabase
-      .from("newsletter_subscribers")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "active");
+    const [
+      { count: newsletterCount },
+      { count: jobsCount },
+      { count: postsCount },
+      { count: topicsCount },
+      { count: connectionsCount },
+    ] = await Promise.all([
+      supabase.from("newsletter_subscribers").select("*", { count: "exact", head: true }).eq("status", "active"),
+      supabase.from("job_listings").select("*", { count: "exact", head: true }),
+      supabase.from("social_posts").select("*", { count: "exact", head: true }),
+      supabase.from("forum_topics").select("*", { count: "exact", head: true }),
+      supabase.from("member_connections").select("*", { count: "exact", head: true }),
+    ]);
 
     if (usersErr) {
       setUsersFetchError("Admin policy not applied yet. Run admin-policies.sql in Supabase to manage users.");
@@ -226,6 +240,10 @@ export default function AdminPage() {
       newMessages: msgData?.filter((m: ContactMsg) => m.status === "new").length ?? 0,
       newEnterprise: entData?.filter((e: EnterpriseReq) => e.status === "new").length ?? 0,
       newsletterSubscribers: newsletterCount ?? 0,
+      jobs: jobsCount ?? 0,
+      posts: postsCount ?? 0,
+      topics: topicsCount ?? 0,
+      connections: connectionsCount ?? 0,
     });
     setFetchLoading(false);
   };
@@ -608,6 +626,8 @@ export default function AdminPage() {
     tabEnterprise:      isAR ? "المؤسسات" : "Enterprise",
     tabSettings:        isAR ? "الإعدادات" : "Settings",
     tabBroadcast:       isAR ? "البث" : "Broadcast",
+    tabModeration:      isAR ? "الإشراف" : "Moderation",
+    analytics:          isAR ? "تحليلات المنصة" : "Platform analytics",
     publish:            isAR ? "نشر" : "Publish",
     add:                isAR ? "إضافة" : "Add",
     addMember:          isAR ? "إضافة عضو" : "Add Member",
@@ -756,6 +776,9 @@ export default function AdminPage() {
               <TabsTrigger value="broadcast" className="gap-1.5 rounded-lg text-xs sm:text-sm">
                 <Mail className="w-3.5 h-3.5" /> {T.tabBroadcast}
               </TabsTrigger>
+              <TabsTrigger value="moderation" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <Shield className="w-3.5 h-3.5" /> {T.tabModeration}
+              </TabsTrigger>
             </TabsList>
 
             {/* ══ OVERVIEW ══════════════════════════════════════════════════ */}
@@ -807,9 +830,33 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
-                {/* Platform Summary */}
+                {/* Platform analytics */}
                 <Card className="border border-border lg:col-span-3">
                   <CardContent className="p-5">
+                    <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2 text-sm">
+                      <Activity className="w-4 h-4 text-primary" /> {T.analytics}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+                      {[
+                        { label: isAR ? "وظائف" : "Jobs", value: stats.jobs, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                        { label: isAR ? "منشورات" : "Posts", value: stats.posts, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                        { label: isAR ? "مواضيع" : "Topics", value: stats.topics, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                        { label: isAR ? "تواصلات" : "Connections", value: stats.connections, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                      ].map((row) => (
+                        <div key={row.label} className="rounded-xl bg-secondary/40 p-3">
+                          <div className="flex items-center justify-between text-xs mb-2">
+                            <span className="text-muted-foreground">{row.label}</span>
+                            <span className="font-semibold">{row.value}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all"
+                              style={{ width: `${Math.max(8, Math.round((row.value / row.max) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                     <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2 text-sm">
                       <Globe className="w-4 h-4 text-primary" /> {T.platformSummary}
                     </h3>
@@ -1619,6 +1666,10 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="moderation">
+              <AdminModerationPanel />
             </TabsContent>
           </Tabs>
         </div>
