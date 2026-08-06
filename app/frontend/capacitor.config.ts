@@ -35,10 +35,6 @@ const config: CapacitorConfig = {
   },
   android: {
     minWebViewVersion: 60,
-    buildOptions: {
-      keystorePath: "release-keystore.jks",
-      keystoreAlias: "flavorexperts",
-    },
   },
 };
 

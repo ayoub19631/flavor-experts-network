@@ -16,6 +16,11 @@
     "test:e2e": "playwright test",
     "preview": "vite preview",
     "create:admin": "node create-admin.mjs",
+    "cap:sync": "cap sync",
+    "cap:android": "vite build && cap sync android",
+    "cap:ios": "vite build && cap sync ios",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios",
     "postinstall": "echo Dependencies installed successfully"
   },
   "dependencies": {

@@ -28,7 +28,8 @@ else
     supabase/migrations/20260804140100_welcome_email_fully_free.sql \
     supabase/migrations/20260804150000_professional_member_profile.sql \
     supabase/migrations/20260805120000_public_author_profiles.sql \
-    supabase/migrations/20260805140000_phase2_network_learning.sql
+    supabase/migrations/20260805140000_phase2_network_learning.sql \
+    supabase/migrations/20260806160000_community_comments_and_media.sql
   do
     echo "---- $f"
     npx --yes supabase@latest db query --linked -f "$f"

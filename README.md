@@ -7,7 +7,7 @@ Free professional network for flavor scientists and food technologists — jobs,
 | **Website** | [flavorexpertsnetwork.com](https://flavorexpertsnetwork.com) |
 | **Stack** | React 18 · TypeScript · Vite · Supabase |
 | **Policy** | Fully free for individuals and companies |
-| **Apps** | Web · Electron · Capacitor (Android) |
+| **Apps** | Web · Electron · Capacitor (Android + iOS) — see [deploy/MOBILE-APPS.md](deploy/MOBILE-APPS.md) |
 
 ---
 
@@ -21,7 +21,7 @@ Free professional network for flavor scientists and food technologists — jobs,
 │   ├── functions/         Edge Functions (OAuth, FlavorBot, email, cron)
 │   └── migrations/        Versioned database migrations
 ├── deploy/                Hosting, OAuth & ops docs/scripts
-└── build.mjs              Unified web → electron / android build
+└── build.mjs              Unified web → electron / android / ios build
 ```
 
 ---
@@ -108,18 +108,34 @@ Admin panel: `/admin`
 - Professional dashboard with cover photo, skills, experience, education, projects
 - Members directory with search, filters, talent matching, and connection requests
 - Jobs board with skill-match hints (free browse/apply; free company posting)
-- Community feed + forum with admin moderation tools
+- Community feed with photo posts, likes, comments, share + forum moderation
 - Market briefings with archive + commodity filters
 - Learning paths and free course enrollment
 - Admin analytics overview + broadcast + moderation
 - Consultations inquiry form
-- File uploads — images & PDFs (Supabase Storage)
+- File uploads — images & PDFs (Supabase Storage, including `community/` media)
 - FlavorBot assistant (Edge Function — OpenAI key server-side)
+- Android / iOS shells via Capacitor (debug on emulator / Xcode simulator)
 - Bilingual EN/AR with RTL support
 - Dark / light mode
 - Responsive design (mobile-first)
 
 ---
+
+## Mobile (debug)
+
+```bash
+# Web build + Capacitor sync
+cd app/frontend && pnpm cap:android
+
+# Open in Android Studio → select emulator → Run ▶
+pnpm cap:open:android
+
+# Or one-shot emulator helper (debug APK, no signing)
+bash ../../deploy/run-android-emulator.sh
+```
+
+Full notes: [deploy/MOBILE-APPS.md](deploy/MOBILE-APPS.md)
 
 ## Ops notes
 
