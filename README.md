@@ -108,13 +108,14 @@ Admin panel: `/admin`
 - Professional dashboard with cover photo, skills, experience, education, projects
 - Members directory with search, filters, talent matching, and connection requests
 - Jobs board with skill-match hints (free browse/apply; free company posting)
-- Community feed + forum with admin moderation tools
+- Community feed with photo posts, likes, comments, share + forum moderation
 - Market briefings with archive + commodity filters
 - Learning paths and free course enrollment
 - Admin analytics overview + broadcast + moderation
 - Consultations inquiry form
-- File uploads — images & PDFs (Supabase Storage)
+- File uploads — images & PDFs (Supabase Storage, including `community/` media)
 - FlavorBot assistant (Edge Function — OpenAI key server-side)
+- Android / iOS shells via Capacitor (debug on emulator / Xcode simulator)
 - Bilingual EN/AR with RTL support
 - Dark / light mode
 - Responsive design (mobile-first)
