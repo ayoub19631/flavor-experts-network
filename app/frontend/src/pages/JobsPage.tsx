@@ -169,7 +169,7 @@ export default function JobsPage() {
     }
     const rows = (data as JobApplication[]) || [];
     const ids = rows.map((r) => r.applicant_id);
-    let names: Record<string, string> = {};
+    const names: Record<string, string> = {};
     if (ids.length > 0) {
       const { data: profiles } = await supabase
         .from("public_author_profiles")
