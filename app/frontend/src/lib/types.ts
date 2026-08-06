@@ -301,6 +301,7 @@ export interface SocialPost {
   is_published: boolean;
   is_hidden: boolean;
   likes_count: number;
+  comments_count?: number;
   created_at: string;
   updated_at?: string;
   author?: ForumAuthor & {
@@ -310,4 +311,15 @@ export interface SocialPost {
     member_id?: string | null;
   };
   liked_by_me?: boolean;
+}
+
+export interface SocialPostComment {
+  id: string;
+  post_id: string;
+  author_id: string;
+  body: string;
+  is_hidden?: boolean;
+  created_at: string;
+  updated_at?: string;
+  author?: ForumAuthor;
 }
