@@ -122,6 +122,21 @@ Admin panel: `/admin`
 
 ---
 
+## Mobile (debug)
+
+```bash
+# Web build + Capacitor sync
+cd app/frontend && pnpm cap:android
+
+# Open in Android Studio → select emulator → Run ▶
+pnpm cap:open:android
+
+# Or one-shot emulator helper (debug APK, no signing)
+bash ../../deploy/run-android-emulator.sh
+```
+
+Full notes: [deploy/MOBILE-APPS.md](deploy/MOBILE-APPS.md)
+
 ## Ops notes
 
 - Production code deploys via Vercel GitHub integration on `main`.
