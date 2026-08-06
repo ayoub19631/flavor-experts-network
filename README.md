@@ -7,7 +7,7 @@ Free professional network for flavor scientists and food technologists — jobs,
 | **Website** | [flavorexpertsnetwork.com](https://flavorexpertsnetwork.com) |
 | **Stack** | React 18 · TypeScript · Vite · Supabase |
 | **Policy** | Fully free for individuals and companies |
-| **Apps** | Web · Electron · Capacitor (Android) |
+| **Apps** | Web · Electron · Capacitor (Android + iOS) — see [deploy/MOBILE-APPS.md](deploy/MOBILE-APPS.md) |
 
 ---
 
@@ -21,7 +21,7 @@ Free professional network for flavor scientists and food technologists — jobs,
 │   ├── functions/         Edge Functions (OAuth, FlavorBot, email, cron)
 │   └── migrations/        Versioned database migrations
 ├── deploy/                Hosting, OAuth & ops docs/scripts
-└── build.mjs              Unified web → electron / android build
+└── build.mjs              Unified web → electron / android / ios build
 ```
 
 ---
