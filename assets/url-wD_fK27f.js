@@ -1,0 +1,1 @@
+function l(n){if(!n)return null;const r=n.trim();if(!r)return null;let t;try{t=new URL(/^https?:\/\//i.test(r)?r:`https://${r}`)}catch{return null}return t.protocol==="http:"&&(t.protocol="https:"),t.protocol!=="https:"||!t.hostname.includes(".")?null:t.toString()}export{l as s};

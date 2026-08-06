@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ayoub19631.github.io/flavor-experts-network/sitemap.xml
