@@ -1,22 +1,22 @@
-# Flavor Experts — Android & iPhone apps
+# Flavor Experts — Android & iPhone (dev / emulator)
 
 The web app is wrapped with **Capacitor 8** (`appId`: `net.flavorexperts.app`).
+
+Focus: **debug builds on the Android emulator** for testing. No store signing required.
 
 ## Prerequisites
 
 | Platform | Tools |
 |----------|--------|
-| Android | Android Studio (SDK 34+), JDK 17 |
-| iOS | macOS + Xcode 15+ + CocoaPods |
+| Android | Android SDK (platform-tools, build-tools 35, platform 35), JDK 17+, Emulator |
+| iOS | macOS + Xcode 15+ (simulator) |
 
-## One-time setup
+## Build web + sync
 
 ```bash
 cd app/frontend
 pnpm install
 pnpm build
-npx cap add android   # once
-npx cap add ios       # once (macOS only)
 npx cap sync
 ```
 
@@ -24,33 +24,42 @@ Or from repo root:
 
 ```bash
 node build.mjs --android
-node build.mjs --ios      # macOS
-node build.mjs --all
+# macOS:
+node build.mjs --ios
 ```
 
-## Daily rebuild / sync
+## Android emulator (recommended for testing)
+
+```bash
+# From repo root — builds debug APK, starts AVD if needed, installs & launches
+bash deploy/run-android-emulator.sh
+```
+
+Manual flow:
 
 ```bash
 cd app/frontend
-pnpm cap:android          # build web + sync Android
-pnpm cap:open:android     # open Android Studio
-
-pnpm cap:ios              # build web + sync iOS (macOS)
-pnpm cap:open:ios         # open Xcode
+pnpm cap:android
+cd android
+./gradlew assembleDebug
+# Start an AVD in Android Studio (Device Manager), then:
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb shell am start -n net.flavorexperts.app/.MainActivity
 ```
 
-## Release notes
+## iOS simulator (macOS)
 
-- **Android:** Build signed AAB/APK from Android Studio → Build → Generate Signed Bundle.
-  Keystore settings are referenced in `capacitor.config.ts` (`release-keystore.jks`).
-- **iOS:** Open Xcode, set Team + Signing, archive for App Store / TestFlight.
-- Deep links / OAuth: set redirect URLs to the Capacitor app scheme in Supabase Auth.
-- Push notifications: configure FCM (Android) and APNs (iOS), then set Capacitor Push secrets.
+```bash
+cd app/frontend
+pnpm cap:ios
+pnpm cap:open:ios
+# In Xcode: choose a Simulator → Run
+```
 
 ## Community features in the app
 
-The same `/community` experience runs inside the WebView:
+Same `/community` experience inside the WebView:
 
-- Photo posts (Supabase Storage `community/` folder)
+- Photo posts (Supabase Storage `community/`)
 - Likes, comments, share
 - Native share sheet when `navigator.share` is available
