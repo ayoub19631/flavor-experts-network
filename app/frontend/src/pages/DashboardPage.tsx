@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,7 @@ import {
 } from "@/lib/profile-details";
 import { toast } from "sonner";
 import {
+  fetchMemberIdsByProfileIds,
   fetchProfileNames,
   listAcceptedConnections,
   listPendingIncoming,
@@ -47,6 +48,7 @@ import {
   respondToConnection,
   type MemberConnection,
 } from "@/lib/connections";
+import { profileCompletionPercent } from "@/lib/profile-completion";
 
 interface ExtendedProfile {
   full_name?: string;
@@ -130,6 +132,7 @@ export default function DashboardPage() {
   const { user, profile, signOut, isPremium, isEnterprise, isAdmin, updateProfile } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Private workspace page — never index.
   usePageMeta({
@@ -142,7 +145,13 @@ export default function DashboardPage() {
     noIndex: true,
   });
 
-  const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "posts" | "security" | "subscription">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "posts" | "security" | "subscription">(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "profile" || tab === "premium" || tab === "posts" || tab === "security" || tab === "subscription") {
+      return tab;
+    }
+    return "overview";
+  });
   const [myPosts, setMyPosts] = useState<SocialPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [dashPostBody, setDashPostBody] = useState("");
@@ -161,6 +170,7 @@ export default function DashboardPage() {
   const [pendingConnections, setPendingConnections] = useState<MemberConnection[]>([]);
   const [acceptedConnections, setAcceptedConnections] = useState<MemberConnection[]>([]);
   const [connectionNames, setConnectionNames] = useState<Record<string, string>>({});
+  const [memberIdsByProfile, setMemberIdsByProfile] = useState<Record<string, string>>({});
   const [connectionBusy, setConnectionBusy] = useState<string | null>(null);
   const [enrollments, setEnrollments] = useState<Array<{
     course_id: string;
@@ -183,6 +193,7 @@ export default function DashboardPage() {
         ...accepted.map((r) => peerUserId(r, user.id)),
       ];
       setConnectionNames(await fetchProfileNames(ids));
+      setMemberIdsByProfile(await fetchMemberIdsByProfileIds(ids));
 
       const { data: enrollData } = await supabase
         .from("course_enrollments")
@@ -696,19 +707,7 @@ export default function DashboardPage() {
 
               {/* Profile completion */}
               {(() => {
-                const profileFields = [
-                  extProfile.full_name,
-                  extProfile.role,
-                  extProfile.company,
-                  extProfile.location,
-                  extProfile.bio,
-                  extProfile.specialty,
-                  extProfile.cover_url,
-                  (extProfile.skills?.length ?? 0) > 0 || !!extProfile.skills_text,
-                  extProfile.linkedin_url,
-                ];
-                const filled = profileFields.filter(Boolean).length;
-                const pct = Math.round((filled / profileFields.length) * 100);
+                const pct = profileCompletionPercent(extProfile);
                 const incomplete = pct < 100;
                 return (
                   <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
@@ -822,11 +821,17 @@ export default function DashboardPage() {
                         ) : (
                           acceptedConnections.slice(0, 5).map((c) => {
                             const peer = peerUserId(c, user.id);
+                            const memberId = memberIdsByProfile[peer];
+                            const name = connectionNames[peer] || (lang === "ar" ? "عضو" : "Member");
                             return (
                               <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
-                                <span className="truncate font-medium">
-                                  {connectionNames[peer] || (lang === "ar" ? "عضو" : "Member")}
-                                </span>
+                                {memberId ? (
+                                  <Link to={`/members/${memberId}`} className="truncate font-medium hover:text-primary">
+                                    {name}
+                                  </Link>
+                                ) : (
+                                  <span className="truncate font-medium">{name}</span>
+                                )}
                                 <Badge variant="secondary" className="text-[10px]">
                                   {lang === "ar" ? "متصل" : "Connected"}
                                 </Badge>

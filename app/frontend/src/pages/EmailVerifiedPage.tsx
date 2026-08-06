@@ -35,7 +35,7 @@ export default function EmailVerifiedPage() {
   useEffect(() => {
     if (!user || !isEmailVerified(user)) return;
     if (countdown <= 0) {
-      navigate("/dashboard");
+      navigate("/dashboard?tab=profile");
       return;
     }
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -119,14 +119,23 @@ export default function EmailVerifiedPage() {
               Redirecting to your dashboard in {countdown} second{countdown !== 1 ? "s" : ""}...
             </div>
 
-            {/* CTA Button */}
-            <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 gap-2"
-              onClick={() => navigate("/dashboard")}
-            >
-              Go to Dashboard
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            {/* CTA Buttons */}
+            <div className="space-y-2">
+              <Button
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 gap-2"
+                onClick={() => navigate("/dashboard?tab=profile")}
+              >
+                {lang === "ar" ? "أكمل ملفك المهني" : "Complete your professional profile"}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full h-10"
+                onClick={() => navigate("/dashboard")}
+              >
+                {lang === "ar" ? "الذهاب للوحة التحكم" : "Go to Dashboard"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

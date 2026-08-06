@@ -33,7 +33,7 @@ import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { safeHttpUrl } from "@/lib/url";
-import type { EmploymentType, ExperienceLevel, JobListing } from "@/lib/types";
+import type { EmploymentType, ExperienceLevel, JobApplication, JobListing } from "@/lib/types";
 import { skillOverlapScore, tokenizeSkills } from "@/lib/matching";
 import { toast } from "sonner";
 
@@ -69,6 +69,9 @@ export default function JobsPage() {
   const [selected, setSelected] = useState<JobListing | null>(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [applying, setApplying] = useState(false);
+  const [manageJobId, setManageJobId] = useState<string | null>(null);
+  const [applications, setApplications] = useState<Array<JobApplication & { applicant_name?: string }>>([]);
+  const [appsLoading, setAppsLoading] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
@@ -145,6 +148,49 @@ export default function JobsPage() {
 
   const empLabel = (v: string) => t(`jobs.type.${v}`);
   const expLabel = (v: string) => t(`jobs.level.${v}`);
+  const myJobs = useMemo(
+    () => (user ? jobs.filter((j) => j.company_id === user.id) : []),
+    [jobs, user],
+  );
+
+  const loadApplications = async (jobId: string) => {
+    setManageJobId(jobId);
+    setAppsLoading(true);
+    const { data, error } = await supabase
+      .from("job_applications")
+      .select("id, job_id, applicant_id, cover_letter, resume_url, status, created_at")
+      .eq("job_id", jobId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast.error(error.message);
+      setApplications([]);
+      setAppsLoading(false);
+      return;
+    }
+    const rows = (data as JobApplication[]) || [];
+    const ids = rows.map((r) => r.applicant_id);
+    let names: Record<string, string> = {};
+    if (ids.length > 0) {
+      const { data: profiles } = await supabase
+        .from("public_author_profiles")
+        .select("id, full_name")
+        .in("id", ids);
+      (profiles || []).forEach((p: { id: string; full_name: string }) => {
+        names[p.id] = p.full_name;
+      });
+    }
+    setApplications(rows.map((r) => ({ ...r, applicant_name: names[r.applicant_id] })));
+    setAppsLoading(false);
+  };
+
+  const updateApplicationStatus = async (id: string, status: JobApplication["status"]) => {
+    const { error } = await supabase.from("job_applications").update({ status }).eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      setApplications((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+      toast.success(lang === "ar" ? "تم تحديث الحالة" : "Application updated");
+    }
+  };
 
   const submitJob = async () => {
     if (!user || !canPost) return;
@@ -397,6 +443,77 @@ export default function JobsPage() {
             </Card>
           )}
 
+          {/* Company applicants hub */}
+          {canPost && myJobs.length > 0 && (
+            <Card className="mb-8 border-primary/20">
+              <CardContent className="p-5 sm:p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-primary" />
+                  <h2 className="font-semibold text-lg">
+                    {lang === "ar" ? "إدارة طلبات التوظيف" : "Manage applications"}
+                  </h2>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {myJobs.map((job) => (
+                    <Button
+                      key={job.id}
+                      size="sm"
+                      variant={manageJobId === job.id ? "default" : "outline"}
+                      onClick={() => loadApplications(job.id)}
+                    >
+                      {job.title}
+                    </Button>
+                  ))}
+                </div>
+                {manageJobId && (
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    {appsLoading ? (
+                      <div className="flex justify-center py-6">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </div>
+                    ) : applications.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        {lang === "ar" ? "لا توجد طلبات بعد لهذه الوظيفة" : "No applications for this role yet"}
+                      </p>
+                    ) : (
+                      applications.map((app) => (
+                        <div
+                          key={app.id}
+                          className="rounded-xl border border-border p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {app.applicant_name || (lang === "ar" ? "متقدم" : "Applicant")}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(app.created_at).toLocaleDateString(lang === "ar" ? "ar" : "en")} · {app.status}
+                            </p>
+                            {app.cover_letter && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{app.cover_letter}</p>
+                            )}
+                          </div>
+                          <Select
+                            value={app.status}
+                            onValueChange={(v) => updateApplicationStatus(app.id, v as JobApplication["status"])}
+                          >
+                            <SelectTrigger className="h-8 w-[140px] text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {(["submitted", "reviewed", "accepted", "rejected"] as const).map((s) => (
+                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Search */}
           {canBrowse && (
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
@@ -525,7 +642,12 @@ export default function JobsPage() {
                         {selected.location ? ` · ${selected.location}` : ""}
                       </p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={lang === "ar" ? "إغلاق" : "Close"}
+                      onClick={() => setSelected(null)}
+                    >
                       ✕
                     </Button>
                   </div>

@@ -30,6 +30,8 @@ import { PLATFORM_ALWAYS_FREE, SITE } from "@/lib/site-config";
 import { FileUploader, AvatarUploader } from "@/components/ui/file-uploader";
 import AdminModerationPanel from "@/components/admin/AdminModerationPanel";
 import AdminCoursesPanel from "@/components/admin/AdminCoursesPanel";
+import AdminConsultationsPanel from "@/components/admin/AdminConsultationsPanel";
+import AdminForumCategoriesPanel from "@/components/admin/AdminForumCategoriesPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type NewsItem = IndustryNews;
@@ -629,6 +631,8 @@ export default function AdminPage() {
     tabBroadcast:       isAR ? "البث" : "Broadcast",
     tabModeration:      isAR ? "الإشراف" : "Moderation",
     tabCourses:         isAR ? "الدورات" : "Courses",
+    tabConsultations:   isAR ? "الاستشارات" : "Consultations",
+    tabForum:           isAR ? "أقسام المنتدى" : "Forum",
     analytics:          isAR ? "تحليلات المنصة" : "Platform analytics",
     publish:            isAR ? "نشر" : "Publish",
     add:                isAR ? "إضافة" : "Add",
@@ -783,6 +787,12 @@ export default function AdminPage() {
               </TabsTrigger>
               <TabsTrigger value="courses" className="gap-1.5 rounded-lg text-xs sm:text-sm">
                 <BookOpen className="w-3.5 h-3.5" /> {T.tabCourses}
+              </TabsTrigger>
+              <TabsTrigger value="consultations" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <MessageSquare className="w-3.5 h-3.5" /> {T.tabConsultations}
+              </TabsTrigger>
+              <TabsTrigger value="forum" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <Radio className="w-3.5 h-3.5" /> {T.tabForum}
               </TabsTrigger>
             </TabsList>
 
@@ -1679,6 +1689,14 @@ export default function AdminPage() {
 
             <TabsContent value="courses">
               <AdminCoursesPanel />
+            </TabsContent>
+
+            <TabsContent value="consultations">
+              <AdminConsultationsPanel />
+            </TabsContent>
+
+            <TabsContent value="forum">
+              <AdminForumCategoriesPanel />
             </TabsContent>
           </Tabs>
         </div>

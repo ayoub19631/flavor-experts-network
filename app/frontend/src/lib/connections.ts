@@ -102,3 +102,20 @@ export async function fetchProfileNames(userIds: string[]): Promise<Record<strin
   });
   return map;
 }
+
+/** Map auth profile ids → public member_directory ids for profile links. */
+export async function fetchMemberIdsByProfileIds(
+  profileIds: string[],
+): Promise<Record<string, string>> {
+  const unique = [...new Set(profileIds.filter(Boolean))];
+  if (unique.length === 0) return {};
+  const { data } = await supabase
+    .from("member_directory")
+    .select("id, profile_id")
+    .in("profile_id", unique);
+  const map: Record<string, string> = {};
+  (data || []).forEach((m: { id: string; profile_id: string | null }) => {
+    if (m.profile_id) map[m.profile_id] = m.id;
+  });
+  return map;
+}

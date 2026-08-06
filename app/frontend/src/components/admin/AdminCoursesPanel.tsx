@@ -76,6 +76,26 @@ export default function AdminCoursesPanel() {
     setDialog(true);
   };
 
+  const attachToLearningPath = async (courseId: string, level: string) => {
+    const normalized = level.toLowerCase();
+    const slug =
+      ["beginner", "intro", "fundamental"].includes(normalized)
+        ? "flavor-fundamentals"
+        : ["intermediate", "mid"].includes(normalized)
+          ? "formulation-practice"
+          : "industry-leadership";
+    const { data: path } = await supabase
+      .from("learning_paths")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (!path?.id) return;
+    await supabase.from("learning_path_courses").upsert(
+      { path_id: path.id, course_id: courseId, sort_order: Date.now() % 100000 },
+      { onConflict: "path_id,course_id" },
+    );
+  };
+
   const save = async () => {
     if (!form.title.trim() || !form.description.trim()) {
       toast.error("Title and description are required");
@@ -94,9 +114,19 @@ export default function AdminCoursesPanel() {
       premium: false,
       updated_at: new Date().toISOString(),
     };
-    const { error } = editing
-      ? await supabase.from("courses").update(payload).eq("id", editing.id)
-      : await supabase.from("courses").insert(payload);
+    let courseId = editing?.id ?? null;
+    let error = null as { message: string } | null;
+    if (editing) {
+      const res = await supabase.from("courses").update(payload).eq("id", editing.id);
+      error = res.error;
+    } else {
+      const res = await supabase.from("courses").insert(payload).select("id").single();
+      error = res.error;
+      courseId = res.data?.id ?? null;
+    }
+    if (!error && courseId && form.is_published) {
+      await attachToLearningPath(courseId, form.level);
+    }
     setSaving(false);
     if (error) toast.error(error.message);
     else {
