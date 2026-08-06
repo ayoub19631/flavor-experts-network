@@ -8,6 +8,7 @@ import {
   MessageSquareText,
   Send,
   Trash2,
+  EyeOff,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
@@ -50,7 +51,7 @@ function initials(name?: string) {
 
 export default function CommunityPage() {
   const { t, lang } = useI18n();
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   usePageMeta({ title: t("community.title"), description: t("community.desc"), path: "/community" });
 
   const [posts, setPosts] = useState<SocialPost[]>([]);
@@ -157,6 +158,20 @@ export default function CommunityPage() {
     }
     setPosts((prev) => prev.filter((p) => p.id !== post.id));
     toast.success(t("community.deleted"));
+  };
+
+  const hidePost = async (post: SocialPost) => {
+    if (!isAdmin) return;
+    const { error } = await supabase
+      .from("social_posts")
+      .update({ is_hidden: true })
+      .eq("id", post.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setPosts((prev) => prev.filter((p) => p.id !== post.id));
+    toast.success(lang === "ar" ? "تم إخفاء المنشور" : "Post hidden");
   };
 
   return (
@@ -316,16 +331,29 @@ export default function CommunityPage() {
                                 {formatRelative(post.created_at, lang)}
                               </p>
                             </div>
-                            {user?.id === post.author_id && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                onClick={() => removePost(post)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {isAdmin && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-amber-600"
+                                  title={lang === "ar" ? "إخفاء" : "Hide"}
+                                  onClick={() => hidePost(post)}
+                                >
+                                  <EyeOff className="w-4 h-4" />
+                                </Button>
+                              )}
+                              {user?.id === post.author_id && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  onClick={() => removePost(post)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           <p className="mt-3 text-[15px] leading-relaxed text-foreground whitespace-pre-wrap">
                             {post.body}

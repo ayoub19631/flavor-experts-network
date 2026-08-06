@@ -41,6 +41,7 @@ import {
   type MemberConnection,
 } from "@/lib/connections";
 import { rankBySkillOverlap, tokenizeSkills } from "@/lib/matching";
+import type { JobListing } from "@/lib/types";
 import { toast } from "sonner";
 
 function getInitials(name: string) {
@@ -64,6 +65,7 @@ export default function MemberProfilePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [similar, setSimilar] = useState<Array<Member & { matchScore: number }>>([]);
+  const [companyJobs, setCompanyJobs] = useState<JobListing[]>([]);
   const [targetUserId, setTargetUserId] = useState<string | null>(null);
   const [connection, setConnection] = useState<MemberConnection | null>(null);
   const [connectBusy, setConnectBusy] = useState(false);
@@ -87,6 +89,7 @@ export default function MemberProfilePage() {
         setNotFound(true);
         setMember(null);
         setSimilar([]);
+        setCompanyJobs([]);
         setTargetUserId(null);
         setConnection(null);
       } else {
@@ -111,6 +114,20 @@ export default function MemberProfilePage() {
               { limit: 4 },
             ),
           );
+        }
+
+        if (row.member_type === "company" && uid) {
+          const { data: jobs } = await supabase
+            .from("job_listings")
+            .select("*")
+            .eq("company_id", uid)
+            .eq("is_published", true)
+            .eq("status", "open")
+            .order("created_at", { ascending: false })
+            .limit(5);
+          if (!cancelled) setCompanyJobs((jobs as JobListing[]) || []);
+        } else if (!cancelled) {
+          setCompanyJobs([]);
         }
       }
       setLoading(false);
@@ -377,6 +394,40 @@ export default function MemberProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {member.member_type === "company" && (
+                <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("profile.open_roles")}
+                    </h2>
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/jobs">{t("nav.jobs")}</Link>
+                    </Button>
+                  </div>
+                  {companyJobs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("profile.open_roles.empty")}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {companyJobs.map((job) => (
+                        <Link
+                          key={job.id}
+                          to="/jobs"
+                          className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 hover:border-primary/40 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{job.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {[job.location, job.employment_type].filter(Boolean).join(" · ")}
+                            </p>
+                          </div>
+                          <Briefcase className="w-4 h-4 text-primary shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
 
               {similar.length > 0 && (
                 <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">

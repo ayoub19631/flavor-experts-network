@@ -40,7 +40,10 @@ import {
 } from "@/lib/profile-details";
 import { toast } from "sonner";
 import {
+  fetchProfileNames,
+  listAcceptedConnections,
   listPendingIncoming,
+  peerUserId,
   respondToConnection,
   type MemberConnection,
 } from "@/lib/connections";
@@ -156,31 +159,61 @@ export default function DashboardPage() {
   const [upcomingWebinars, setUpcomingWebinars] = useState<WebinarResource[]>([]);
   const [enterpriseStats, setEnterpriseStats] = useState<EnterpriseStatItem[]>([]);
   const [pendingConnections, setPendingConnections] = useState<MemberConnection[]>([]);
+  const [acceptedConnections, setAcceptedConnections] = useState<MemberConnection[]>([]);
   const [connectionNames, setConnectionNames] = useState<Record<string, string>>({});
   const [connectionBusy, setConnectionBusy] = useState<string | null>(null);
+  const [enrollments, setEnrollments] = useState<Array<{
+    course_id: string;
+    progress_pct: number;
+    status: string;
+    title?: string;
+  }>>([]);
 
   useEffect(() => {
-    async function loadPending() {
+    async function loadNetworkLearning() {
       if (!user?.id) return;
-      const rows = await listPendingIncoming(user.id);
-      setPendingConnections(rows);
-      const ids = rows.map((r) => r.requester_id);
-      if (ids.length === 0) {
-        setConnectionNames({});
+      const [pending, accepted] = await Promise.all([
+        listPendingIncoming(user.id),
+        listAcceptedConnections(user.id),
+      ]);
+      setPendingConnections(pending);
+      setAcceptedConnections(accepted);
+      const ids = [
+        ...pending.map((r) => r.requester_id),
+        ...accepted.map((r) => peerUserId(r, user.id)),
+      ];
+      setConnectionNames(await fetchProfileNames(ids));
+
+      const { data: enrollData } = await supabase
+        .from("course_enrollments")
+        .select("course_id, progress_pct, status")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(6);
+      const rows = (enrollData || []) as Array<{ course_id: string; progress_pct: number; status: string }>;
+      if (rows.length === 0) {
+        setEnrollments([]);
         return;
       }
-      const { data } = await supabase
-        .from("public_author_profiles")
-        .select("id, full_name")
-        .in("id", ids);
-      const map: Record<string, string> = {};
-      (data || []).forEach((p: { id: string; full_name: string }) => {
-        map[p.id] = p.full_name;
-      });
-      setConnectionNames(map);
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("id, title, title_ar")
+        .in("id", rows.map((r) => r.course_id));
+      const titleMap = new Map(
+        ((courseData || []) as Array<{ id: string; title: string; title_ar?: string | null }>).map((c) => [
+          c.id,
+          lang === "ar" && c.title_ar ? c.title_ar : c.title,
+        ]),
+      );
+      setEnrollments(
+        rows.map((r) => ({
+          ...r,
+          title: titleMap.get(r.course_id) || (lang === "ar" ? "دورة" : "Course"),
+        })),
+      );
     }
-    loadPending();
-  }, [user?.id]);
+    loadNetworkLearning();
+  }, [user?.id, lang]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -739,6 +772,7 @@ export default function DashboardPage() {
                                   else {
                                     toast.success(lang === "ar" ? "تم القبول" : "Accepted");
                                     setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
+                                    setAcceptedConnections((prev) => [{ ...req, status: "accepted" }, ...prev]);
                                   }
                                 }}
                               >
@@ -768,6 +802,70 @@ export default function DashboardPage() {
                       </CardContent>
                     </Card>
                   )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="border-border">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          {lang === "ar" ? "شبكتي" : "My network"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 space-y-2">
+                        {acceptedConnections.length === 0 ? (
+                          <div className="text-sm text-muted-foreground space-y-3">
+                            <p>{lang === "ar" ? "لا توجد اتصالات بعد" : "No connections yet"}</p>
+                            <Button asChild size="sm" variant="outline">
+                              <Link to="/members">{lang === "ar" ? "تصفح الأعضاء" : "Browse members"}</Link>
+                            </Button>
+                          </div>
+                        ) : (
+                          acceptedConnections.slice(0, 5).map((c) => {
+                            const peer = peerUserId(c, user.id);
+                            return (
+                              <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
+                                <span className="truncate font-medium">
+                                  {connectionNames[peer] || (lang === "ar" ? "عضو" : "Member")}
+                                </span>
+                                <Badge variant="secondary" className="text-[10px]">
+                                  {lang === "ar" ? "متصل" : "Connected"}
+                                </Badge>
+                              </div>
+                            );
+                          })
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <BookMarked className="w-4 h-4 text-primary" />
+                          {lang === "ar" ? "تعلّمي" : "My learning"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 space-y-3">
+                        {enrollments.length === 0 ? (
+                          <div className="text-sm text-muted-foreground space-y-3">
+                            <p>{lang === "ar" ? "لم تسجّل في أي دورة بعد" : "No course enrollments yet"}</p>
+                            <Button asChild size="sm" variant="outline">
+                              <Link to="/courses">{lang === "ar" ? "استكشف الدورات" : "Explore courses"}</Link>
+                            </Button>
+                          </div>
+                        ) : (
+                          enrollments.map((e) => (
+                            <div key={e.course_id} className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-2 text-sm">
+                                <span className="truncate font-medium">{e.title}</span>
+                                <span className="text-xs text-muted-foreground shrink-0">{e.progress_pct}%</span>
+                              </div>
+                              <Progress value={e.progress_pct} className="h-1.5" />
+                            </div>
+                          ))
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
 
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-3">

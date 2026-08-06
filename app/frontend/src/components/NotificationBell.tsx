@@ -27,7 +27,8 @@ export default function NotificationBell() {
       return;
     }
     let cancelled = false;
-    (async () => {
+
+    const load = async () => {
       const { data } = await supabase
         .from("notifications")
         .select("*")
@@ -35,9 +36,46 @@ export default function NotificationBell() {
         .order("created_at", { ascending: false })
         .limit(20);
       if (!cancelled) setItems((data as Notification[]) ?? []);
-    })();
+    };
+
+    load();
+
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = payload.new as Notification;
+          setItems((prev) => [row, ...prev].slice(0, 20));
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = payload.new as Notification;
+          setItems((prev) => prev.map((n) => (n.id === row.id ? row : n)));
+        },
+      )
+      .subscribe();
+
+    const poll = window.setInterval(load, 60_000);
+
     return () => {
       cancelled = true;
+      window.clearInterval(poll);
+      supabase.removeChannel(channel);
     };
   }, [user]);
 
@@ -61,7 +99,13 @@ export default function NotificationBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 relative" title={lang === "ar" ? "الإشعارات" : "Notifications"}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 relative"
+          aria-label={lang === "ar" ? "الإشعارات" : "Notifications"}
+          title={lang === "ar" ? "الإشعارات" : "Notifications"}
+        >
           <Bell className="w-4 h-4" />
           {unread > 0 && (
             <span className="absolute -top-0.5 -end-0.5 min-w-[16px] h-4 px-1 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">

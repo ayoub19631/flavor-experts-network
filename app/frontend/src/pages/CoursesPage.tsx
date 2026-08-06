@@ -38,6 +38,7 @@ export default function CoursesPage() {
   const [paths, setPaths] = useState<LearningPath[]>([]);
   const [pathCourses, setPathCourses] = useState<PathCourse[]>([]);
   const [enrolled, setEnrolled] = useState<Set<string>>(new Set());
+  const [progressMap, setProgressMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [enrollingId, setEnrollingId] = useState<string | null>(null);
 
@@ -56,11 +57,17 @@ export default function CoursesPage() {
         if (user?.id) {
           const { data: enrollData } = await supabase
             .from("course_enrollments")
-            .select("course_id")
+            .select("course_id, progress_pct")
             .eq("user_id", user.id);
           setEnrolled(new Set((enrollData || []).map((e: { course_id: string }) => e.course_id)));
+          const map: Record<string, number> = {};
+          (enrollData || []).forEach((e: { course_id: string; progress_pct: number }) => {
+            map[e.course_id] = e.progress_pct ?? 0;
+          });
+          setProgressMap(map);
         } else {
           setEnrolled(new Set());
+          setProgressMap({});
         }
       } catch {
         setCourses([]);
@@ -107,6 +114,23 @@ export default function CoursesPage() {
     else {
       toast.success(t("courses.enroll.success"));
       setEnrolled((prev) => new Set(prev).add(courseId));
+      setProgressMap((prev) => ({ ...prev, [courseId]: prev[courseId] ?? 0 }));
+    }
+  };
+
+  const updateProgress = async (courseId: string, progress_pct: number) => {
+    if (!user) return;
+    const status =
+      progress_pct >= 100 ? "completed" : progress_pct > 0 ? "in_progress" : "enrolled";
+    const { error } = await supabase
+      .from("course_enrollments")
+      .update({ progress_pct, status, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id)
+      .eq("course_id", courseId);
+    if (error) toast.error(error.message);
+    else {
+      setProgressMap((prev) => ({ ...prev, [courseId]: progress_pct }));
+      toast.success(t("courses.progress.saved"));
     }
   };
 
@@ -264,6 +288,24 @@ export default function CoursesPage() {
                               </Button>
                             )}
                           </div>
+                          {enrolled.has(course.id) && (
+                            <div className="mt-4 space-y-2">
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{t("courses.progress")}</span>
+                                <span>{progressMap[course.id] ?? 0}%</span>
+                              </div>
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={10}
+                                value={progressMap[course.id] ?? 0}
+                                onChange={(e) => updateProgress(course.id, Number(e.target.value))}
+                                className="w-full accent-primary"
+                                aria-label={t("courses.progress")}
+                              />
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ))}

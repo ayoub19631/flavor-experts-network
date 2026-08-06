@@ -58,6 +58,7 @@ export default function MembersPage() {
   const [search, setSearch] = useState("");
   const [specialtyFilter, setSpecialtyFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [featuredOnly, setFeaturedOnly] = useState(false);
 
   useEffect(() => {
@@ -125,14 +126,18 @@ export default function MembersPage() {
     const matchesLocation =
       locationFilter === "all" || (m.location || "").trim() === locationFilter;
     const matchesFeatured = !featuredOnly || m.is_featured;
+    const matchesType =
+      typeFilter === "all" ||
+      (m.member_type || "individual") === typeFilter;
 
-    return matchesSearch && matchesSpecialty && matchesLocation && matchesFeatured;
+    return matchesSearch && matchesSpecialty && matchesLocation && matchesFeatured && matchesType;
   });
 
   const hasFilters =
     search.trim() !== "" ||
     specialtyFilter !== "all" ||
     locationFilter !== "all" ||
+    typeFilter !== "all" ||
     featuredOnly;
 
   const recommended = useMemo(() => {
@@ -189,7 +194,7 @@ export default function MembersPage() {
 
       <section className="py-6 border-b border-border sticky top-16 bg-background/95 backdrop-blur z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -221,6 +226,17 @@ export default function MembersPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={t("members.filter.type")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("members.filter.all")}</SelectItem>
+                <SelectItem value="individual">{t("members.filter.type.individual")}</SelectItem>
+                <SelectItem value="company">{t("members.filter.type.company")}</SelectItem>
+                <SelectItem value="expert">{t("members.filter.type.expert")}</SelectItem>
+              </SelectContent>
+            </Select>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -240,6 +256,7 @@ export default function MembersPage() {
                     setSearch("");
                     setSpecialtyFilter("all");
                     setLocationFilter("all");
+                    setTypeFilter("all");
                     setFeaturedOnly(false);
                   }}
                 >
@@ -267,9 +284,23 @@ export default function MembersPage() {
               </Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 text-muted-foreground">
+            <div className="text-center py-20 text-muted-foreground space-y-4">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p>{t("members.none")}{search ? ` "${search}"` : ""}</p>
+              {hasFilters && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearch("");
+                    setSpecialtyFilter("all");
+                    setLocationFilter("all");
+                    setTypeFilter("all");
+                    setFeaturedOnly(false);
+                  }}
+                >
+                  {t("members.filter.clear")}
+                </Button>
+              )}
             </div>
           ) : (
             <>

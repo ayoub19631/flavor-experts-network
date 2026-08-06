@@ -205,6 +205,9 @@ export default function Navbar() {
               size="icon"
               className="lg:hidden h-9 w-9"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? (lang === "ar" ? "إغلاق القائمة" : "Close menu") : (lang === "ar" ? "فتح القائمة" : "Open menu")}
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </Button>
@@ -213,7 +216,7 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-lg">
+        <div id="mobile-nav" className="lg:hidden border-t border-border bg-background/95 backdrop-blur-lg">
           <div className="px-4 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
             <p className="px-3 pt-1 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
               {t("nav.primary")}
@@ -252,7 +255,47 @@ export default function Navbar() {
                 </Link>
               ),
             )}
-            {!user && (
+            {user ? (
+              <div className="pt-3 border-t border-border space-y-2">
+                {isEmailVerified ? (
+                  <Link to="/dashboard" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full gap-2">
+                      <LayoutDashboard className="w-4 h-4" />
+                      {t("nav.dashboard")}
+                    </Button>
+                  </Link>
+                ) : (
+                  <Link
+                    to={`/verify-email?email=${encodeURIComponent(user.email || "")}`}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <Button variant="outline" size="sm" className="w-full text-amber-600">
+                      {t("auth.verify_nav")}
+                    </Button>
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link to="/admin" onClick={() => setMobileOpen(false)}>
+                    <Button variant="outline" size="sm" className="w-full gap-2 text-amber-600">
+                      <ShieldCheck className="w-4 h-4" />
+                      {t("nav.admin")}
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-2 text-red-600"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    handleSignOut();
+                  }}
+                >
+                  <LogOut className="w-4 h-4" />
+                  {t("nav.logout")}
+                </Button>
+              </div>
+            ) : (
               <div className="pt-3 border-t border-border space-y-2">
                 <Link to="/auth?mode=login" onClick={() => setMobileOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full">

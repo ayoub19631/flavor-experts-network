@@ -29,6 +29,7 @@ import Navbar from "@/components/Navbar";
 import { PLATFORM_ALWAYS_FREE, SITE } from "@/lib/site-config";
 import { FileUploader, AvatarUploader } from "@/components/ui/file-uploader";
 import AdminModerationPanel from "@/components/admin/AdminModerationPanel";
+import AdminCoursesPanel from "@/components/admin/AdminCoursesPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type NewsItem = IndustryNews;
@@ -627,6 +628,7 @@ export default function AdminPage() {
     tabSettings:        isAR ? "الإعدادات" : "Settings",
     tabBroadcast:       isAR ? "البث" : "Broadcast",
     tabModeration:      isAR ? "الإشراف" : "Moderation",
+    tabCourses:         isAR ? "الدورات" : "Courses",
     analytics:          isAR ? "تحليلات المنصة" : "Platform analytics",
     publish:            isAR ? "نشر" : "Publish",
     add:                isAR ? "إضافة" : "Add",
@@ -778,6 +780,9 @@ export default function AdminPage() {
               </TabsTrigger>
               <TabsTrigger value="moderation" className="gap-1.5 rounded-lg text-xs sm:text-sm">
                 <Shield className="w-3.5 h-3.5" /> {T.tabModeration}
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <BookOpen className="w-3.5 h-3.5" /> {T.tabCourses}
               </TabsTrigger>
             </TabsList>
 
@@ -1670,6 +1675,10 @@ export default function AdminPage() {
 
             <TabsContent value="moderation">
               <AdminModerationPanel />
+            </TabsContent>
+
+            <TabsContent value="courses">
+              <AdminCoursesPanel />
             </TabsContent>
           </Tabs>
         </div>

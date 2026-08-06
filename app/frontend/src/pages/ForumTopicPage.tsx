@@ -46,7 +46,7 @@ function formatDateTime(date: string, lang: string) {
 export default function ForumTopicPage() {
   const { id } = useParams<{ id: string }>();
   const { t, lang } = useI18n();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const [topic, setTopic] = useState<ForumTopic | null>(null);
@@ -54,6 +54,7 @@ export default function ForumTopicPage() {
   const [replies, setReplies] = useState<ForumReply[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [modBusy, setModBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
 
@@ -112,6 +113,22 @@ export default function ForumTopicPage() {
     }
     init();
   }, [id]);
+
+  const toggleModeration = async (field: "is_pinned" | "is_locked") => {
+    if (!topic || !isAdmin) return;
+    setModBusy(true);
+    const next = !topic[field];
+    const { error: updateError } = await supabase
+      .from("forum_topics")
+      .update({ [field]: next })
+      .eq("id", topic.id);
+    setModBusy(false);
+    if (updateError) toast.error(updateError.message);
+    else {
+      setTopic({ ...topic, [field]: next });
+      toast.success(lang === "ar" ? "تم تحديث الموضوع" : "Topic updated");
+    }
+  };
 
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,7 +256,7 @@ export default function ForumTopicPage() {
             <div className="space-y-6">
               <Card className="border border-border">
                 <CardContent className="p-6">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
                     {topic.is_pinned && (
                       <Badge className="bg-primary/10 text-primary border-0 gap-1">
                         <Pin className="w-3 h-3" />
@@ -251,6 +268,34 @@ export default function ForumTopicPage() {
                         <Lock className="w-3 h-3" />
                         {t("forum.locked_badge")}
                       </Badge>
+                    )}
+                    {isAdmin && (
+                      <div className="ms-auto flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1"
+                          disabled={modBusy}
+                          onClick={() => toggleModeration("is_pinned")}
+                        >
+                          <Pin className="w-3.5 h-3.5" />
+                          {topic.is_pinned
+                            ? (lang === "ar" ? "إلغاء التثبيت" : "Unpin")
+                            : (lang === "ar" ? "تثبيت" : "Pin")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1"
+                          disabled={modBusy}
+                          onClick={() => toggleModeration("is_locked")}
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          {topic.is_locked
+                            ? (lang === "ar" ? "فتح" : "Unlock")
+                            : (lang === "ar" ? "إغلاق" : "Lock")}
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <h1 className="text-2xl font-bold text-foreground mb-4">{topic.title}</h1>
