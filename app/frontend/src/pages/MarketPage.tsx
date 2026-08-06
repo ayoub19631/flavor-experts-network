@@ -52,11 +52,13 @@ export default function MarketPage() {
     path: "/market",
   });
   const [briefing, setBriefing] = useState<MarketBriefing | null>(null);
+  const [archive, setArchive] = useState<MarketBriefing[]>([]);
+  const [commodityFilter, setCommodityFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = async (selectedId?: string) => {
     setLoading(true);
     setError(null);
     const { data, error: err } = await supabase
@@ -64,10 +66,15 @@ export default function MarketPage() {
       .select("*")
       .eq("is_published", true)
       .order("briefing_date", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(12);
     if (err) setError(err.message);
-    setBriefing((data as MarketBriefing) || null);
+    const rows = ((data as MarketBriefing[]) || []);
+    setArchive(rows);
+    const active = selectedId
+      ? rows.find((r) => r.id === selectedId) || rows[0] || null
+      : rows[0] || null;
+    setBriefing(active);
+    setCommodityFilter("all");
     setLoading(false);
   };
 
@@ -90,6 +97,17 @@ export default function MarketPage() {
   const title = isAR ? (briefing?.title_ar || briefing?.title) : briefing?.title;
   const summary = isAR ? (briefing?.summary_ar || briefing?.summary) : briefing?.summary;
   const body = isAR ? (briefing?.body_ar || briefing?.body_en) : briefing?.body_en;
+
+  const commodityNames = Array.from(
+    new Set(
+      (briefing?.commodities || []).map((c) => (isAR ? c.name_ar || c.name : c.name)).filter(Boolean),
+    ),
+  );
+  const visibleCommodities = (briefing?.commodities || []).filter((c) => {
+    if (commodityFilter === "all") return true;
+    const label = isAR ? c.name_ar || c.name : c.name;
+    return label === commodityFilter;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -169,23 +187,77 @@ export default function MarketPage() {
               </Card>
 
               {Array.isArray(briefing.commodities) && briefing.commodities.length > 0 && (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {briefing.commodities.map((c, i) => (
-                    <Card key={`${c.name}-${i}`}>
-                      <CardContent className="p-4 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-semibold text-sm text-foreground">
-                            {isAR ? c.name_ar || c.name : c.name}
+                <div className="space-y-3">
+                  {commodityNames.length > 1 && (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant={commodityFilter === "all" ? "default" : "outline"}
+                        onClick={() => setCommodityFilter("all")}
+                      >
+                        {isAR ? "الكل" : "All"}
+                      </Button>
+                      {commodityNames.map((name) => (
+                        <Button
+                          key={name}
+                          size="sm"
+                          variant={commodityFilter === name ? "default" : "outline"}
+                          onClick={() => setCommodityFilter(name)}
+                        >
+                          {name}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {visibleCommodities.map((c, i) => (
+                      <Card key={`${c.name}-${i}`}>
+                        <CardContent className="p-4 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-semibold text-sm text-foreground">
+                              {isAR ? c.name_ar || c.name : c.name}
+                            </p>
+                            <TrendIcon trend={c.trend} />
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {isAR ? c.note_ar || c.note : c.note}
                           </p>
-                          <TrendIcon trend={c.trend} />
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {isAR ? c.note_ar || c.note : c.note}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {archive.length > 1 && (
+                <Card>
+                  <CardContent className="p-6 space-y-3">
+                    <h3 className="font-semibold">{isAR ? "الأرشيف" : "Briefing archive"}</h3>
+                    <div className="space-y-2">
+                      {archive.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setBriefing(item);
+                            setCommodityFilter("all");
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
+                          className={`w-full text-start rounded-lg border p-3 transition-colors ${
+                            briefing?.id === item.id
+                              ? "border-primary bg-primary/5"
+                              : "border-border hover:border-primary/30"
+                          }`}
+                        >
+                          <p className="text-sm font-medium">
+                            {isAR ? item.title_ar || item.title : item.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">{item.briefing_date}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
               {Array.isArray(briefing.highlights) && briefing.highlights.length > 0 && (

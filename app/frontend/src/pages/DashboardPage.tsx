@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,16 @@ import {
   parseSkills,
 } from "@/lib/profile-details";
 import { toast } from "sonner";
+import {
+  fetchMemberIdsByProfileIds,
+  fetchProfileNames,
+  listAcceptedConnections,
+  listPendingIncoming,
+  peerUserId,
+  respondToConnection,
+  type MemberConnection,
+} from "@/lib/connections";
+import { profileCompletionPercent } from "@/lib/profile-completion";
 
 interface ExtendedProfile {
   full_name?: string;
@@ -122,6 +132,7 @@ export default function DashboardPage() {
   const { user, profile, signOut, isPremium, isEnterprise, isAdmin, updateProfile } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Private workspace page — never index.
   usePageMeta({
@@ -134,7 +145,13 @@ export default function DashboardPage() {
     noIndex: true,
   });
 
-  const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "posts" | "security" | "subscription">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "premium" | "profile" | "posts" | "security" | "subscription">(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "profile" || tab === "premium" || tab === "posts" || tab === "security" || tab === "subscription") {
+      return tab;
+    }
+    return "overview";
+  });
   const [myPosts, setMyPosts] = useState<SocialPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [dashPostBody, setDashPostBody] = useState("");
@@ -150,6 +167,64 @@ export default function DashboardPage() {
   const [premiumResources, setPremiumResources] = useState<PremiumResource[]>([]);
   const [upcomingWebinars, setUpcomingWebinars] = useState<WebinarResource[]>([]);
   const [enterpriseStats, setEnterpriseStats] = useState<EnterpriseStatItem[]>([]);
+  const [pendingConnections, setPendingConnections] = useState<MemberConnection[]>([]);
+  const [acceptedConnections, setAcceptedConnections] = useState<MemberConnection[]>([]);
+  const [connectionNames, setConnectionNames] = useState<Record<string, string>>({});
+  const [memberIdsByProfile, setMemberIdsByProfile] = useState<Record<string, string>>({});
+  const [connectionBusy, setConnectionBusy] = useState<string | null>(null);
+  const [enrollments, setEnrollments] = useState<Array<{
+    course_id: string;
+    progress_pct: number;
+    status: string;
+    title?: string;
+  }>>([]);
+
+  useEffect(() => {
+    async function loadNetworkLearning() {
+      if (!user?.id) return;
+      const [pending, accepted] = await Promise.all([
+        listPendingIncoming(user.id),
+        listAcceptedConnections(user.id),
+      ]);
+      setPendingConnections(pending);
+      setAcceptedConnections(accepted);
+      const ids = [
+        ...pending.map((r) => r.requester_id),
+        ...accepted.map((r) => peerUserId(r, user.id)),
+      ];
+      setConnectionNames(await fetchProfileNames(ids));
+      setMemberIdsByProfile(await fetchMemberIdsByProfileIds(ids));
+
+      const { data: enrollData } = await supabase
+        .from("course_enrollments")
+        .select("course_id, progress_pct, status")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(6);
+      const rows = (enrollData || []) as Array<{ course_id: string; progress_pct: number; status: string }>;
+      if (rows.length === 0) {
+        setEnrollments([]);
+        return;
+      }
+      const { data: courseData } = await supabase
+        .from("courses")
+        .select("id, title, title_ar")
+        .in("id", rows.map((r) => r.course_id));
+      const titleMap = new Map(
+        ((courseData || []) as Array<{ id: string; title: string; title_ar?: string | null }>).map((c) => [
+          c.id,
+          lang === "ar" && c.title_ar ? c.title_ar : c.title,
+        ]),
+      );
+      setEnrollments(
+        rows.map((r) => ({
+          ...r,
+          title: titleMap.get(r.course_id) || (lang === "ar" ? "دورة" : "Course"),
+        })),
+      );
+    }
+    loadNetworkLearning();
+  }, [user?.id, lang]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -183,8 +258,8 @@ export default function DashboardPage() {
       setEnterpriseStats([
         { label: "Published News", labelAr: "أخبار منشورة", value: String(newsRes.count ?? 0), icon: Newspaper },
         { label: "Total Members", labelAr: "إجمالي الأعضاء", value: String(membersRes.count ?? 0), icon: Users },
-        { label: "Premium Resources", labelAr: "موارد مميزة", value: String(resourcesRes.data?.length ?? 0), icon: BookOpen },
-        { label: "Enterprise Plan", labelAr: "خطة مؤسسية", value: "Active", icon: Star },
+        { label: "Member Resources", labelAr: "موارد الأعضاء", value: String(resourcesRes.data?.length ?? 0), icon: BookOpen },
+        { label: "Company Access", labelAr: "وصول الشركات", value: "Active", icon: Star },
       ]);
     }
     fetchDashboardData();
@@ -454,7 +529,7 @@ export default function DashboardPage() {
 
   const TABS = [
     { key: "overview", label: lang === "ar" ? "نظرة عامة" : "Overview", icon: BarChart2 },
-    ...(localIsPremium ? [{ key: "premium" as const, label: lang === "ar" ? (isEnt ? "لوحة الشركة" : "المميزات الاحترافية") : (isEnt ? "Enterprise Hub" : "Premium Access"), icon: isEnt ? Building2 : Sparkles }] : []),
+    ...(localIsPremium ? [{ key: "premium" as const, label: lang === "ar" ? (isEnt ? "لوحة الشركة" : "مكتبة الموارد") : (isEnt ? "Company Hub" : "Resource Library"), icon: isEnt ? Building2 : Sparkles }] : []),
     { key: "profile", label: lang === "ar" ? "ملفي الشخصي" : "My Profile", icon: User },
     { key: "posts", label: lang === "ar" ? "منشوراتي" : "My Posts", icon: MessageSquareText },
     { key: "subscription", label: lang === "ar" ? "عضويتي" : "My Membership", icon: CreditCard },
@@ -472,14 +547,14 @@ export default function DashboardPage() {
 
   const ACHIEVEMENTS = [
     { icon: CheckCircle, label: lang === "ar" ? "البريد موثق" : "Email Verified", earned: !!user.email_confirmed_at, color: "text-emerald-500" },
-    { icon: User, label: lang === "ar" ? "الملف مكتمل" : "Profile Complete", earned: !!(extProfile.role && extProfile.company), color: "text-blue-500" },
+    { icon: User, label: lang === "ar" ? "الملف مكتمل" : "Profile Complete", earned: !!(extProfile.role && extProfile.company && extProfile.bio && extProfile.specialty), color: "text-blue-500" },
     { icon: Crown, label: lang === "ar" ? "وصول كامل" : "Full Access", earned: !!user, color: "text-primary" },
     { icon: Star, label: lang === "ar" ? "حساب شركة" : "Company Account", earned: isEnt || localIsEnterprise || profile?.account_type === "company", color: "text-purple-500" },
     { icon: Award, label: lang === "ar" ? "من المبكرين" : "Early Adopter", earned: new Date(user.created_at ?? Date.now()) < new Date("2026-08-01"), color: "text-primary" },
   ];
 
   const PREMIUM_FEATURES = [
-    { icon: FileText, label: lang === "ar" ? "الأوراق البحثية" : "Research Papers", desc: lang === "ar" ? "موارد علمية مميزة" : "Premium research resources", color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
+    { icon: FileText, label: lang === "ar" ? "الأوراق البحثية" : "Research Papers", desc: lang === "ar" ? "موارد علمية للأعضاء" : "Member research resources", color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
     { icon: Video, label: lang === "ar" ? "الندوات الحصرية" : "Exclusive Webinars", desc: lang === "ar" ? "ندوات مباشرة مع خبراء الصناعة" : "Live webinars with industry experts", color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30" },
     { icon: LineChart, label: lang === "ar" ? "تقارير الصناعة" : "Industry Reports", desc: lang === "ar" ? "تحليلات السوق والاتجاهات" : "Market analytics & trends", color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
     { icon: FlaskConical, label: lang === "ar" ? "أدلة التركيب" : "Formulation Guides", desc: lang === "ar" ? "بروتوكولات وصيغ تقنية متقدمة" : "Advanced technical protocols", color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30" },
@@ -631,18 +706,32 @@ export default function DashboardPage() {
               </Card>
 
               {/* Profile completion */}
-              <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Rocket className="w-4 h-4 text-primary" />
-                    <p className="text-sm font-semibold text-primary">{lang === "ar" ? "اكتمال الملف" : "Profile Strength"}</p>
-                  </div>
-                  <Progress value={
-                    [extProfile.full_name, extProfile.role, extProfile.company, extProfile.location, extProfile.bio, extProfile.linkedin_url].filter(Boolean).length * (100/6)
-                  } className="h-1.5 mb-2" />
-                  <p className="text-xs text-muted-foreground">{lang === "ar" ? "أكمل ملفك لزيادة الظهور" : "Complete profile for more visibility"}</p>
-                </CardContent>
-              </Card>
+              {(() => {
+                const pct = profileCompletionPercent(extProfile);
+                const incomplete = pct < 100;
+                return (
+                  <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Rocket className="w-4 h-4 text-primary" />
+                        <p className="text-sm font-semibold text-primary">{lang === "ar" ? "اكتمال الملف" : "Profile Strength"}</p>
+                        <span className="ms-auto text-xs font-semibold text-primary">{pct}%</span>
+                      </div>
+                      <Progress value={pct} className="h-1.5 mb-2" />
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {incomplete
+                          ? (lang === "ar" ? "أضف صورة الغلاف والتخصص والمهارات لزيادة الظهور" : "Add cover, specialty, and skills to boost visibility")
+                          : (lang === "ar" ? "ملفك مكتمل — أحسنت!" : "Your profile looks complete — great work!")}
+                      </p>
+                      {incomplete && (
+                        <Button size="sm" className="w-full" onClick={() => setActiveTab("profile")}>
+                          {lang === "ar" ? "أكمل ملفك الآن" : "Complete profile now"}
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })()}
             </div>
 
             {/* ─── Main Content ──────────────────── */}
@@ -650,6 +739,139 @@ export default function DashboardPage() {
               {/* ══ TAB: Overview ══ */}
               {activeTab === "overview" && (
                 <>
+                  {pendingConnections.length > 0 && (
+                    <Card className="border-primary/25">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          {lang === "ar" ? "طلبات تواصل واردة" : "Incoming connection requests"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 space-y-2">
+                        {pendingConnections.map((req) => (
+                          <div key={req.id} className="flex flex-wrap items-center gap-2 justify-between rounded-lg border border-border p-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {connectionNames[req.requester_id] || (lang === "ar" ? "عضو" : "Member")}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(req.created_at).toLocaleDateString(lang === "ar" ? "ar" : "en")}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="h-8"
+                                disabled={connectionBusy === req.id}
+                                onClick={async () => {
+                                  setConnectionBusy(req.id);
+                                  const { error } = await respondToConnection(req.id, "accepted");
+                                  setConnectionBusy(null);
+                                  if (error) toast.error(error);
+                                  else {
+                                    toast.success(lang === "ar" ? "تم القبول" : "Accepted");
+                                    setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
+                                    setAcceptedConnections((prev) => [{ ...req, status: "accepted" }, ...prev]);
+                                  }
+                                }}
+                              >
+                                {lang === "ar" ? "قبول" : "Accept"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                disabled={connectionBusy === req.id}
+                                onClick={async () => {
+                                  setConnectionBusy(req.id);
+                                  const { error } = await respondToConnection(req.id, "declined");
+                                  setConnectionBusy(null);
+                                  if (error) toast.error(error);
+                                  else {
+                                    toast.message(lang === "ar" ? "تم الرفض" : "Declined");
+                                    setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
+                                  }
+                                }}
+                              >
+                                {lang === "ar" ? "رفض" : "Decline"}
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="border-border">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <Users className="w-4 h-4 text-primary" />
+                          {lang === "ar" ? "شبكتي" : "My network"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 space-y-2">
+                        {acceptedConnections.length === 0 ? (
+                          <div className="text-sm text-muted-foreground space-y-3">
+                            <p>{lang === "ar" ? "لا توجد اتصالات بعد" : "No connections yet"}</p>
+                            <Button asChild size="sm" variant="outline">
+                              <Link to="/members">{lang === "ar" ? "تصفح الأعضاء" : "Browse members"}</Link>
+                            </Button>
+                          </div>
+                        ) : (
+                          acceptedConnections.slice(0, 5).map((c) => {
+                            const peer = peerUserId(c, user.id);
+                            const memberId = memberIdsByProfile[peer];
+                            const name = connectionNames[peer] || (lang === "ar" ? "عضو" : "Member");
+                            return (
+                              <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
+                                {memberId ? (
+                                  <Link to={`/members/${memberId}`} className="truncate font-medium hover:text-primary">
+                                    {name}
+                                  </Link>
+                                ) : (
+                                  <span className="truncate font-medium">{name}</span>
+                                )}
+                                <Badge variant="secondary" className="text-[10px]">
+                                  {lang === "ar" ? "متصل" : "Connected"}
+                                </Badge>
+                              </div>
+                            );
+                          })
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <BookMarked className="w-4 h-4 text-primary" />
+                          {lang === "ar" ? "تعلّمي" : "My learning"}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-2 space-y-3">
+                        {enrollments.length === 0 ? (
+                          <div className="text-sm text-muted-foreground space-y-3">
+                            <p>{lang === "ar" ? "لم تسجّل في أي دورة بعد" : "No course enrollments yet"}</p>
+                            <Button asChild size="sm" variant="outline">
+                              <Link to="/courses">{lang === "ar" ? "استكشف الدورات" : "Explore courses"}</Link>
+                            </Button>
+                          </div>
+                        ) : (
+                          enrollments.map((e) => (
+                            <div key={e.course_id} className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-2 text-sm">
+                                <span className="truncate font-medium">{e.title}</span>
+                                <span className="text-xs text-muted-foreground shrink-0">{e.progress_pct}%</span>
+                              </div>
+                              <Progress value={e.progress_pct} className="h-1.5" />
+                            </div>
+                          ))
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-3">
                     {[
@@ -669,8 +891,8 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
-                  {/* Premium Welcome Banner */}
-                  {isPro && (
+                  {/* Membership welcome (fully free) */}
+                  {localIsPremium && !isEnt && (
                     <Card className="border border-primary/30 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent overflow-hidden relative">
                       <div className="absolute right-0 top-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full -translate-y-8 translate-x-8" />
                       <CardContent className="p-5 flex items-center gap-4">
@@ -678,8 +900,8 @@ export default function DashboardPage() {
                           <Crown className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-bold text-primary text-base">{lang === "ar" ? "مرحباً بك في المستوى الاحترافي! 🎉" : "Welcome to Professional! 🎉"}</p>
-                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "لديك الآن وصول كامل لجميع الموارد البحثية والندوات الحصرية" : "You now have full access to research papers, webinars & industry reports"}</p>
+                          <p className="font-bold text-primary text-base">{lang === "ar" ? "مرحباً بك — عضويتك مجانية بالكامل" : "Welcome — your membership is fully free"}</p>
+                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "وصول كامل للموارد والوظائف والمجتمع والمنتدى بدون اشتراك" : "Full access to resources, jobs, community, and forum — no subscription"}</p>
                         </div>
                         <Button size="sm" className="ml-auto whitespace-nowrap" onClick={() => setActiveTab("premium")}>
                           {lang === "ar" ? "استكشف" : "Explore"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
@@ -696,8 +918,8 @@ export default function DashboardPage() {
                           <Star className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-bold text-primary text-base">{lang === "ar" ? "حساب الشركة نشط ✦" : "Enterprise Account Active ✦"}</p>
-                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "جميع المزايا المؤسسية مفعّلة بما فيها الإعلانات وإدارة العلامة التجارية" : "All enterprise features active including ads, brand management & reports"}</p>
+                          <p className="font-bold text-primary text-base">{lang === "ar" ? "حساب الشركة نشط — مجاني بالكامل" : "Company account active — fully free"}</p>
+                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "انشر الوظائف، أدر ملف الشركة، وتواصل مع مجتمع المتخصصين — مجاناً" : "Post jobs, manage your company profile, and reach professionals — free"}</p>
                         </div>
                         <Button size="sm" className="ml-auto bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap" onClick={() => setActiveTab("premium")}>
                           {lang === "ar" ? "لوحتي" : "My Hub"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
@@ -781,7 +1003,7 @@ export default function DashboardPage() {
                       </div>
                       <p className="text-white/80 text-sm max-w-lg">{lang === "ar" ? "لديك وصول كامل لجميع الموارد البحثية والندوات الحصرية وتقارير الصناعة" : "You have full access to all research papers, exclusive webinars, and industry reports"}</p>
                       <div className="flex gap-3 mt-4 flex-wrap">
-                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">{lang === "ar" ? "موارد بحثية مميزة" : "Premium research resources"}</div>
+                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">{lang === "ar" ? "موارد بحثية للأعضاء" : "Member research resources"}</div>
                         <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">
                           {premiumResources.length} {lang === "ar" ? "مورداً في مكتبتك" : "library resources"}
                         </div>

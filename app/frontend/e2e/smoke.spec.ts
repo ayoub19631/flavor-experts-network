@@ -61,4 +61,17 @@ test.describe("public pages smoke", () => {
     await page.goto("/terms");
     await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
   });
+
+  for (const path of ["/members", "/courses", "/community", "/forum", "/market", "/jobs"]) {
+    test(`${path} public route loads`, async ({ page }) => {
+      await page.goto(path, { waitUntil: "domcontentloaded" });
+      await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
+      // Private-mode gate may hide nav; accept either app shell or under-development page.
+      await expect(
+        page
+          .getByText(/قيد التطوير|Under Development|Flavor Experts|خبراء النكهات|Members|الأعضاء|Jobs|الوظائف|Courses|الدورات|Community|المجتمع|Forum|المنتدى|Market|السوق/i)
+          .first(),
+      ).toBeVisible({ timeout: 20_000 });
+    });
+  }
 });

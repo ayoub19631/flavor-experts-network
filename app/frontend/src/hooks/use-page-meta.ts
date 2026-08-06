@@ -7,6 +7,7 @@ interface PageMetaOptions {
   path?: string;
   image?: string;
   noIndex?: boolean;
+  locale?: string;
 }
 
 function upsertMeta(name: string, content: string, attr: "name" | "property" = "name") {
@@ -29,12 +30,13 @@ function upsertLink(rel: string, href: string) {
   el.href = href;
 }
 
-export function usePageMeta({ title, description, path = "", image, noIndex = false }: PageMetaOptions) {
+export function usePageMeta({ title, description, path = "", image, noIndex = false, locale }: PageMetaOptions) {
   useEffect(() => {
     const pageTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     const pageDescription = description || SITE.description;
     const canonical = `${SITE.url}${path.startsWith("/") ? path : `/${path}`}`.replace(/\/$/, "") || SITE.url;
     const ogImage = image || SITE.ogImage;
+    const ogLocale = locale === "ar" ? "ar_SA" : "en_US";
 
     document.title = pageTitle;
     upsertMeta("description", pageDescription);
@@ -43,6 +45,7 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
     upsertMeta("og:type", "website", "property");
     upsertMeta("og:url", canonical, "property");
     upsertMeta("og:image", ogImage, "property");
+    upsertMeta("og:locale", ogLocale, "property");
     upsertMeta("twitter:card", "summary_large_image");
     upsertMeta("twitter:title", pageTitle);
     upsertMeta("twitter:description", pageDescription);
@@ -55,5 +58,5 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
       const robots = document.querySelector('meta[name="robots"]');
       robots?.remove();
     }
-  }, [title, description, path, image, noIndex]);
+  }, [title, description, path, image, noIndex, locale]);
 }

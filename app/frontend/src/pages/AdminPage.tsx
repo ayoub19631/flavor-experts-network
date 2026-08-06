@@ -26,8 +26,12 @@ import type { IndustryNews, EducationalResource, ContactMessage, EnterpriseReque
 import { useAuth } from "@/lib/auth";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
-import { SITE } from "@/lib/site-config";
+import { PLATFORM_ALWAYS_FREE, SITE } from "@/lib/site-config";
 import { FileUploader, AvatarUploader } from "@/components/ui/file-uploader";
+import AdminModerationPanel from "@/components/admin/AdminModerationPanel";
+import AdminCoursesPanel from "@/components/admin/AdminCoursesPanel";
+import AdminConsultationsPanel from "@/components/admin/AdminConsultationsPanel";
+import AdminForumCategoriesPanel from "@/components/admin/AdminForumCategoriesPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type NewsItem = IndustryNews;
@@ -56,6 +60,10 @@ interface Stats {
   newMessages: number;
   newEnterprise: number;
   newsletterSubscribers: number;
+  jobs: number;
+  posts: number;
+  topics: number;
+  connections: number;
 }
 
 // ─── Authorized Admins: server-side is_admin flag (RLS enforced) ───────────────
@@ -104,7 +112,7 @@ export default function AdminPage() {
   const [lang, setLang] = useState<"ar" | "en">("ar");
 
   // ── Data State ─────────────────────────────────────────────────────────────
-  const [stats, setStats] = useState<Stats>({ news: 0, resources: 0, messages: 0, enterprise: 0, members: 0, users: 0, newMessages: 0, newEnterprise: 0, newsletterSubscribers: 0 });
+  const [stats, setStats] = useState<Stats>({ news: 0, resources: 0, messages: 0, enterprise: 0, members: 0, users: 0, newMessages: 0, newEnterprise: 0, newsletterSubscribers: 0, jobs: 0, posts: 0, topics: 0, connections: 0 });
   const [news, setNews] = useState<NewsItem[]>([]);
   const [resources, setResources] = useState<ResourceItem[]>([]);
   const [messages, setMessages] = useState<ContactMsg[]>([]);
@@ -199,10 +207,19 @@ export default function AdminPage() {
       .select("id, email, full_name, subscription_tier, is_admin, platform_preview_access, subscription_active, created_at")
       .order("created_at", { ascending: false });
 
-    const { count: newsletterCount } = await supabase
-      .from("newsletter_subscribers")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "active");
+    const [
+      { count: newsletterCount },
+      { count: jobsCount },
+      { count: postsCount },
+      { count: topicsCount },
+      { count: connectionsCount },
+    ] = await Promise.all([
+      supabase.from("newsletter_subscribers").select("*", { count: "exact", head: true }).eq("status", "active"),
+      supabase.from("job_listings").select("*", { count: "exact", head: true }),
+      supabase.from("social_posts").select("*", { count: "exact", head: true }),
+      supabase.from("forum_topics").select("*", { count: "exact", head: true }),
+      supabase.from("member_connections").select("*", { count: "exact", head: true }),
+    ]);
 
     if (usersErr) {
       setUsersFetchError("Admin policy not applied yet. Run admin-policies.sql in Supabase to manage users.");
@@ -226,6 +243,10 @@ export default function AdminPage() {
       newMessages: msgData?.filter((m: ContactMsg) => m.status === "new").length ?? 0,
       newEnterprise: entData?.filter((e: EnterpriseReq) => e.status === "new").length ?? 0,
       newsletterSubscribers: newsletterCount ?? 0,
+      jobs: jobsCount ?? 0,
+      posts: postsCount ?? 0,
+      topics: topicsCount ?? 0,
+      connections: connectionsCount ?? 0,
     });
     setFetchLoading(false);
   };
@@ -608,6 +629,11 @@ export default function AdminPage() {
     tabEnterprise:      isAR ? "المؤسسات" : "Enterprise",
     tabSettings:        isAR ? "الإعدادات" : "Settings",
     tabBroadcast:       isAR ? "البث" : "Broadcast",
+    tabModeration:      isAR ? "الإشراف" : "Moderation",
+    tabCourses:         isAR ? "الدورات" : "Courses",
+    tabConsultations:   isAR ? "الاستشارات" : "Consultations",
+    tabForum:           isAR ? "أقسام المنتدى" : "Forum",
+    analytics:          isAR ? "تحليلات المنصة" : "Platform analytics",
     publish:            isAR ? "نشر" : "Publish",
     add:                isAR ? "إضافة" : "Add",
     addMember:          isAR ? "إضافة عضو" : "Add Member",
@@ -632,7 +658,7 @@ export default function AdminPage() {
     platformSummary:    isAR ? "ملخص المنصة" : "Platform Summary",
     publishedArticles:  isAR ? "مقالات منشورة" : "Published Articles",
     activeResources:    isAR ? "موارد نشطة" : "Active Resources",
-    premiumMembers:     isAR ? "أعضاء مميزون" : "Premium Members",
+    premiumMembers:     isAR ? "أعضاء نشطون" : "Active Members",
     featuredExperts:    isAR ? "خبراء مميزون" : "Featured Experts",
     noActivity:         isAR ? "لا يوجد نشاط حديث" : "No recent activity",
     noArticles:         isAR ? "لا توجد مقالات." : "No articles found.",
@@ -756,6 +782,18 @@ export default function AdminPage() {
               <TabsTrigger value="broadcast" className="gap-1.5 rounded-lg text-xs sm:text-sm">
                 <Mail className="w-3.5 h-3.5" /> {T.tabBroadcast}
               </TabsTrigger>
+              <TabsTrigger value="moderation" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <Shield className="w-3.5 h-3.5" /> {T.tabModeration}
+              </TabsTrigger>
+              <TabsTrigger value="courses" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <BookOpen className="w-3.5 h-3.5" /> {T.tabCourses}
+              </TabsTrigger>
+              <TabsTrigger value="consultations" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <MessageSquare className="w-3.5 h-3.5" /> {T.tabConsultations}
+              </TabsTrigger>
+              <TabsTrigger value="forum" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <Radio className="w-3.5 h-3.5" /> {T.tabForum}
+              </TabsTrigger>
             </TabsList>
 
             {/* ══ OVERVIEW ══════════════════════════════════════════════════ */}
@@ -807,9 +845,33 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
 
-                {/* Platform Summary */}
+                {/* Platform analytics */}
                 <Card className="border border-border lg:col-span-3">
                   <CardContent className="p-5">
+                    <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2 text-sm">
+                      <Activity className="w-4 h-4 text-primary" /> {T.analytics}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+                      {[
+                        { label: isAR ? "وظائف" : "Jobs", value: stats.jobs, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                        { label: isAR ? "منشورات" : "Posts", value: stats.posts, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                        { label: isAR ? "مواضيع" : "Topics", value: stats.topics, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                        { label: isAR ? "تواصلات" : "Connections", value: stats.connections, max: Math.max(stats.jobs, stats.posts, stats.topics, stats.connections, 1) },
+                      ].map((row) => (
+                        <div key={row.label} className="rounded-xl bg-secondary/40 p-3">
+                          <div className="flex items-center justify-between text-xs mb-2">
+                            <span className="text-muted-foreground">{row.label}</span>
+                            <span className="font-semibold">{row.value}</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary transition-all"
+                              style={{ width: `${Math.max(8, Math.round((row.value / row.max) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                     <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2 text-sm">
                       <Globe className="w-4 h-4 text-primary" /> {T.platformSummary}
                     </h3>
@@ -817,7 +879,7 @@ export default function AdminPage() {
                       {[
                         { value: news.filter(n => n.is_published).length, label: T.publishedArticles, color: "bg-blue-50 dark:bg-blue-900/20" },
                         { value: resources.filter(r => r.is_published).length, label: T.activeResources, color: "bg-emerald-50 dark:bg-emerald-900/20" },
-                        { value: users.filter(u => u.subscription_tier !== "free").length, label: T.premiumMembers, color: "bg-primary/5" },
+                        { value: users.length, label: T.premiumMembers, color: "bg-primary/5" },
                         { value: members.filter(m => m.is_featured).length, label: T.featuredExperts, color: "bg-amber-50 dark:bg-amber-900/20" },
                       ].map(s => (
                         <div key={s.label} className={`text-center p-4 rounded-xl ${s.color}`}>
@@ -912,7 +974,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <Badge variant="outline" className="text-xs">{item.type}</Badge>
                           <Badge variant="outline" className="text-xs">{item.category}</Badge>
-                          {item.premium && <Badge className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"><Crown className="w-3 h-3 mr-0.5" />Premium</Badge>}
+                          {item.premium && <Badge className="text-xs bg-primary/10 text-primary"><Crown className="w-3 h-3 mr-0.5" />{PLATFORM_ALWAYS_FREE ? "Members" : "Premium"}</Badge>}
                           <Badge className={`text-xs ${item.is_published ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-gray-100 text-gray-600 dark:bg-gray-800"}`}>
                             {item.is_published ? "● Published" : "○ Draft"}
                           </Badge>
@@ -1048,11 +1110,18 @@ export default function AdminPage() {
                                 <Eye className="w-3 h-3" />{T.previewAccess}
                               </Badge>
                             )}
-                            <Badge className={`text-xs capitalize ${tierColor[u.subscription_tier] || "bg-gray-100 text-gray-600"}`}>
-                              {u.subscription_tier === "professional" && <Crown className="w-3 h-3 mr-0.5 inline" />}
-                              {u.subscription_tier === "enterprise" && <Star className="w-3 h-3 mr-0.5 inline" />}
-                              {u.subscription_tier}
-                            </Badge>
+                            {!PLATFORM_ALWAYS_FREE && (
+                              <Badge className={`text-xs capitalize ${tierColor[u.subscription_tier] || "bg-gray-100 text-gray-600"}`}>
+                                {u.subscription_tier === "professional" && <Crown className="w-3 h-3 mr-0.5 inline" />}
+                                {u.subscription_tier === "enterprise" && <Star className="w-3 h-3 mr-0.5 inline" />}
+                                {u.subscription_tier}
+                              </Badge>
+                            )}
+                            {PLATFORM_ALWAYS_FREE && (
+                              <Badge className="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                Free
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground">
                             <a href={`mailto:${u.email}`} className="hover:text-primary hover:underline transition-colors">{u.email}</a>
@@ -1067,6 +1136,7 @@ export default function AdminPage() {
                           >
                             <Mail className="w-3.5 h-3.5" />
                           </a>
+                          {!PLATFORM_ALWAYS_FREE && (
                           <Select value={u.subscription_tier} onValueChange={v => updateUserTier(u.id, v)} disabled={userTierLoading === u.id}>
                             <SelectTrigger className="w-36 h-8 text-xs">
                               {userTierLoading === u.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <SelectValue />}
@@ -1075,6 +1145,7 @@ export default function AdminPage() {
                               {TIERS.map(t => <SelectItem key={t} value={t} className="text-xs capitalize">{t}</SelectItem>)}
                             </SelectContent>
                           </Select>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
@@ -1435,13 +1506,17 @@ export default function AdminPage() {
                       {/* Recipients */}
                       <div className="space-y-1.5">
                         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Recipients</Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          {[
+                        <div className={`grid grid-cols-2 ${PLATFORM_ALWAYS_FREE ? "sm:grid-cols-2" : "sm:grid-cols-4"} gap-2`}>
+                          {([
                             { key: "all", label: "All Users", icon: UsersIcon2 },
-                            { key: "professional", label: "Pro Only", icon: Crown },
-                            { key: "enterprise", label: "Enterprise", icon: Building2 },
+                            ...(!PLATFORM_ALWAYS_FREE
+                              ? [
+                                  { key: "professional", label: "Pro Only", icon: Crown },
+                                  { key: "enterprise", label: "Enterprise", icon: Building2 },
+                                ]
+                              : []),
                             { key: "newsletter", label: "Newsletter", icon: Mail },
-                          ].map(({ key, label, icon: Ic }) => (
+                          ] as const).map(({ key, label, icon: Ic }) => (
                             <button
                               key={key}
                               onClick={() => setBcRecipients(key as typeof bcRecipients)}
@@ -1587,8 +1662,12 @@ export default function AdminPage() {
                         <div className="space-y-2">
                           {[
                             { label: "All Users", count: stats.users, color: "bg-primary/10 text-primary", active: bcRecipients === "all" },
-                            { label: "Professional", count: users.filter(u => u.subscription_tier === "professional").length, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30", active: bcRecipients === "professional" },
-                            { label: "Enterprise", count: users.filter(u => u.subscription_tier === "enterprise").length, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30", active: bcRecipients === "enterprise" },
+                            ...(!PLATFORM_ALWAYS_FREE
+                              ? [
+                                  { label: "Professional", count: users.filter(u => u.subscription_tier === "professional").length, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30", active: bcRecipients === "professional" },
+                                  { label: "Enterprise", count: users.filter(u => u.subscription_tier === "enterprise").length, color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30", active: bcRecipients === "enterprise" },
+                                ]
+                              : []),
                             { label: "Newsletter", count: stats.newsletterSubscribers, color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30", active: bcRecipients === "newsletter" },
                           ].map(r => (
                             <div key={r.label} className={`flex items-center justify-between p-2.5 rounded-lg ${r.active ? r.color : "bg-secondary/30"}`}>
@@ -1602,6 +1681,22 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="moderation">
+              <AdminModerationPanel />
+            </TabsContent>
+
+            <TabsContent value="courses">
+              <AdminCoursesPanel />
+            </TabsContent>
+
+            <TabsContent value="consultations">
+              <AdminConsultationsPanel />
+            </TabsContent>
+
+            <TabsContent value="forum">
+              <AdminForumCategoriesPanel />
             </TabsContent>
           </Tabs>
         </div>
@@ -1732,7 +1827,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-6 p-3 rounded-lg bg-muted/50">
               <div className="flex items-center gap-3">
                 <input type="checkbox" id="resPremium" checked={resourceForm.premium} onChange={e => setResourceForm(p => ({ ...p, premium: e.target.checked }))} className="h-4 w-4 rounded accent-amber-500" />
-                <Label htmlFor="resPremium" className="cursor-pointer flex items-center gap-1"><Crown className="w-3.5 h-3.5 text-amber-500" /> Premium only</Label>
+                <Label htmlFor="resPremium" className="cursor-pointer flex items-center gap-1"><Crown className="w-3.5 h-3.5 text-amber-500" />{PLATFORM_ALWAYS_FREE ? "Members library" : "Premium only"}</Label>
               </div>
               <div className="flex items-center gap-3">
                 <input type="checkbox" id="resPublished" checked={resourceForm.is_published} onChange={e => setResourceForm(p => ({ ...p, is_published: e.target.checked }))} className="h-4 w-4 rounded accent-primary" />

@@ -26,7 +26,9 @@ else
   for f in \
     supabase/migrations/20260804140000_platform_fully_free.sql \
     supabase/migrations/20260804140100_welcome_email_fully_free.sql \
-    supabase/migrations/20260804150000_professional_member_profile.sql
+    supabase/migrations/20260804150000_professional_member_profile.sql \
+    supabase/migrations/20260805120000_public_author_profiles.sql \
+    supabase/migrations/20260805140000_phase2_network_learning.sql
   do
     echo "---- $f"
     npx --yes supabase@latest db query --linked -f "$f"
@@ -38,4 +40,4 @@ npx --yes supabase@latest functions deploy send-email \
   --project-ref "$PROJECT_REF" \
   --no-verify-jwt
 
-echo "Done. Free access + professional profile columns are live."
+echo "Done. Free access, profiles, author privacy, and Phase 2 network/learning tables are live."

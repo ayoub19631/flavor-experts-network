@@ -8,7 +8,7 @@ export async function fetchAuthorsMap(
   if (unique.length === 0) return new Map();
 
   const { data } = await supabase
-    .from("user_profiles")
+    .from("public_author_profiles")
     .select("id, full_name, avatar_url")
     .in("id", unique);
 

@@ -4,7 +4,7 @@ export const SITE = {
   tagline: "Flavor Expertise & Science",
   description:
     import.meta.env.VITE_APP_DESCRIPTION ||
-    "A professional LinkedIn community for flavor scientists and food technologists",
+    "A free professional network for flavor scientists and food technologists — jobs, community, and industry knowledge",
   url: (import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, ""),
   domain: "flavorexpertsnetwork.com",
   supportEmail:

@@ -14,12 +14,16 @@ import {
   Sparkles,
   Star,
   User,
+  UserPlus,
+  Check,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase, type Member } from "@/lib/supabase";
 import { safeHttpUrl } from "@/lib/url";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
@@ -29,6 +33,16 @@ import {
   asProjects,
   asWorkExperience,
 } from "@/lib/profile-details";
+import {
+  getConnectionBetween,
+  resolveMemberUserId,
+  respondToConnection,
+  sendConnectionRequest,
+  type MemberConnection,
+} from "@/lib/connections";
+import { rankBySkillOverlap, tokenizeSkills } from "@/lib/matching";
+import type { JobListing } from "@/lib/types";
+import { toast } from "sonner";
 
 function getInitials(name: string) {
   return name
@@ -46,9 +60,15 @@ const MEMBER_SELECT =
 export default function MemberProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { t, lang } = useI18n();
+  const { user } = useAuth();
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [similar, setSimilar] = useState<Array<Member & { matchScore: number }>>([]);
+  const [companyJobs, setCompanyJobs] = useState<JobListing[]>([]);
+  const [targetUserId, setTargetUserId] = useState<string | null>(null);
+  const [connection, setConnection] = useState<MemberConnection | null>(null);
+  const [connectBusy, setConnectBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,9 +88,47 @@ export default function MemberProfilePage() {
       if (error || !data) {
         setNotFound(true);
         setMember(null);
+        setSimilar([]);
+        setCompanyJobs([]);
+        setTargetUserId(null);
+        setConnection(null);
       } else {
-        setMember(data as Member);
+        const row = data as Member;
+        setMember(row);
         setNotFound(false);
+        const uid = await resolveMemberUserId(row);
+        if (!cancelled) setTargetUserId(uid);
+
+        const mySkills = tokenizeSkills(row.skills, row.specialty);
+        const { data: peers } = await supabase
+          .from("member_directory")
+          .select(MEMBER_SELECT)
+          .neq("id", row.id)
+          .limit(60);
+        if (!cancelled) {
+          setSimilar(
+            rankBySkillOverlap(
+              (peers as Member[]) || [],
+              (m) => tokenizeSkills(m.skills, m.specialty),
+              mySkills,
+              { limit: 4 },
+            ),
+          );
+        }
+
+        if (row.member_type === "company" && uid) {
+          const { data: jobs } = await supabase
+            .from("job_listings")
+            .select("*")
+            .eq("company_id", uid)
+            .eq("is_published", true)
+            .eq("status", "open")
+            .order("created_at", { ascending: false })
+            .limit(5);
+          if (!cancelled) setCompanyJobs((jobs as JobListing[]) || []);
+        } else if (!cancelled) {
+          setCompanyJobs([]);
+        }
       }
       setLoading(false);
     }
@@ -79,6 +137,53 @@ export default function MemberProfilePage() {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadConnection() {
+      if (!user?.id || !targetUserId || user.id === targetUserId) {
+        setConnection(null);
+        return;
+      }
+      const row = await getConnectionBetween(user.id, targetUserId);
+      if (!cancelled) setConnection(row);
+    }
+    loadConnection();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, targetUserId]);
+
+  const isOwnProfile = !!(user?.id && targetUserId && user.id === targetUserId);
+
+  const handleConnect = async () => {
+    if (!user) {
+      toast.message(lang === "ar" ? "سجّل الدخول للتواصل" : "Sign in to connect");
+      return;
+    }
+    if (!targetUserId) {
+      toast.error(lang === "ar" ? "لا يمكن إرسال الطلب لهذا الملف" : "Cannot connect to this profile yet");
+      return;
+    }
+    setConnectBusy(true);
+    if (connection?.status === "pending" && connection.addressee_id === user.id) {
+      const { error } = await respondToConnection(connection.id, "accepted");
+      if (error) toast.error(error);
+      else {
+        toast.success(lang === "ar" ? "تم قبول الطلب" : "Connection accepted");
+        setConnection({ ...connection, status: "accepted" });
+      }
+    } else if (!connection) {
+      const { error } = await sendConnectionRequest(user.id, targetUserId);
+      if (error) toast.error(error);
+      else {
+        toast.success(lang === "ar" ? "تم إرسال طلب التواصل" : "Connection request sent");
+        const row = await getConnectionBetween(user.id, targetUserId);
+        setConnection(row);
+      }
+    }
+    setConnectBusy(false);
+  };
 
   const title = member
     ? `${member.full_name} — ${member.role || t("profile.member")}`
@@ -239,6 +344,33 @@ export default function MemberProfilePage() {
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-2">
+                    {!isOwnProfile && (
+                      <Button
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={connectBusy || connection?.status === "accepted" || (connection?.status === "pending" && connection.requester_id === user?.id)}
+                        onClick={handleConnect}
+                      >
+                        {connectBusy ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : connection?.status === "accepted" ? (
+                          <Check className="w-4 h-4" />
+                        ) : connection?.status === "pending" ? (
+                          <Clock className="w-4 h-4" />
+                        ) : (
+                          <UserPlus className="w-4 h-4" />
+                        )}
+                        {!user
+                          ? t("profile.connect.signin")
+                          : connection?.status === "accepted"
+                            ? t("profile.connect.connected")
+                            : connection?.status === "pending" && connection.addressee_id === user?.id
+                              ? t("profile.connect.accept")
+                              : connection?.status === "pending"
+                                ? t("profile.connect.pending")
+                                : t("profile.connect")}
+                      </Button>
+                    )}
                     {linkedinHref && (
                       <Button asChild size="sm" className="gap-1.5 bg-[#0a66c2] hover:bg-[#004182]">
                         <a href={linkedinHref} target="_blank" rel="noopener noreferrer">
@@ -262,6 +394,72 @@ export default function MemberProfilePage() {
                   </div>
                 </div>
               </div>
+
+              {member.member_type === "company" && (
+                <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                      {t("profile.open_roles")}
+                    </h2>
+                    <Button asChild size="sm" variant="outline">
+                      <Link to="/jobs">{t("nav.jobs")}</Link>
+                    </Button>
+                  </div>
+                  {companyJobs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t("profile.open_roles.empty")}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {companyJobs.map((job) => (
+                        <Link
+                          key={job.id}
+                          to="/jobs"
+                          className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 hover:border-primary/40 transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">{job.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {[job.location, job.employment_type].filter(Boolean).join(" · ")}
+                            </p>
+                          </div>
+                          <Briefcase className="w-4 h-4 text-primary shrink-0" />
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {similar.length > 0 && (
+                <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                    {t("profile.similar")}
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {similar.map((peer) => (
+                      <Link
+                        key={peer.id}
+                        to={`/members/${peer.id}`}
+                        className="flex items-center gap-3 rounded-xl border border-border/70 p-3 hover:border-primary/40 transition-colors"
+                      >
+                        {peer.avatar_url ? (
+                          <img src={peer.avatar_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                            {getInitials(peer.full_name)}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{peer.full_name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{peer.role || peer.specialty}</p>
+                        </div>
+                        <Badge variant="secondary" className="text-[10px] shrink-0">
+                          {peer.matchScore} {t("profile.match")}
+                        </Badge>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="lg:col-span-2 space-y-5">
