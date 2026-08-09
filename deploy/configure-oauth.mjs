@@ -8,6 +8,7 @@
  */
 
 import { readFileSync, existsSync } from "fs";
+import { randomBytes } from "crypto";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
@@ -51,11 +52,18 @@ if (missing.length) {
 
 console.log("\n🔐 Setting Supabase Edge Function secrets...\n");
 
+const existingState = oauthEnv.OAUTH_STATE_SECRET || "";
+const oauthStateSecret = existingState || randomBytes(32).toString("hex");
+if (!existingState) {
+  console.log("ℹ️  Generated OAUTH_STATE_SECRET (store it — do not rotate casually).");
+}
+
 const secretArgs = [
   `GOOGLE_CLIENT_ID=${oauthEnv.GOOGLE_CLIENT_ID}`,
   `GOOGLE_CLIENT_SECRET=${oauthEnv.GOOGLE_CLIENT_SECRET}`,
   `LINKEDIN_CLIENT_ID=${oauthEnv.LINKEDIN_CLIENT_ID}`,
   `LINKEDIN_CLIENT_SECRET=${oauthEnv.LINKEDIN_CLIENT_SECRET}`,
+  `OAUTH_STATE_SECRET=${oauthStateSecret}`,
   `SITE_URL=${SITE_URL}`,
 ].join(" ");
 

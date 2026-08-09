@@ -42,13 +42,14 @@ export default function AuthCallback() {
     }
 
     let handled = false;
+    let cancelled = false;
 
     async function finalizeSession(
       session: NonNullable<
         Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]
       >,
     ) {
-      if (handled) return;
+      if (handled || cancelled) return;
       handled = true;
 
       const user = session.user;
@@ -125,12 +126,34 @@ export default function AuthCallback() {
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) finalizeSession(session);
-    });
+    (async () => {
+      // Edge OAuth may redirect here with token_hash instead of a session hash.
+      const tokenHash = searchParams.get("token_hash");
+      const otpType = searchParams.get("type");
+      if (tokenHash && otpType) {
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: otpType as "magiclink" | "email" | "signup" | "recovery" | "invite",
+        });
+        if (cancelled) return;
+        if (error || !data.session) {
+          navigate(
+            `/auth/error?msg=${encodeURIComponent(error?.message || "Could not complete sign in.")}`,
+          );
+          return;
+        }
+        await finalizeSession(data.session);
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) await finalizeSession(session);
+    })();
 
     const timer = setTimeout(async () => {
-      if (handled) return;
+      if (handled || cancelled) return;
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -139,9 +162,10 @@ export default function AuthCallback() {
       } else {
         navigate("/auth?mode=login");
       }
-    }, 5000);
+    }, 8000);
 
     return () => {
+      cancelled = true;
       listener.subscription.unsubscribe();
       clearTimeout(timer);
     };
