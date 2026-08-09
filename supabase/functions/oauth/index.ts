@@ -391,6 +391,7 @@ async function handleCallback(reqUrl: URL): Promise<Response> {
     name: fullName,
     avatar_url: avatarUrl,
     picture: avatarUrl,
+    account_type: state.intent === "company" ? "company" : "individual",
   };
 
   if (state.provider === "linkedin") {
@@ -406,7 +407,18 @@ async function handleCallback(reqUrl: URL): Promise<Response> {
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
 
-  await findOrCreateUser(admin, email, metadata, state.provider);
+  const user = await findOrCreateUser(admin, email, metadata, state.provider);
+
+  // The signed OAuth state is the source of truth for company onboarding.
+  // Apply this with the service role instead of relying on a client-side
+  // profile update, which is intentionally blocked by the privilege trigger.
+  if (state.intent === "company") {
+    const { error: profileError } = await admin
+      .from("user_profiles")
+      .update({ account_type: "company", updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (profileError) throw profileError;
+  }
 
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: "magiclink",

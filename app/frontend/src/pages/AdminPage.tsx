@@ -1407,7 +1407,7 @@ export default function AdminPage() {
                     <div className="space-y-3">
                       {[
                         { step: "1", title: "Create OAuth Apps", desc: "Google Cloud Console + LinkedIn Developers (OpenID Connect). See deploy/OAUTH-SETUP.md in the repo.", url: "https://console.cloud.google.com/apis/credentials", urlLabel: "Google Credentials" },
-                        { step: "2", title: "Add Redirect URL (both providers)", desc: "https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth?action=callback" },
+                        { step: "2", title: "Add Redirect URL (both providers)", desc: "https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth/callback" },
                         { step: "3", title: "Set Supabase Secrets", desc: "Copy deploy/oauth.env.example → deploy/oauth.env, fill keys, then run: node deploy/configure-oauth.mjs" },
                         { step: "4", title: "Deploy OAuth Function", desc: "npx supabase functions deploy oauth --project-ref imucfofvdwfyexdwrsfe", url: "https://supabase.com/dashboard/project/imucfofvdwfyexdwrsfe/functions", urlLabel: "Supabase Functions" },
                       ].map(s => (

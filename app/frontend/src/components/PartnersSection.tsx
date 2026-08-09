@@ -6,6 +6,7 @@ import { Building2, ArrowRight, Handshake, Loader2, Star } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import type { Partner } from "@/lib/types";
+import { safeHttpUrl } from "@/lib/url";
 
 export default function PartnersSection() {
   const { t } = useI18n();
@@ -61,9 +62,9 @@ export default function PartnersSection() {
               {partners.map((partner) => (
                 <a
                   key={partner.id}
-                  href={partner.website_url || "#"}
-                  target={partner.website_url ? "_blank" : undefined}
-                  rel={partner.website_url ? "noopener noreferrer" : undefined}
+                  href={safeHttpUrl(partner.website_url) ?? undefined}
+                  target={safeHttpUrl(partner.website_url) ? "_blank" : undefined}
+                  rel={safeHttpUrl(partner.website_url) ? "noopener noreferrer" : undefined}
                   className={`group relative flex flex-col items-center justify-center rounded-2xl border bg-background p-5 transition-all hover:shadow-md ${
                     partner.is_featured
                       ? "border-primary/40 shadow-sm ring-1 ring-primary/20 scale-[1.02]"
