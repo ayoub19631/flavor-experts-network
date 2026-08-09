@@ -1,16 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
+  BarChart3,
   Building2,
+  CheckCircle2,
+  Compass,
   Heart,
   ImagePlus,
   Loader2,
   MessageCircle,
   MessageSquareText,
+  PenLine,
+  Search,
   Send,
   Share2,
+  ShieldCheck,
+  Sparkles,
   Trash2,
+  TrendingUp,
+  Users,
   EyeOff,
   X,
 } from "lucide-react";
@@ -19,6 +28,7 @@ import FooterSection from "@/components/FooterSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -34,6 +44,14 @@ import { safeHttpUrl } from "@/lib/url";
 import { SITE } from "@/lib/site-config";
 import type { SocialPost, SocialPostComment } from "@/lib/types";
 import { toast } from "sonner";
+
+type FeedFilter = "latest" | "popular" | "mine";
+
+const MAX_POST_LENGTH = 5000;
+
+function extractHashtags(text: string): string[] {
+  return text.match(/#[\p{L}\p{N}_-]+/gu) || [];
+}
 
 function formatRelative(date: string, lang: string) {
   const d = new Date(date);
@@ -76,7 +94,70 @@ export default function CommunityPage() {
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({});
   const [commentBusy, setCommentBusy] = useState<string | null>(null);
+  const [feedFilter, setFeedFilter] = useState<FeedFilter>("latest");
+  const [search, setSearch] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const quickTopics = [
+    { tag: "#FlavorScience", label: t("community.topic.science") },
+    { tag: "#Sensory", label: t("community.topic.sensory") },
+    { tag: "#Innovation", label: t("community.topic.innovation") },
+    { tag: "#Careers", label: t("community.topic.careers") },
+  ];
+
+  const contributorsCount = useMemo(
+    () => new Set(posts.map((post) => post.author_id)).size,
+    [posts],
+  );
+
+  const interactionCount = useMemo(
+    () =>
+      posts.reduce(
+        (sum, post) => sum + (post.likes_count || 0) + (post.comments_count || 0),
+        0,
+      ),
+    [posts],
+  );
+
+  const trendingTopics = useMemo(() => {
+    const counts = new Map<string, number>();
+    posts.forEach((post) => {
+      new Set(extractHashtags(post.body)).forEach((tag) => {
+        const normalized = tag.toLocaleLowerCase();
+        counts.set(normalized, (counts.get(normalized) || 0) + 1);
+      });
+    });
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+  }, [posts]);
+
+  const visiblePosts = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    const filtered = posts.filter((post) => {
+      if (feedFilter === "mine" && post.author_id !== user?.id) return false;
+      if (!query) return true;
+      const searchable = [
+        post.body,
+        post.author?.full_name,
+        post.author?.role,
+        post.author?.company,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase();
+      return searchable.includes(query);
+    });
+
+    if (feedFilter === "popular") {
+      return [...filtered].sort(
+        (a, b) =>
+          (b.likes_count || 0) +
+          (b.comments_count || 0) * 2 -
+          ((a.likes_count || 0) + (a.comments_count || 0) * 2),
+      );
+    }
+    return filtered;
+  }, [feedFilter, posts, search, user?.id]);
 
   const load = async () => {
     setLoading(true);
@@ -129,10 +210,35 @@ export default function CommunityPage() {
   };
 
   const clearImage = () => {
+    if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
     setImageUrl(null);
     setImagePreview(null);
     if (fileRef.current) fileRef.current.value = "";
   };
+
+  const addTopic = (tag: string) => {
+    setBody((current) => {
+      if (current.toLocaleLowerCase().includes(tag.toLocaleLowerCase())) return current;
+      const next = `${current.trim()}${current.trim() ? " " : ""}${tag} `;
+      return next.slice(0, MAX_POST_LENGTH);
+    });
+  };
+
+  const renderPostBody = (text: string) =>
+    text.split(/(#[\p{L}\p{N}_-]+)/gu).map((part, index) =>
+      part.startsWith("#") ? (
+        <button
+          key={`${part}-${index}`}
+          type="button"
+          className="font-medium text-primary hover:underline"
+          onClick={() => setSearch(part)}
+        >
+          {part}
+        </button>
+      ) : (
+        <span key={`${index}-${part.slice(0, 8)}`}>{part}</span>
+      ),
+    );
 
   const publish = async () => {
     if (!user) {
@@ -140,6 +246,10 @@ export default function CommunityPage() {
       return;
     }
     const text = body.trim();
+    if (text.length > MAX_POST_LENGTH) {
+      toast.error(t("community.too_long"));
+      return;
+    }
     if (text.length < 3 && !imageUrl) {
       toast.error(t("community.min_length"));
       return;
@@ -183,17 +293,29 @@ export default function CommunityPage() {
           : p,
       ),
     );
-    if (liked) {
-      await supabase
+    const { error } = liked
+      ? await supabase
         .from("social_post_likes")
         .delete()
         .eq("post_id", post.id)
-        .eq("user_id", user.id);
-    } else {
-      await supabase.from("social_post_likes").insert({
-        post_id: post.id,
-        user_id: user.id,
-      });
+        .eq("user_id", user.id)
+      : await supabase.from("social_post_likes").insert({
+          post_id: post.id,
+          user_id: user.id,
+        });
+    if (error) {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id
+            ? {
+                ...p,
+                liked_by_me: liked,
+                likes_count: Math.max(0, p.likes_count + (liked ? 1 : -1)),
+              }
+            : p,
+        ),
+      );
+      toast.error(error.message);
     }
   };
 
@@ -325,51 +447,129 @@ export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-28 pb-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t("general.back")}
-          </Link>
+      <main className="pt-20 pb-16">
+        <section className="border-b border-border bg-secondary/20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-5"
+            >
+              <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+              {t("general.back")}
+            </Link>
 
-          <div className="mb-8">
-            <Badge className="bg-primary/10 text-primary border-0 mb-3">
-              <MessageSquareText className="w-3.5 h-3.5 me-1.5" />
-              {t("community.tag")}
-            </Badge>
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-              {t("community.title")}
-            </h1>
-            <p className="text-muted-foreground">{t("community.desc")}</p>
+            <div className="relative overflow-hidden rounded-3xl bg-[hsl(208_100%_14%)] text-white shadow-xl">
+              <img
+                src="/brand/section-community.webp"
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover opacity-25"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[hsl(208_100%_10%/0.98)] via-[hsl(208_100%_12%/0.88)] to-[hsl(208_100%_15%/0.4)]" />
+              <div className="relative p-6 sm:p-10 lg:p-12">
+                <Badge className="bg-white/10 text-white border-white/15 mb-4 backdrop-blur">
+                  <Sparkles className="w-3.5 h-3.5 me-1.5" />
+                  {t("community.tag")}
+                </Badge>
+                <div className="max-w-2xl">
+                  <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-3">
+                    {t("community.title")}
+                  </h1>
+                  <p className="text-white/75 text-sm sm:text-lg leading-relaxed">
+                    {t("community.desc")}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-8 max-w-2xl">
+                  {[
+                    { icon: MessageSquareText, value: posts.length, label: t("community.stats.posts") },
+                    { icon: Users, value: contributorsCount, label: t("community.stats.contributors") },
+                    { icon: BarChart3, value: interactionCount, label: t("community.stats.interactions") },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm p-3 sm:p-4"
+                    >
+                      <stat.icon className="w-4 h-4 text-[hsl(47_45%_78%)] mb-2" />
+                      <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
+                      <p className="text-[10px] sm:text-xs text-white/65 truncate">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+        </section>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-8 items-start">
+            <section className="min-w-0">
 
           {/* Composer */}
-          <Card className="mb-8 border-primary/15 overflow-hidden">
-            <div className="h-1 bg-gradient-to-r from-primary/80 via-primary/40 to-transparent" />
+          <Card className="mb-6 border-primary/20 overflow-hidden shadow-sm">
+            <div className="h-1 bg-gradient-to-r rtl:bg-gradient-to-l from-primary via-primary/50 to-transparent" />
             <CardContent className="p-5 sm:p-6 space-y-4">
               <div className="flex items-start gap-3">
                 <div className="w-11 h-11 rounded-full bg-primary/15 text-primary flex items-center justify-center font-semibold shrink-0 overflow-hidden">
                   {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.full_name || t("community.member")}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     initials(profile?.full_name)
                   )}
                 </div>
                 <div className="flex-1 space-y-3">
-                  <p className="text-sm font-medium">
-                    {user ? profile?.full_name || user.email : t("community.guest_composer")}
-                  </p>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold">
+                        {user ? profile?.full_name || user.email : t("community.guest_composer")}
+                      </p>
+                      {user && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {t("community.composer_subtitle")}
+                        </p>
+                      )}
+                    </div>
+                    <PenLine className="w-5 h-5 text-primary/60" />
+                  </div>
                   <Textarea
                     rows={4}
                     value={body}
-                    onChange={(e) => setBody(e.target.value)}
+                    onChange={(e) => setBody(e.target.value.slice(0, MAX_POST_LENGTH))}
+                    maxLength={MAX_POST_LENGTH}
                     disabled={!user}
                     placeholder={t("community.composer_ph")}
-                    className="resize-none"
+                    className="resize-none min-h-28 border-border/80 focus-visible:ring-primary/30"
                   />
+
+                  {user && (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        {quickTopics.map((topic) => (
+                          <button
+                            key={topic.tag}
+                            type="button"
+                            onClick={() => addTopic(topic.tag)}
+                            className="rounded-full bg-secondary px-2.5 py-1 text-[11px] text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
+                          >
+                            {topic.label}
+                          </button>
+                        ))}
+                      </div>
+                      <span
+                        className={`text-[11px] tabular-nums ${
+                          body.length > MAX_POST_LENGTH * 0.9
+                            ? "text-amber-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {body.length}/{MAX_POST_LENGTH}
+                      </span>
+                    </div>
+                  )}
 
                   {(imagePreview || imageUrl) && (
                     <div className="relative rounded-xl overflow-hidden border border-border">
@@ -420,7 +620,7 @@ export default function CommunityPage() {
                         )}
                         {t("community.add_image")}
                       </Button>
-                      <p className="text-xs text-muted-foreground hidden sm:block">
+                      <p className="text-xs text-muted-foreground hidden md:block">
                         {user ? t("community.composer_hint") : t("community.login_required")}
                       </p>
                     </div>
@@ -440,21 +640,80 @@ export default function CommunityPage() {
             </CardContent>
           </Card>
 
+          <div className="mb-5 rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-1 rounded-xl bg-secondary/70 p-1 overflow-x-auto">
+                {([
+                  ["latest", t("community.filter.latest"), Compass],
+                  ["popular", t("community.filter.popular"), TrendingUp],
+                  ["mine", t("community.filter.mine"), Users],
+                ] as const).map(([value, label, Icon]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    disabled={value === "mine" && !user}
+                    onClick={() => setFeedFilter(value)}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                      feedFilter === value
+                        ? "bg-background text-primary shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    } disabled:cursor-not-allowed disabled:opacity-40`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="relative sm:w-64">
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder={t("community.search")}
+                  className="ps-9 h-10 bg-background"
+                />
+              </div>
+            </div>
+          </div>
+
           {loading ? (
             <div className="flex justify-center py-16">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-          ) : posts.length === 0 ? (
+          ) : visiblePosts.length === 0 ? (
             <Card>
-              <CardContent className="p-12 text-center space-y-2">
-                <MessageSquareText className="w-10 h-10 text-muted-foreground/40 mx-auto" />
-                <p className="font-medium">{t("community.empty")}</p>
-                <p className="text-sm text-muted-foreground">{t("community.empty.desc")}</p>
+              <CardContent className="p-10 sm:p-14 text-center space-y-3">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                  <MessageSquareText className="w-7 h-7 text-primary" />
+                </div>
+                <p className="font-semibold text-lg">
+                  {search || feedFilter === "mine"
+                    ? t("community.empty.filtered")
+                    : t("community.empty")}
+                </p>
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  {search || feedFilter === "mine"
+                    ? t("community.empty.filtered.desc")
+                    : t("community.empty.desc")}
+                </p>
+                {(search || feedFilter !== "latest") && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearch("");
+                      setFeedFilter("latest");
+                    }}
+                  >
+                    {t("community.clear_filters")}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-4">
-              {posts.map((post) => {
+              {visiblePosts.map((post) => {
                 const isCompany = post.author?.account_type === "company";
                 const authorName = post.author?.full_name || t("community.member");
                 const memberId = post.author?.member_id;
@@ -464,7 +723,7 @@ export default function CommunityPage() {
                   <Card
                     key={post.id}
                     id={`post-${post.id}`}
-                    className="hover:border-primary/20 transition-colors scroll-mt-28"
+                    className="overflow-hidden hover:border-primary/25 hover:shadow-md transition-all scroll-mt-28"
                   >
                     <CardContent className="p-5 sm:p-6 space-y-4">
                       <div className="flex items-start gap-3">
@@ -523,6 +782,7 @@ export default function CommunityPage() {
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-amber-600"
                                   title={lang === "ar" ? "إخفاء" : "Hide"}
+                                  aria-label={lang === "ar" ? "إخفاء المنشور" : "Hide post"}
                                   onClick={() => hidePost(post)}
                                 >
                                   <EyeOff className="w-4 h-4" />
@@ -534,6 +794,7 @@ export default function CommunityPage() {
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                   onClick={() => removePost(post)}
+                                  aria-label={lang === "ar" ? "حذف المنشور" : "Delete post"}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -542,13 +803,13 @@ export default function CommunityPage() {
                           </div>
 
                           <p className="mt-3 text-[15px] leading-relaxed text-foreground whitespace-pre-wrap">
-                            {post.body}
+                            {renderPostBody(post.body)}
                           </p>
                           {postImage && (
                             <a href={postImage} target="_blank" rel="noopener noreferrer" className="block mt-3">
                               <img
                                 src={postImage}
-                                alt=""
+                                alt={t("community.post_image_alt")}
                                 className="rounded-xl max-h-[28rem] w-full object-cover border border-border/60"
                               />
                             </a>
@@ -562,6 +823,7 @@ export default function CommunityPage() {
                                 post.liked_by_me ? "text-rose-600" : "text-muted-foreground"
                               }`}
                               onClick={() => toggleLike(post)}
+                              aria-label={t("community.like")}
                             >
                               <Heart className={`w-4 h-4 ${post.liked_by_me ? "fill-current" : ""}`} />
                               {post.likes_count || 0}
@@ -571,6 +833,7 @@ export default function CommunityPage() {
                               size="sm"
                               className="gap-1.5 h-8 text-muted-foreground"
                               onClick={() => toggleComments(post.id)}
+                              aria-expanded={commentsOpen}
                             >
                               <MessageCircle className="w-4 h-4" />
                               {post.comments_count || 0}
@@ -602,7 +865,11 @@ export default function CommunityPage() {
                                   <div key={c.id} className="flex gap-2">
                                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0 overflow-hidden">
                                       {c.author?.avatar_url ? (
-                                        <img src={c.author.avatar_url} alt="" className="w-full h-full object-cover" />
+                                        <img
+                                          src={c.author.avatar_url}
+                                          alt={c.author.full_name || t("community.member")}
+                                          className="w-full h-full object-cover"
+                                        />
                                       ) : (
                                         initials(c.author?.full_name)
                                       )}
@@ -623,6 +890,7 @@ export default function CommunityPage() {
                                             size="icon"
                                             className="h-6 w-6 text-muted-foreground hover:text-destructive"
                                             onClick={() => removeComment(post.id, c.id)}
+                                            aria-label={lang === "ar" ? "حذف التعليق" : "Delete comment"}
                                           >
                                             <Trash2 className="w-3 h-3" />
                                           </Button>
@@ -674,6 +942,100 @@ export default function CommunityPage() {
               })}
             </div>
           )}
+            </section>
+
+            <aside className="space-y-5 lg:sticky lg:top-24">
+              <Card className="overflow-hidden border-primary/15">
+                <div className="h-1 bg-primary" />
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{t("community.sidebar.network")}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t("community.sidebar.network.desc")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/members">{t("nav.members")}</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/forum">{t("nav.forum")}</Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <h2 className="font-semibold">{t("community.sidebar.trending")}</h2>
+                  </div>
+                  <div className="space-y-1.5">
+                    {(trendingTopics.length > 0
+                      ? trendingTopics
+                      : quickTopics.map((topic) => [topic.tag.toLocaleLowerCase(), 0] as [string, number])
+                    ).map(([tag, count]) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setSearch(tag)}
+                        className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm hover:bg-secondary transition text-start"
+                      >
+                        <span className="font-medium text-primary">{tag}</span>
+                        {count > 0 && (
+                          <span className="text-[11px] text-muted-foreground">
+                            {count} {t("community.sidebar.posts")}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-secondary/30">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck className="w-4 h-4 text-primary" />
+                    <h2 className="font-semibold">{t("community.guidelines.title")}</h2>
+                  </div>
+                  <ul className="space-y-2.5">
+                    {[
+                      t("community.guidelines.expertise"),
+                      t("community.guidelines.respect"),
+                      t("community.guidelines.sources"),
+                    ].map((guideline) => (
+                      <li key={guideline} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                        {guideline}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {!user && (
+                <Card className="border-primary/20 bg-primary/[0.04]">
+                  <CardContent className="p-5 text-center">
+                    <Sparkles className="w-7 h-7 text-primary mx-auto mb-3" />
+                    <p className="font-semibold mb-1">{t("community.join.title")}</p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {t("community.join.desc")}
+                    </p>
+                    <Button asChild size="sm" className="w-full">
+                      <Link to="/auth?mode=signup">{t("hero.cta.join")}</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </aside>
+          </div>
         </div>
       </main>
       <FooterSection />
