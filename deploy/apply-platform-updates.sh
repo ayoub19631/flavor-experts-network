@@ -30,10 +30,14 @@ else
     supabase/migrations/20260804150000_professional_member_profile.sql \
     supabase/migrations/20260805120000_public_author_profiles.sql \
     supabase/migrations/20260805140000_phase2_network_learning.sql \
+<<<<<<< HEAD
     supabase/migrations/20260806160000_community_comments_and_media.sql \
     supabase/migrations/20260809160000_database_hardening_complete.sql \
     supabase/migrations/20260809170000_email_delivery_reliability.sql \
     supabase/migrations/20260809180000_fix_security_definer_views.sql
+=======
+    supabase/migrations/20260806160000_community_comments_and_media.sql
+>>>>>>> origin/cursor/community-media-mobile-apps-8952
   do
     echo "---- $f"
     npx --yes supabase@latest db query --linked -f "$f"

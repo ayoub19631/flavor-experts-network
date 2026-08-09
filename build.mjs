@@ -24,6 +24,7 @@ const ELECTRON_WEB_DIR = join(ELECTRON_DIR, 'web');
 const args = process.argv.slice(2);
 const buildElectron = args.includes('--electron') || args.includes('--all');
 const buildAndroid = args.includes('--android') || args.includes('--all');
+const buildIos = args.includes('--ios') || args.includes('--all');
 
 function run(cmd, cwd = ROOT, label = '') {
   console.log(`\n▶ ${label || cmd}`);
@@ -70,20 +71,27 @@ async function main() {
     console.log('✅ تم تثبيت مكتبات Electron\n');
   }
 
-  // ── Step 3: Sync with Capacitor (Android) ─────────────────────────────────
+  // ── Step 3: Sync with Capacitor (Android / iOS) ────────────────────────────
   if (buildAndroid) {
-    console.log('【2/4】 مزامنة مع Capacitor (Android)...');
-    
-    // Check if Android platform exists
+    console.log('【Android】 مزامنة مع Capacitor...');
     const androidDir = join(FRONTEND_DIR, 'android');
     if (!existsSync(androidDir)) {
       console.log('  إضافة منصة Android...');
       run('npx cap add android', FRONTEND_DIR, 'capacitor add android');
     }
-
-    // Sync
     run('npx cap sync android', FRONTEND_DIR, 'capacitor sync android');
-    console.log('✅ تمت مزامنة Capacitor\n');
+    console.log('✅ تمت مزامنة Android\n');
+  }
+
+  if (buildIos) {
+    console.log('【iOS】 مزامنة مع Capacitor...');
+    const iosDir = join(FRONTEND_DIR, 'ios');
+    if (!existsSync(iosDir)) {
+      console.log('  إضافة منصة iOS...');
+      run('npx cap add ios', FRONTEND_DIR, 'capacitor add ios');
+    }
+    run('npx cap sync ios', FRONTEND_DIR, 'capacitor sync ios');
+    console.log('✅ تمت مزامنة iOS\n');
   }
 
   // ── Done ───────────────────────────────────────────────────────────────────
@@ -99,8 +107,12 @@ async function main() {
     console.log('📱 لفتح مشروع Android في Android Studio:');
     console.log('   cd app/frontend && npx cap open android\n');
   }
-  if (!buildElectron && !buildAndroid) {
-    console.log('💡 نصيحة: استخدم --electron أو --android أو --all لبناء التطبيقات');
+  if (buildIos) {
+    console.log('🍎 لفتح مشروع iOS في Xcode (يتطلب macOS):');
+    console.log('   cd app/frontend && npx cap open ios\n');
+  }
+  if (!buildElectron && !buildAndroid && !buildIos) {
+    console.log('💡 نصيحة: استخدم --electron أو --android أو --ios أو --all');
     console.log('   مثال: node build.mjs --all\n');
   }
 }
