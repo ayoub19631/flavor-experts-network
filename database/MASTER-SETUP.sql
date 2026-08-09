@@ -3,9 +3,14 @@
 -- ║      شبكة خبراء النكهات — الإعداد الشامل لقاعدة البيانات               ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 --
+-- ⚠️  LEGACY / NEW PROJECTS ONLY — DO NOT RUN ON PRODUCTION
+--     Production schema is owned by supabase/migrations/*.
+--     Re-running this file can recreate permissive RLS/storage policies.
+--     Use: npx supabase db push  OR  deploy/apply-platform-updates.sh
+--
 -- 🔗 Project: https://supabase.com/dashboard/project/imucfofvdwfyexdwrsfe
--- 📋 Run this ENTIRE script in Supabase SQL Editor → New Query → RUN
--- ✅ Safe to re-run — all commands use IF NOT EXISTS / OR REPLACE / ON CONFLICT
+-- 📋 Bootstrap archive only (incomplete vs current migrations)
+-- ✅ Historically used IF NOT EXISTS / OR REPLACE / ON CONFLICT
 -- ⚠️  Run as: SQL Editor (has full privileges needed for policies & triggers)
 --
 -- WHAT THIS SCRIPT DOES:

@@ -14,10 +14,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/** Prefer path-based callback — LinkedIn is strict about redirect URI matching. */
 function getCallbackUrl(): string {
   const base = Deno.env.get("SUPABASE_URL");
   if (!base) throw new Error("Missing SUPABASE_URL");
-  return `${base}/functions/v1/oauth?action=callback`;
+  return `${base.replace(/\/$/, "")}/functions/v1/oauth/callback`;
+}
+
+/** Legacy query callback kept for apps that still list it in the LinkedIn console. */
+function getLegacyCallbackUrl(): string {
+  const base = Deno.env.get("SUPABASE_URL");
+  if (!base) throw new Error("Missing SUPABASE_URL");
+  return `${base.replace(/\/$/, "")}/functions/v1/oauth?action=callback`;
 }
 
 function getStateSecret(): string {
@@ -47,8 +55,14 @@ function originOf(urlStr: string): string {
 
 function getAllowedOrigins(): string[] {
   const siteUrl = getSiteUrl();
+  const origin = originOf(siteUrl);
+  const www =
+    origin.includes("://www.")
+      ? origin.replace("://www.", "://")
+      : origin.replace("://", "://www.");
   return [
-    originOf(siteUrl),
+    origin,
+    www,
     "https://ayoub19631.github.io",
     "http://127.0.0.1:3001",
     "http://127.0.0.1:5173",
@@ -74,7 +88,6 @@ function isAllowedAuthPath(pathname: string): boolean {
 function isAllowedRedirect(urlStr: string): boolean {
   try {
     const url = new URL(urlStr);
-    // Native app deep link: flavorexperts://auth/callback
     if (url.protocol === `${appUrlScheme()}:`) {
       return url.host === "auth" && url.pathname === "/callback";
     }
@@ -87,7 +100,7 @@ function isAllowedRedirect(urlStr: string): boolean {
 }
 
 function sanitizeRedirect(urlStr: string | null): string {
-  const fallback = `${(Deno.env.get("SITE_URL") || "https://flavorexpertsnetwork.com").replace(/\/$/, "")}/auth/callback`;
+  const fallback = `${getSiteUrl()}/auth/callback`;
   if (!urlStr) return fallback;
   return isAllowedRedirect(urlStr) ? urlStr : fallback;
 }
@@ -107,6 +120,13 @@ function fromBase64Url(raw: string): Uint8Array {
   return out;
 }
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
 async function hmacSign(message: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -120,10 +140,14 @@ async function hmacSign(message: string): Promise<string> {
 }
 
 async function encodeState(state: OAuthState): Promise<string> {
-  const payload = toBase64Url(new TextEncoder().encode(JSON.stringify({
-    ...state,
-    ts: Date.now(),
-  })));
+  const payload = toBase64Url(
+    new TextEncoder().encode(
+      JSON.stringify({
+        ...state,
+        ts: Date.now(),
+      }),
+    ),
+  );
   const sig = await hmacSign(payload);
   return `${payload}.${sig}`;
 }
@@ -131,12 +155,16 @@ async function encodeState(state: OAuthState): Promise<string> {
 async function decodeState(raw: string | null): Promise<OAuthState | null> {
   if (!raw || !raw.includes(".")) return null;
   try {
-    const [payload, sig] = raw.split(".");
+    const dot = raw.indexOf(".");
+    const payload = raw.slice(0, dot);
+    const sig = raw.slice(dot + 1);
     if (!payload || !sig) return null;
     const expected = await hmacSign(payload);
-    if (expected !== sig) return null;
+    if (!timingSafeEqual(expected, sig)) return null;
 
-    const parsed = JSON.parse(new TextDecoder().decode(fromBase64Url(payload))) as OAuthState & { ts?: number };
+    const parsed = JSON.parse(
+      new TextDecoder().decode(fromBase64Url(payload)),
+    ) as OAuthState & { ts?: number };
     if (!parsed?.provider || !parsed?.redirectTo) return null;
     if (!isAllowedRedirect(parsed.redirectTo)) return null;
     if (parsed.ts && Date.now() - parsed.ts > 15 * 60 * 1000) return null;
@@ -147,7 +175,8 @@ async function decodeState(raw: string | null): Promise<OAuthState | null> {
 }
 
 function redirectWithError(fallback: string, message: string): Response {
-  const target = new URL(fallback.startsWith("http") ? fallback : "https://flavorexpertsnetwork.com/auth");
+  const base = fallback.startsWith("http") ? fallback : `${getSiteUrl()}/auth`;
+  const target = new URL(base);
   target.pathname = "/auth/error";
   target.search = `msg=${encodeURIComponent(message)}`;
   return Response.redirect(target.toString(), 302);
@@ -162,7 +191,7 @@ function providerConfig(provider: Provider) {
       tokenUrl: "https://oauth2.googleapis.com/token",
       userInfoUrl: "https://www.googleapis.com/oauth2/v3/userinfo",
       scopes: "openid email profile",
-      extraAuthParams: { access_type: "online", prompt: "select_account" },
+      extraAuthParams: { access_type: "online", prompt: "select_account" } as Record<string, string>,
     };
   }
 
@@ -173,7 +202,7 @@ function providerConfig(provider: Provider) {
     tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
     userInfoUrl: "https://api.linkedin.com/v2/userinfo",
     scopes: "openid profile email",
-    extraAuthParams: {},
+    extraAuthParams: {} as Record<string, string>,
   };
 }
 
@@ -201,6 +230,7 @@ async function handleStart(url: URL): Promise<Response> {
   const state = await encodeState({ provider, redirectTo, intent });
   const authUrl = new URL(config.authUrl);
   authUrl.searchParams.set("client_id", config.clientId);
+  // Path-based callback (recommended). LinkedIn app must list this exact URI.
   authUrl.searchParams.set("redirect_uri", getCallbackUrl());
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("scope", config.scopes);
@@ -212,14 +242,14 @@ async function handleStart(url: URL): Promise<Response> {
   return Response.redirect(authUrl.toString(), 302);
 }
 
-async function exchangeCode(provider: Provider, code: string) {
+async function exchangeCode(provider: Provider, code: string, redirectUri: string) {
   const config = providerConfig(provider);
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     code,
     client_id: config.clientId,
     client_secret: config.clientSecret,
-    redirect_uri: getCallbackUrl(),
+    redirect_uri: redirectUri,
   });
 
   const tokenRes = await fetch(config.tokenUrl, {
@@ -238,10 +268,13 @@ async function exchangeCode(provider: Provider, code: string) {
   });
   const profile = await userRes.json();
   if (!userRes.ok) {
-    throw new Error(profile.message || "Failed to load user profile");
+    throw new Error(profile.message || profile.error_description || "Failed to load user profile");
   }
 
-  return profile as Record<string, string>;
+  return {
+    profile: profile as Record<string, string>,
+    idToken: typeof tokens.id_token === "string" ? tokens.id_token : null,
+  };
 }
 
 type AdminClient = ReturnType<typeof createClient>;
@@ -253,11 +286,9 @@ interface AdminUser {
 }
 
 async function findUserByEmail(admin: AdminClient, email: string): Promise<AdminUser | null> {
-  // Paginate through all users — the first 1000 is not enough at scale.
   const target = email.toLowerCase();
   let page = 1;
   const perPage = 200;
-  // Hard stop after 50 pages (10k users) to bound worst-case latency.
   while (page <= 50) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
     if (error) throw error;
@@ -282,44 +313,75 @@ async function findOrCreateUser(
       email,
       email_confirm: true,
       user_metadata: metadata,
-      app_metadata: { provider },
+      app_metadata: { provider, providers: [provider] },
     });
 
     if (createError) {
-      // Race: another request created the user between lookup and insert.
       user = await findUserByEmail(admin, email);
       if (!user) throw createError;
     } else {
       user = created.user;
     }
   } else {
+    const existingProviders = Array.isArray(user.app_metadata?.providers)
+      ? (user.app_metadata.providers as string[])
+      : user.app_metadata?.provider
+        ? [String(user.app_metadata.provider)]
+        : [];
+    const providers = [...new Set([...existingProviders, provider])];
     await admin.auth.admin.updateUserById(user.id, {
+      email_confirm: true,
       user_metadata: { ...user.user_metadata, ...metadata },
-      app_metadata: { ...user.app_metadata, provider },
+      app_metadata: { ...user.app_metadata, provider, providers },
     });
   }
 
   return user;
 }
 
-async function handleCallback(url: URL): Promise<Response> {
-  const oauthError = url.searchParams.get("error_description") || url.searchParams.get("error");
-  const state = await decodeState(url.searchParams.get("state"));
-  const fallback = state?.redirectTo ?? "https://flavorexpertsnetwork.com/auth/callback";
+function resolveCallbackRedirectUri(reqUrl: URL): string {
+  // Match the redirect_uri that was used at authorize time.
+  if (reqUrl.pathname.endsWith("/callback")) return getCallbackUrl();
+  if (reqUrl.searchParams.get("action") === "callback") return getLegacyCallbackUrl();
+  // Default to path-based (current authorize URL)
+  return getCallbackUrl();
+}
+
+async function handleCallback(reqUrl: URL): Promise<Response> {
+  const oauthError = reqUrl.searchParams.get("error_description") || reqUrl.searchParams.get("error");
+  const state = await decodeState(reqUrl.searchParams.get("state"));
+  const fallback = state?.redirectTo ?? `${getSiteUrl()}/auth/callback`;
 
   if (oauthError) {
     return redirectWithError(fallback, oauthError);
   }
 
-  const code = url.searchParams.get("code");
+  const code = reqUrl.searchParams.get("code");
   if (!code || !state) {
     return redirectWithError(fallback, "Invalid OAuth callback. Please try again.");
   }
 
-  const profile = await exchangeCode(state.provider, code);
+  const redirectUri = resolveCallbackRedirectUri(reqUrl);
+  let profile: Record<string, string>;
+  try {
+    ({ profile } = await exchangeCode(state.provider, code, redirectUri));
+  } catch (err) {
+    // Retry once with the other callback URI shape (migration between query/path).
+    const alt =
+      redirectUri === getCallbackUrl() ? getLegacyCallbackUrl() : getCallbackUrl();
+    try {
+      ({ profile } = await exchangeCode(state.provider, code, alt));
+    } catch {
+      throw err;
+    }
+  }
+
   const email = profile.email;
   if (!email) {
-    return redirectWithError(fallback, "Your account did not return an email address.");
+    return redirectWithError(
+      fallback,
+      "Your LinkedIn/Google account did not return an email address. Enable the email scope and try again.",
+    );
   }
 
   const fullName = profile.name || profile.given_name || email.split("@")[0];
@@ -331,8 +393,11 @@ async function handleCallback(url: URL): Promise<Response> {
     picture: avatarUrl,
   };
 
-  if (state.provider === "linkedin" && profile.profile) {
-    metadata.linkedin_url = profile.profile;
+  if (state.provider === "linkedin") {
+    if (typeof profile.profile === "string" && profile.profile.includes("linkedin.com")) {
+      metadata.linkedin_url = profile.profile;
+    }
+    if (profile.sub) metadata.linkedin_sub = profile.sub;
   }
 
   const admin = createClient(
@@ -349,11 +414,42 @@ async function handleCallback(url: URL): Promise<Response> {
     options: { redirectTo: state.redirectTo },
   });
 
-  if (linkError || !linkData?.properties?.action_link) {
+  if (linkError || !linkData?.properties) {
     return redirectWithError(fallback, linkError?.message || "Could not complete sign in.");
   }
 
-  return Response.redirect(linkData.properties.action_link, 302);
+  const hashed = linkData.properties.hashed_token;
+  const actionLink = linkData.properties.action_link;
+
+  // Prefer explicit token_hash handoff to /auth/callback (more reliable than action_link quirks).
+  if (hashed) {
+    const target = new URL(state.redirectTo);
+    target.searchParams.set("token_hash", hashed);
+    target.searchParams.set("type", "magiclink");
+    target.searchParams.set("oauth_provider", state.provider);
+    return Response.redirect(target.toString(), 302);
+  }
+
+  if (actionLink) {
+    return Response.redirect(actionLink, 302);
+  }
+
+  return redirectWithError(fallback, "Could not complete sign in.");
+}
+
+function resolveAction(url: URL): "start" | "callback" | "invalid" {
+  const path = url.pathname.replace(/\/+$/, "");
+  if (path.endsWith("/callback") || url.searchParams.get("action") === "callback") {
+    return "callback";
+  }
+  if (url.searchParams.has("code") || url.searchParams.has("error")) {
+    return "callback";
+  }
+  if (url.searchParams.get("action") === "start" || url.searchParams.has("provider")) {
+    return "start";
+  }
+  if (url.searchParams.get("action") === "start") return "start";
+  return url.searchParams.has("provider") ? "start" : "invalid";
 }
 
 Deno.serve(async (req) => {
@@ -362,8 +458,7 @@ Deno.serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const action = url.searchParams.get("action") ??
-    (url.searchParams.has("code") || url.searchParams.has("error") ? "callback" : "start");
+  const action = resolveAction(url);
 
   try {
     if (action === "start") return await handleStart(url);
@@ -373,8 +468,9 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    console.error("oauth error", error);
     const message = error instanceof Error ? error.message : "OAuth sign-in failed";
     const state = await decodeState(url.searchParams.get("state"));
-    return redirectWithError(state?.redirectTo ?? "https://flavorexpertsnetwork.com/auth/callback", message);
+    return redirectWithError(state?.redirectTo ?? `${getSiteUrl()}/auth/callback`, message);
   }
 });

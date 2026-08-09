@@ -199,10 +199,15 @@ function copyFor(
 }
 
 function hookSecret(): string {
-  const raw = Deno.env.get("SEND_EMAIL_HOOK_SECRET") || "";
-  // Supabase stores secrets as v1,whsec_... — standardwebhooks expects the base64 part
-  if (raw.startsWith("v1,whsec_")) return raw.replace("v1,", "");
+  const raw = (Deno.env.get("SEND_EMAIL_HOOK_SECRET") || "").trim();
+  // Supabase Dashboard / Auth config may store:
+  //   v1,whsec_<base64>  |  whsec_<base64>  |  raw base64/hex
+  // standardwebhooks accepts whsec_… or the raw secret bytes/base64.
+  if (raw.startsWith("v1,whsec_")) return raw.slice("v1,".length);
+  if (raw.startsWith("v1,")) return raw.slice(3);
   if (raw.startsWith("whsec_")) return raw;
+  // Auth Management API sometimes returns the bare secret without prefix.
+  if (raw && !raw.includes(",")) return `whsec_${raw}`;
   return raw;
 }
 

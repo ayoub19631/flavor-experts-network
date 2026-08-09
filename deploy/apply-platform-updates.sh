@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Apply free-platform + professional profile migrations and redeploy send-email.
+# Apply platform migrations (free access, profiles, community, DB hardening)
+# and redeploy send-email.
 # Requires: SUPABASE_ACCESS_TOKEN
-# Optional: SUPABASE_DB_PASSWORD
+# Optional: SUPABASE_DB_PASSWORD (preferred — uses `supabase db push`)
 set -euo pipefail
 
 PROJECT_REF="${SUPABASE_PROJECT_REF:-imucfofvdwfyexdwrsfe}"
@@ -28,16 +29,24 @@ else
     supabase/migrations/20260804140100_welcome_email_fully_free.sql \
     supabase/migrations/20260804150000_professional_member_profile.sql \
     supabase/migrations/20260805120000_public_author_profiles.sql \
-    supabase/migrations/20260805140000_phase2_network_learning.sql
+    supabase/migrations/20260805140000_phase2_network_learning.sql \
+    supabase/migrations/20260806160000_community_comments_and_media.sql \
+    supabase/migrations/20260809160000_database_hardening_complete.sql \
+    supabase/migrations/20260809170000_email_delivery_reliability.sql \
+    supabase/migrations/20260809180000_fix_security_definer_views.sql
   do
     echo "---- $f"
     npx --yes supabase@latest db query --linked -f "$f"
   done
 fi
 
-echo "==> Deploying send-email function"
+echo "==> Deploying email edge functions"
 npx --yes supabase@latest functions deploy send-email \
   --project-ref "$PROJECT_REF" \
   --no-verify-jwt
+npx --yes supabase@latest functions deploy auth-email-hook \
+  --project-ref "$PROJECT_REF" \
+  --no-verify-jwt
 
-echo "Done. Free access, profiles, author privacy, and Phase 2 network/learning tables are live."
+echo "Done. Platform migrations + database hardening + email delivery are live."
+echo "If OTP still fails: set Auth rate_limit_email_sent to 30+ and sync SEND_EMAIL_HOOK_SECRET (see deploy/EMAIL-DELIVERY.md)."
