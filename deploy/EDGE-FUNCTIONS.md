@@ -14,7 +14,8 @@
 | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | `oauth` |
 | `OAUTH_STATE_SECRET` | `oauth` (HMAC for OAuth state) |
 | `RESEND_API_KEY` | `send-email`, `auth-email-hook` |
-| `EMAIL_FROM` | `send-email`, `auth-email-hook` (e.g. `Flavor Experts <noreply@flavorexpertsnetwork.com>`) |
+| `EMAIL_FROM` | `send-email`, `auth-email-hook` (must be verified: `Flavor Experts Network <noreply@nexusflavor.com>`) |
+| `SEND_EMAIL_HOOK_SECRET` | `auth-email-hook` — must match Auth → Hooks → Send Email secret |
 | `ADMIN_NOTIFY_EMAIL` | `send-email` |
 | `SITE_URL` | checkout redirects + branded emails |
 | `INTERNAL_EMAIL_SECRET` | optional header auth for internal email types |
@@ -48,14 +49,15 @@ DB triggers also send welcome, contact ACK, enterprise ACK, consultation, and ne
 ```bash
 # From repo root (requires Supabase CLI logged in)
 supabase functions deploy flavorbot --project-ref imucfofvdwfyexdwrsfe
-supabase functions deploy send-email --project-ref imucfofvdwfyexdwrsfe
+supabase functions deploy send-email --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
+supabase functions deploy auth-email-hook --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
 supabase functions deploy oauth --project-ref imucfofvdwfyexdwrsfe
 supabase functions deploy create-checkout-session --project-ref imucfofvdwfyexdwrsfe
 supabase functions deploy stripe-webhook --project-ref imucfofvdwfyexdwrsfe
 
-# Apply welcome-email + platform policy migration (new accounts)
-supabase db push --project-ref imucfofvdwfyexdwrsfe
-# or run: supabase/migrations/20260803120000_welcome_email_platform_policy.sql
+# Email/OTP ops
+bash deploy/fix-email-delivery.sh
+# Full guide: deploy/EMAIL-DELIVERY.md
 ```
 
 ## Vercel production
