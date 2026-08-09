@@ -371,21 +371,9 @@ BEGIN
 END;
 $$;
 
--- ── 7. Views: pin security_invoker = false (directory/author privacy model) ───
-DO $$
-BEGIN
-  IF to_regclass('public.member_directory') IS NOT NULL THEN
-    EXECUTE 'ALTER VIEW public.member_directory SET (security_invoker = false)';
-  END IF;
-  IF to_regclass('public.public_author_profiles') IS NOT NULL THEN
-    EXECUTE 'ALTER VIEW public.public_author_profiles SET (security_invoker = false)';
-  END IF;
-EXCEPTION
-  WHEN others THEN
-    -- Older Postgres builds may not support the option; ignore.
-    NULL;
-END;
-$$;
+-- ── 7. Views: directory/author privacy is handled by later migration
+--    20260809180000_fix_security_definer_views.sql (security_invoker = true
+--    over public-safe tables). No SECURITY DEFINER views here.
 
 COMMENT ON FUNCTION public.enforce_member_connection_update() IS
   'Enforces connection status transitions: addressee accept/decline, requester cancel.';

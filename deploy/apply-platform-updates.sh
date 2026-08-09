@@ -32,7 +32,8 @@ else
     supabase/migrations/20260805140000_phase2_network_learning.sql \
     supabase/migrations/20260806160000_community_comments_and_media.sql \
     supabase/migrations/20260809160000_database_hardening_complete.sql \
-    supabase/migrations/20260809170000_email_delivery_reliability.sql
+    supabase/migrations/20260809170000_email_delivery_reliability.sql \
+    supabase/migrations/20260809180000_fix_security_definer_views.sql
   do
     echo "---- $f"
     npx --yes supabase@latest db query --linked -f "$f"

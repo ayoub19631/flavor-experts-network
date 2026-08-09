@@ -11,7 +11,7 @@
 | Comments | Protect `comments_count`; lock comment identity / hide |
 | Storage | Folder-scoped uploads (`avatars`, `community`, `covers`); drop permissive leftovers |
 | SECURITY DEFINER | Revoke client EXECUTE on trigger helpers |
-| Views | Pin `security_invoker = false` on directory/author views |
+| Views | Replaced SECURITY DEFINER views with `security_invoker=true` over public-safe tables (`member_directory_data`, `author_profiles`) — see `20260809180000_fix_security_definer_views.sql` |
 
 ## Do not run
 
