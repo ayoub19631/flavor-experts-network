@@ -138,8 +138,4 @@ CREATE TRIGGER trg_social_post_comments
   FOR EACH ROW EXECUTE FUNCTION public.touch_social_post_comments();
 
 COMMENT ON TABLE public.social_post_comments IS
-<<<<<<< HEAD
-  'Comments on community social posts.';
-=======
   'Threaded comments on community social posts.';
->>>>>>> origin/cursor/community-media-mobile-apps-8952

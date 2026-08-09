@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FlaskConical, Home, ArrowLeft } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -6,7 +6,13 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 
 export default function NotFoundPage() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   usePageMeta({ title: "404", description: t("notfound.desc"), path: "/404", noIndex: true });
+
+  const goBack = () => {
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -22,11 +28,9 @@ export default function NotFoundPage() {
           {t("notfound.desc")}
         </p>
         <div className="flex gap-3 justify-center">
-          <Button asChild variant="outline" className="gap-2">
-            <Link to="/" onClick={() => window.history.back()}>
-              <ArrowLeft className="w-4 h-4" />
-              {t("notfound.back")}
-            </Link>
+          <Button type="button" variant="outline" className="gap-2" onClick={goBack}>
+            <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+            {t("notfound.back")}
           </Button>
           <Button asChild className="gap-2">
             <Link to="/">
