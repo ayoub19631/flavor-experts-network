@@ -74,9 +74,19 @@ pnpm test:e2e
 
 ## Database
 
-1. Run `database/MASTER-SETUP.sql` once (**new projects only** — do not re-run on production)
-2. Apply versioned migrations in `supabase/migrations/` with `supabase db push`
-3. Or use `deploy/apply-platform-updates.sh` with `SUPABASE_ACCESS_TOKEN`
+**Source of truth:** versioned SQL in `supabase/migrations/` only.
+
+```bash
+# Preferred
+npx supabase db push
+
+# Or (access token; no DB password)
+SUPABASE_ACCESS_TOKEN=... bash deploy/apply-platform-updates.sh
+```
+
+`database/MASTER-SETUP.sql` and related `database/*.sql` scripts are **legacy bootstrap archives**.  
+Do **not** re-run them on production — they can recreate permissive RLS/storage policies.  
+Never run `app/frontend/fix-rls.mjs` (disabled).
 
 Admin access: `user_profiles.is_admin = true` (service role / SQL only — never from the client).  
 Admin panel: `/admin`
