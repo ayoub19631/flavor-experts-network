@@ -24,7 +24,12 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    preferredLanguage?: "ar" | "en",
+  ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Pick<UserProfile, 'full_name' | 'avatar_url'>>) => Promise<{ error: string | null }>;
   isPremium: boolean;
@@ -152,12 +157,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: null };
   }
 
-  async function signUp(email: string, password: string, fullName: string) {
+  async function signUp(
+    email: string,
+    password: string,
+    fullName: string,
+    preferredLanguage: "ar" | "en" = "en",
+  ) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: {
+          full_name: fullName,
+          preferred_language: preferredLanguage,
+        },
         emailRedirectTo: getAuthRedirectUrl("/auth/callback"),
       },
     });

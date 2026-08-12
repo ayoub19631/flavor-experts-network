@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/send-email/**"
+      - "supabase/functions/auth-email-hook/**"
       - "supabase/migrations/**"
       - ".github/workflows/deploy-supabase.yml"
   workflow_dispatch:
