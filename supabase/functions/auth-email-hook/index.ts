@@ -55,6 +55,15 @@ function detectLang(user: HookPayload["user"], redirectTo: string): Lang {
   return "en";
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function brandShell(title: string, inner: string, lang: Lang) {
   const dir = lang === "ar" ? "rtl" : "ltr";
   const ignore =
@@ -80,7 +89,9 @@ function cta(label: string, href: string) {
 }
 
 function codeBlock(token: string) {
-  return `<p style="font-size:30px;letter-spacing:10px;font-weight:700;text-align:center;margin:24px 0;color:#002D54;font-family:Consolas,Monaco,monospace">${token}</p>`;
+  return `<div dir="ltr" style="margin:24px 0;text-align:center">
+    <span style="display:inline-block;background:#F8FAFC;border:1px solid #D7DEE8;border-radius:10px;padding:14px 18px;font-size:30px;letter-spacing:10px;font-weight:700;color:#002D54;font-family:Consolas,Monaco,monospace">${escapeHtml(token)}</span>
+  </div>`;
 }
 
 function copyFor(
@@ -200,15 +211,9 @@ function copyFor(
 
 function hookSecret(): string {
   const raw = (Deno.env.get("SEND_EMAIL_HOOK_SECRET") || "").trim();
-  // Supabase Dashboard / Auth config may store:
-  //   v1,whsec_<base64>  |  whsec_<base64>  |  raw base64/hex
-  // standardwebhooks accepts whsec_… or the raw secret bytes/base64.
-  if (raw.startsWith("v1,whsec_")) return raw.slice("v1,".length);
-  if (raw.startsWith("v1,")) return raw.slice(3);
-  if (raw.startsWith("whsec_")) return raw;
-  // Auth Management API sometimes returns the bare secret without prefix.
-  if (raw && !raw.includes(",")) return `whsec_${raw}`;
-  return raw;
+  // Supabase's documented format is v1,whsec_<base64>. standardwebhooks
+  // expects only the base64 secret, without either transport prefix.
+  return raw.replace(/^v1,whsec_/, "").replace(/^whsec_/, "").replace(/^v1,/, "");
 }
 
 function isProduction(): boolean {
@@ -324,10 +329,11 @@ Deno.serve(async (req: Request) => {
       `&redirect_to=${encodeURIComponent(safeRedirect)}`;
 
     const lang = detectLang(payload.user, redirect_to || "");
-    const name =
+    const name = escapeHtml(
       payload.user.user_metadata?.full_name ||
       email.split("@")[0] ||
-      (lang === "ar" ? "عزيزي العضو" : "there");
+      (lang === "ar" ? "عزيزي العضو" : "there"),
+    );
 
     const copy = copyFor(email_action_type, token, confirmUrl, name, lang);
     await sendResend({

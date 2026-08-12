@@ -137,7 +137,7 @@ export default function AuthPage() {
 
     if (!fullName.trim()) { setError(t("auth.err.full_name")); setLoading(false); return; }
     if (password.length < 8) { setError(t("auth.err.password_min")); setLoading(false); return; }
-    const result = await signUp(email, password, fullName);
+    const result = await signUp(email, password, fullName, lang);
     if (result.error) setError(result.error);
     else {
       rememberPendingVerificationEmail(email);
@@ -166,6 +166,7 @@ export default function AuthPage() {
         data: {
           full_name: contactName, account_type: "company", company_name: companyName,
           industry, company_size: companySize, phone: companyPhone || null, website: companyWebsite || null,
+          preferred_language: lang,
         },
       },
     });

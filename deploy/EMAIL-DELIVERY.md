@@ -26,7 +26,10 @@
 1. **Authentication → Hooks → Send Email**
    - Enabled
    - URL: `https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/auth-email-hook`
-   - Secret generated → copy into Edge secret `SEND_EMAIL_HOOK_SECRET` (include `v1,whsec_…` if shown)
+   - Secret generated → copy the **complete value** into Edge secret
+     `SEND_EMAIL_HOOK_SECRET` (including `v1,whsec_…`).
+   - The Edge Function removes both prefixes before passing the base64 value to
+     `standardwebhooks`, as required by the official Supabase example.
 2. **Email OTP** length = 6  
 3. **Confirm email** = ON  
 4. **Rate limit (email sent)** — set to **30** (or higher). A value of `2` blocks OTP resends.  
@@ -62,8 +65,25 @@ Or: `bash deploy/fix-email-delivery.sh`
 | Symptom | Likely cause |
 |---------|----------------|
 | OTP never arrives | `SEND_EMAIL_HOOK_SECRET` missing/mismatched, or hook disabled |
+| `Hook requires authorization token` | The hook returned 401. Usually the dashboard secret and `SEND_EMAIL_HOOK_SECRET` differ, or the `v1,whsec_` prefix was parsed incorrectly. Redeploy `auth-email-hook`, regenerate/sync the secret, then retry. |
 | OTP works once then stops | Auth `rate_limit_email_sent` too low (e.g. 2) |
 | Welcome never arrives | Vault `resend_api_key` missing, or `welcome_email_sent=true` after failed attempt (fixed in migration) |
 | Resend 403 domain | `EMAIL_FROM` not on verified `nexusflavor.com` |
 
 Check Resend dashboard → Emails, and `net._http_response` for DB-path status codes.
+
+### End-to-end OTP probe
+
+Use an existing account so this does not create test users:
+
+```bash
+curl -X POST "$SUPABASE_URL/auth/v1/otp" \
+  -H "apikey: $SUPABASE_ANON_KEY" \
+  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{"email":"you@example.com","options":{"shouldCreateUser":false}}'
+```
+
+An empty JSON response with HTTP `200` means Auth accepted the request and the
+synchronous Send Email Hook completed successfully. A `500` means the hook
+failed; do not treat the OTP as delivered.
