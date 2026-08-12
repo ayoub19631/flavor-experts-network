@@ -31,17 +31,44 @@ https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth?action=callback
 
 ---
 
-## 2) LinkedIn Developers (OpenID Connect)
+## 2) LinkedIn Developers — تطبيقك الحالي (Flavor Experts Network)
 
-1. [linkedin.com/developers/apps](https://www.linkedin.com/developers/apps) → تطبيقك
-2. **Products** → فعّل **Sign In with LinkedIn using OpenID Connect**
-3. **Auth → Redirect URLs:** أضف **بالضبط**:
-   ```
-   https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth/callback
-   ```
-4. انسخ **Client ID** و **Client Secret**
+التطبيق موجود مسبقاً — **لا تنشئ تطبيقاً جديداً**.
 
-> إذا ظهر خطأ `redirect_uri does not match` فالمسار في LinkedIn لا يطابق السطر أعلاه حرفياً.
+| الحقل | القيمة |
+|--------|--------|
+| App name | Flavor Experts Network |
+| Client ID | `77ispdsj1ggqx6` (مطابق لما في Supabase) |
+| Redirect URI المطلوب | انظر أدناه |
+
+### خطوات إجبارية في لوحة LinkedIn (بالترتيب)
+
+1. افتح [linkedin.com/developers/apps](https://www.linkedin.com/developers/apps) → **Flavor Experts Network**
+2. تبويب **Products**
+   - فعّل / اطلب **Sign In with LinkedIn using OpenID Connect**
+   - انتظر حتى تصبح الحالة **Added** / **Approved** (غالباً فوري)
+3. تبويب **Auth** → **Authorized redirect URLs for your app**
+   - أضف **حرفياً** (بدون مسافات أو `/` زيادة في النهاية):
+     ```
+     https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth/callback
+     ```
+   - اختياري (توافق قديم):  
+     `https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth?action=callback`
+   - احفظ **Update**
+4. تبويب **Settings** (ما يظهر في لقطتك)
+   - اضغط **Verify** بجانب LinkedIn Page إن طُلب التحقق من الشركة
+   - أكمل طلب التحقق من حساب مسؤول صفحة الشركة على LinkedIn
+   - حدّث **business email** من الشريط الأصفر أعلى الصفحة إن ظهر
+5. تبويب **Auth** → انسخ **Primary Client Secret**
+   - إذا غيّرت الـ Secret أو أنشأت واحداً جديداً، حدّثه في Supabase:
+     ```bash
+     supabase secrets set LINKEDIN_CLIENT_ID=77ispdsj1ggqx6 LINKEDIN_CLIENT_SECRET='YOUR_SECRET' --project-ref imucfofvdwfyexdwrsfe
+     npx supabase functions deploy oauth --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
+     ```
+
+> **ملاحظة:** تحذير «This app is not verified as being associated with this company» لا يمنع دائماً تسجيل الدخول، لكن LinkedIn يطلبه غالباً للمنتجات/الإنتاج. الأهم لنجاح الدخول هو: **Products = OpenID Connect** + **Redirect URL مطابق**.
+
+> إذا ظهر خطأ `redirect_uri does not match` فالمسار في LinkedIn لا يطابق سطر الـ callback أعلاه حرفياً.
 
 ---
 
