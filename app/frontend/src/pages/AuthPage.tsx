@@ -77,7 +77,7 @@ export default function AuthPage() {
   const [companyCreated, setCompanyCreated] = useState(false);
 
   const { signIn, signUp } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
 
   const companyFeatures = useMemo(
