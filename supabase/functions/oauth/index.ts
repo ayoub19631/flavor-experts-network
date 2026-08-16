@@ -330,6 +330,11 @@ async function handleCallback(url: URL): Promise<Response> {
     avatar_url: avatarUrl,
     picture: avatarUrl,
   };
+  // Company OAuth signup: set account_type at user creation (handle_new_user).
+  // Existing profiles keep their type — the trigger never upgrades later.
+  if (state.intent === "company") {
+    metadata.account_type = "company";
+  }
 
   if (state.provider === "linkedin" && profile.profile) {
     metadata.linkedin_url = profile.profile;

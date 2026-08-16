@@ -462,7 +462,7 @@ export default function ChatAssistant() {
           transition-all duration-300 ease-out
           ${isRTL ? "left-6 right-auto origin-bottom-left" : "right-6 origin-bottom-right"}
           ${open ? "scale-100 opacity-100" : "scale-0 opacity-0 pointer-events-none"}
-          ${minimized ? "h-[54px] w-80 overflow-hidden" : "w-[380px] h-[600px] max-h-[90vh]"}
+          ${minimized ? "h-[54px] w-80 max-w-[calc(100vw-3rem)] overflow-hidden" : "w-[min(380px,calc(100vw-3rem))] h-[600px] max-h-[90vh]"}
         `}
         dir={isRTL ? "rtl" : "ltr"}
       >

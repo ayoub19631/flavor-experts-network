@@ -10,12 +10,12 @@ export const SITE = {
   supportEmail:
     import.meta.env.VITE_SUPPORT_EMAIL ||
     import.meta.env.VITE_ADMIN_EMAIL ||
-    "noreply@nexusflavor.com",
+    "hello@flavorexpertsnetwork.com",
   billingEmail:
     import.meta.env.VITE_BILLING_EMAIL ||
     import.meta.env.VITE_SUPPORT_EMAIL ||
     import.meta.env.VITE_ADMIN_EMAIL ||
-    "noreply@nexusflavor.com",
+    "hello@flavorexpertsnetwork.com",
   linkedInGroup: "https://www.linkedin.com/groups/13155714/",
   logo: "/brand/flavor-expertise-science.webp",
   ogImage:

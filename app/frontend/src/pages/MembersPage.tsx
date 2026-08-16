@@ -196,12 +196,12 @@ export default function MembersPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder={t("members.search")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-10"
+                className="ps-9 h-10"
               />
             </div>
             <Select value={specialtyFilter} onValueChange={setSpecialtyFilter}>

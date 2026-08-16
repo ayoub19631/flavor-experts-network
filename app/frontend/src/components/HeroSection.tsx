@@ -52,7 +52,7 @@ export default function HeroSection() {
             >
               <Link to="/auth" className="flex items-center gap-2">
                 {t("hero.cta.join")}
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </Button>
             <Button

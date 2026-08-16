@@ -44,11 +44,11 @@ function newsHref(url: string): { to?: string; href?: string; external: boolean 
   return { href: url, external: true };
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString("en-US", {
+    return d.toLocaleDateString(locale === "ar" ? "ar" : "en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -63,7 +63,7 @@ export default function NewsSection() {
   const [loading, setLoading] = useState(true);
   const [dataSource, setDataSource] = useState<"db" | "static">("static");
   const [search, setSearch] = useState("");
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   useEffect(() => {
     async function fetchNews() {
@@ -88,7 +88,7 @@ export default function NewsSection() {
             category: item.category || "General",
             title: item.title,
             summary: item.summary || "",
-            date: formatDate(item.published_at || item.created_at),
+            date: formatDate(item.published_at || item.created_at, lang),
             image_url: item.image_url || "",
             source_url: item.source_url || "",
             author: item.author || "",
@@ -102,7 +102,7 @@ export default function NewsSection() {
       setLoading(false);
     }
     fetchNews();
-  }, []);
+  }, [lang]);
 
   const q = search.toLowerCase();
   const filtered = newsItems.filter(
@@ -191,12 +191,12 @@ export default function NewsSection() {
           {!loading && newsItems.length > 0 && (
             <div className="mt-6 flex justify-center">
               <div className="relative w-full max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder={t("news.search")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 h-10"
+                  className="ps-9 h-10"
                 />
               </div>
             </div>

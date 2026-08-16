@@ -2,7 +2,7 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
 import { registerDeepLinkListener } from "@/lib/native";
@@ -50,6 +50,18 @@ const PlatformAccessChat = () => {
     <Suspense fallback={null}>
       <ChatAssistant />
     </Suspense>
+  );
+};
+
+const SkipToContent = () => {
+  const { t } = useI18n();
+  return (
+    <a
+      href="#main"
+      className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:start-2 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+    >
+      {t("a11y.skip")}
+    </a>
   );
 };
 
@@ -135,9 +147,12 @@ const App = () => (
                 <ElectronTitleBar />
                 <NativeBridge />
                 <div className="flex-1 overflow-auto">
+                  <SkipToContent />
                   <Toaster />
                   <PlatformAccessGuard>
-                    <AppRoutes />
+                    <main id="main">
+                      <AppRoutes />
+                    </main>
                   </PlatformAccessGuard>
                   <BetaLaunchNotice />
                 </div>

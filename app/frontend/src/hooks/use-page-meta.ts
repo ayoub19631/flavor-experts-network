@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { SITE } from "@/lib/site-config";
+import { useI18n } from "@/lib/i18n";
 
 interface PageMetaOptions {
   title?: string;
@@ -31,12 +32,15 @@ function upsertLink(rel: string, href: string) {
 }
 
 export function usePageMeta({ title, description, path = "", image, noIndex = false, locale }: PageMetaOptions) {
+  const { lang } = useI18n();
+  const resolvedLocale = locale ?? lang;
+
   useEffect(() => {
     const pageTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     const pageDescription = description || SITE.description;
     const canonical = `${SITE.url}${path.startsWith("/") ? path : `/${path}`}`.replace(/\/$/, "") || SITE.url;
     const ogImage = image || SITE.ogImage;
-    const ogLocale = locale === "ar" ? "ar_SA" : "en_US";
+    const ogLocale = resolvedLocale === "ar" ? "ar_SA" : "en_US";
 
     document.title = pageTitle;
     upsertMeta("description", pageDescription);
@@ -58,5 +62,5 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
       const robots = document.querySelector('meta[name="robots"]');
       robots?.remove();
     }
-  }, [title, description, path, image, noIndex, locale]);
+  }, [title, description, path, image, noIndex, resolvedLocale]);
 }

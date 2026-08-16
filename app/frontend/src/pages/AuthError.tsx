@@ -10,8 +10,8 @@ export default function AuthErrorPage() {
   const [searchParams] = useSearchParams();
   const { t } = useI18n();
   usePageMeta({
-    title: 'Authentication error',
-    description: 'Something went wrong during sign-in.',
+    title: t('auth.error.title'),
+    description: t('auth.error.title'),
     path: '/auth/error',
     noIndex: true,
   });
@@ -20,7 +20,7 @@ export default function AuthErrorPage() {
     searchParams.get('msg') ||
     searchParams.get('error_description') ||
     searchParams.get('error') ||
-    'Sorry, your authentication information is invalid or has expired';
+    t('auth.error.title');
 
   const isOAuthSetup = isOAuthConfiguredError(rawMessage);
   const errorMessage = isOAuthSetup ? t('auth.oauth_not_configured') : rawMessage;
@@ -52,7 +52,7 @@ export default function AuthErrorPage() {
           </div>
 
           <h1 className="text-2xl font-bold text-foreground">
-            {isOAuthSetup ? 'Social Login Unavailable' : 'Authentication Error'}
+            {isOAuthSetup ? t('auth.error.oauth_title') : t('auth.error.title')}
           </h1>
 
           <p className="text-base text-muted-foreground">{errorMessage}</p>
@@ -63,20 +63,20 @@ export default function AuthErrorPage() {
 
           <p className="text-sm text-muted-foreground">
             {countdown > 0
-              ? `Returning to sign in in ${countdown}s...`
-              : 'Redirecting...'}
+              ? t('auth.error.redirecting').replace('{n}', String(countdown))
+              : t('auth.error.redirecting_now')}
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <Button asChild variant="outline">
             <Link to="/auth?mode=login">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Sign In
+              <ArrowLeft className="w-4 h-4 me-2 rtl:rotate-180" />
+              {t('auth.error.back')}
             </Link>
           </Button>
           <Button asChild>
-            <Link to="/">Home</Link>
+            <Link to="/">{t('auth.error.home')}</Link>
           </Button>
         </div>
       </div>

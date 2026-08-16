@@ -55,20 +55,10 @@ export default function AuthCallback() {
       const provider = user.app_metadata?.provider as string | undefined;
       const isOAuth =
         provider === "google" || provider === "linkedin" || provider === "linkedin_oidc";
-      const intent = consumeOAuthIntent();
+      consumeOAuthIntent();
 
       if (user.user_metadata) {
         await syncOAuthUserProfile(user.id, user.user_metadata, user.email);
-      }
-
-      if (intent === "company") {
-        await supabase
-          .from("user_profiles")
-          .update({
-            account_type: "company",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", user.id);
       }
 
       const hash = window.location.hash;

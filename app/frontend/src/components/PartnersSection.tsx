@@ -58,43 +58,55 @@ export default function PartnersSection() {
         ) : partners.length > 0 ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-              {partners.map((partner) => (
-                <a
-                  key={partner.id}
-                  href={partner.website_url || "#"}
-                  target={partner.website_url ? "_blank" : undefined}
-                  rel={partner.website_url ? "noopener noreferrer" : undefined}
-                  className={`group relative flex flex-col items-center justify-center rounded-2xl border bg-background p-5 transition-all hover:shadow-md ${
-                    partner.is_featured
-                      ? "border-primary/40 shadow-sm ring-1 ring-primary/20 scale-[1.02]"
-                      : "border-border hover:border-primary/30"
-                  }`}
-                  title={partner.name}
-                >
-                  {partner.is_featured && (
-                    <Badge className="absolute top-2 end-2 bg-primary/10 text-primary border-0 text-[10px] px-1.5 py-0">
-                      <Star className="w-2.5 h-2.5 me-0.5 fill-current" />
-                      {t("partners.featured")}
-                    </Badge>
-                  )}
-                  {partner.logo_url ? (
-                    <img
-                      src={partner.logo_url}
-                      alt={partner.name}
-                      className={`max-h-12 w-auto object-contain grayscale group-hover:grayscale-0 transition-all ${
-                        partner.is_featured ? "max-h-14" : ""
-                      }`}
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-primary" />
-                    </div>
-                  )}
-                  <span className="mt-3 text-xs font-medium text-muted-foreground text-center line-clamp-2">
-                    {partner.name}
-                  </span>
-                </a>
-              ))}
+              {partners.map((partner) => {
+                const cardClass = `group relative flex flex-col items-center justify-center rounded-2xl border bg-background p-5 transition-all hover:shadow-md ${
+                  partner.is_featured
+                    ? "border-primary/40 shadow-sm ring-1 ring-primary/20 scale-[1.02]"
+                    : "border-border hover:border-primary/30"
+                }`;
+                const inner = (
+                  <>
+                    {partner.is_featured && (
+                      <Badge className="absolute top-2 end-2 bg-primary/10 text-primary border-0 text-[10px] px-1.5 py-0">
+                        <Star className="w-2.5 h-2.5 me-0.5 fill-current" />
+                        {t("partners.featured")}
+                      </Badge>
+                    )}
+                    {partner.logo_url ? (
+                      <img
+                        src={partner.logo_url}
+                        alt={partner.name}
+                        className={`max-h-12 w-auto object-contain grayscale group-hover:grayscale-0 transition-all ${
+                          partner.is_featured ? "max-h-14" : ""
+                        }`}
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-6 h-6 text-primary" />
+                      </div>
+                    )}
+                    <span className="mt-3 text-xs font-medium text-muted-foreground text-center line-clamp-2">
+                      {partner.name}
+                    </span>
+                  </>
+                );
+                return partner.website_url ? (
+                  <a
+                    key={partner.id}
+                    href={partner.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cardClass}
+                    title={partner.name}
+                  >
+                    {inner}
+                  </a>
+                ) : (
+                  <div key={partner.id} className={cardClass} title={partner.name}>
+                    {inner}
+                  </div>
+                );
+              })}
             </div>
             <p className="text-center text-sm text-muted-foreground mt-8">
               {t("partners.cta_text")}{" "}

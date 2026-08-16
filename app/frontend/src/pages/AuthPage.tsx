@@ -194,7 +194,6 @@ export default function AuthPage() {
         id: data.user.id,
         email: companyEmail.trim().toLowerCase(),
         full_name: contactName.trim(),
-        account_type: "company",
         company: companyName.trim(),
         website_url: companyWebsite.trim() || null,
         phone: companyPhone.trim() || null,

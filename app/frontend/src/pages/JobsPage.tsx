@@ -56,7 +56,7 @@ export default function JobsPage() {
   const isCompany = profile?.account_type === "company";
   // Fully free: any signed-in member can browse; companies can post.
   const canPost = !!user && isCompany;
-  const canBrowse = !!user;
+  const canBrowse = true;
   const mySkills = tokenizeSkills(profile?.skills, profile?.specialty || profile?.role);
 
   const [jobs, setJobs] = useState<JobListing[]>([]);
@@ -518,9 +518,9 @@ export default function JobsPage() {
           {canBrowse && (
             <div className="flex flex-col sm:flex-row gap-3 mb-8">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  className="pl-9 h-11"
+                  className="ps-9 h-11"
                   placeholder={t("jobs.search")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -675,18 +675,27 @@ export default function JobsPage() {
                         onChange={(e) => setCoverLetter(e.target.value)}
                         placeholder={t("jobs.apply.cover_ph")}
                       />
-                      <Button
-                        className="w-full gap-2"
-                        disabled={applying}
-                        onClick={() => applyToJob(selected)}
-                      >
-                        {applying ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        {t("jobs.apply.submit")}
-                      </Button>
+                      {user ? (
+                        <Button
+                          className="w-full gap-2"
+                          disabled={applying}
+                          onClick={() => applyToJob(selected)}
+                        >
+                          {applying ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                          {t("jobs.apply.submit")}
+                        </Button>
+                      ) : (
+                        <Button asChild className="w-full gap-2">
+                          <Link to="/auth?mode=login">
+                            <Lock className="w-4 h-4" />
+                            {t("jobs.apply.signin")}
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>

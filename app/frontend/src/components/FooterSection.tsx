@@ -123,6 +123,7 @@ export default function FooterSection() {
                     disabled={loading}
                     className="flex-shrink-0 bg-primary hover:bg-primary/90"
                     title={t("newsletter.submit")}
+                    aria-label={t("newsletter.submit")}
                   >
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -224,19 +225,21 @@ export default function FooterSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                aria-label={t("a11y.linkedin")}
               >
                 <Linkedin className="w-4 h-4" />
               </a>
               <a
                 href={`mailto:${SITE.supportEmail}`}
                 className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                aria-label={SITE.supportEmail}
+                aria-label={t("a11y.email")}
               >
                 <Mail className="w-4 h-4" />
               </a>
               <a
                 href="https://flavorexpertsnetwork.com"
                 className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+                aria-label={t("a11y.website")}
               >
                 <Globe className="w-4 h-4" />
               </a>

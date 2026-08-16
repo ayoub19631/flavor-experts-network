@@ -32,20 +32,30 @@ else
     supabase/migrations/20260805140000_phase2_network_learning.sql \
     supabase/migrations/20260806160000_community_comments_and_media.sql \
     supabase/migrations/20260809160000_database_hardening_complete.sql \
-    supabase/migrations/20260809170000_email_delivery_reliability.sql
+    supabase/migrations/20260809170000_email_delivery_reliability.sql \
+    supabase/migrations/20260816120000_lock_account_type_and_members_admin.sql
   do
     echo "---- $f"
     npx --yes supabase@latest db query --linked -f "$f"
   done
 fi
 
-echo "==> Deploying email edge functions"
+echo "==> Deploying edge functions"
 npx --yes supabase@latest functions deploy send-email \
   --project-ref "$PROJECT_REF" \
   --no-verify-jwt
 npx --yes supabase@latest functions deploy auth-email-hook \
   --project-ref "$PROJECT_REF" \
   --no-verify-jwt
+npx --yes supabase@latest functions deploy oauth \
+  --project-ref "$PROJECT_REF" \
+  --no-verify-jwt
+npx --yes supabase@latest functions deploy flavorbot \
+  --project-ref "$PROJECT_REF" \
+  --no-verify-jwt
+npx --yes supabase@latest functions deploy submit-public-form \
+  --project-ref "$PROJECT_REF" \
+  --no-verify-jwt
 
-echo "Done. Platform migrations + database hardening + email delivery are live."
+echo "Done. Platform migrations + database hardening + email/OAuth/forms are live."
 echo "If OTP still fails: set Auth rate_limit_email_sent to 30+ and sync SEND_EMAIL_HOOK_SECRET (see deploy/EMAIL-DELIVERY.md)."

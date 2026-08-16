@@ -103,7 +103,15 @@ export default function Navbar() {
                     key={link.href}
                     onClick={() => {
                       if (link.href.startsWith("/#")) {
-                        window.location.href = link.href;
+                        const id = link.href.slice(2);
+                        if (window.location.pathname === "/") {
+                          document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+                        } else {
+                          navigate("/");
+                          window.setTimeout(() => {
+                            document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+                          }, 80);
+                        }
                       } else {
                         navigate(link.href);
                       }
@@ -123,6 +131,7 @@ export default function Navbar() {
               onClick={toggleLang}
               className="h-9 w-9"
               title={lang === "en" ? "العربية" : "English"}
+              aria-label={lang === "en" ? "العربية" : "English"}
             >
               <Globe className="w-4 h-4" />
             </Button>
@@ -133,6 +142,7 @@ export default function Navbar() {
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               className="h-9 w-9"
               title={resolvedTheme === "dark" ? (lang === "ar" ? "الوضع الفاتح" : "Light mode") : (lang === "ar" ? "الوضع الداكن" : "Dark mode")}
+              aria-label={resolvedTheme === "dark" ? (lang === "ar" ? "الوضع الفاتح" : "Light mode") : (lang === "ar" ? "الوضع الداكن" : "Dark mode")}
             >
               {resolvedTheme === "dark" ? (
                 <Sun className="w-4 h-4" />
@@ -180,19 +190,19 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Link to="/auth?mode=login">
                   <Button variant="ghost" size="sm">
                     {t("nav.login")}
                   </Button>
                 </Link>
-                <Link to="/auth?mode=signup&type=company">
+                <Link to="/auth?mode=signup&type=company" className="hidden sm:inline-flex">
                   <Button variant="outline" size="sm" className="gap-1.5 border-primary/30 text-primary hover:bg-primary/5">
                     <Building2 className="w-3.5 h-3.5" />
                     {t("nav.company")}
                   </Button>
                 </Link>
-                <Link to="/auth?mode=signup">
+                <Link to="/auth?mode=signup" className="hidden sm:inline-flex">
                   <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                     {t("nav.signup")}
                   </Button>
