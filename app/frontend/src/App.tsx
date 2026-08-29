@@ -13,6 +13,7 @@ import AdminRoute from "./components/AdminRoute";
 import { ElectronTitleBar } from "./components/ElectronTitleBar";
 import BlogRoutes from "./blog-routes";
 import EmailVerificationGuard from "./components/EmailVerificationGuard";
+import TermsAcceptanceGuard from "./components/TermsAcceptanceGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PlatformAccessGuard from "./components/PlatformAccessGuard";
 import BetaLaunchNotice from "./components/BetaLaunchNotice";
@@ -86,7 +87,8 @@ const AppRoutes = () => (
   <ErrorBoundary>
     <Suspense fallback={<PageLoader />}>
       <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<CommunityPage />} />
+      <Route path="/welcome" element={<Index />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/verify-email" element={<EmailVerificationPage />} />
       <Route path="/email-verified" element={<ProtectedRoute requireEmailVerified={false}><EmailVerifiedPage /></ProtectedRoute>} />
@@ -130,6 +132,7 @@ const App = () => (
         <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "") || undefined}>
           <AuthProvider>
             <EmailVerificationGuard>
+            <TermsAcceptanceGuard>
             <TooltipProvider>
               <div className="flex flex-col h-screen">
                 <ElectronTitleBar />
@@ -144,6 +147,7 @@ const App = () => (
               </div>
               <PlatformAccessChat />
             </TooltipProvider>
+            </TermsAcceptanceGuard>
             </EmailVerificationGuard>
           </AuthProvider>
         </BrowserRouter>

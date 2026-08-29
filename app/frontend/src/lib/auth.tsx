@@ -12,6 +12,8 @@ import {
 } from "./auth-utils";
 import { resolvePlatformAccess } from "./platform-access";
 import { PLATFORM_ALWAYS_FREE } from "./site-config";
+import { type Language } from "./languages";
+import { TERMS_VERSION } from "./terms-policy";
 
 
 export { EMAIL_NOT_CONFIRMED_CODE };
@@ -28,8 +30,15 @@ interface AuthContextType {
     email: string,
     password: string,
     fullName: string,
-    preferredLanguage?: "ar" | "en",
+    preferredLanguage?: Language,
   ) => Promise<{ error: string | null }>;
+  acceptPlatformTerms: () => Promise<{ error: string | null }>;
+  claimCompanyAccount: (details: {
+    company: string;
+    website?: string | null;
+    phone?: string | null;
+    industry?: string | null;
+  }) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Pick<UserProfile, 'full_name' | 'avatar_url'>>) => Promise<{ error: string | null }>;
   isPremium: boolean;
@@ -161,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string,
     fullName: string,
-    preferredLanguage: "ar" | "en" = "en",
+    preferredLanguage: Language = "en",
   ) {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -170,6 +179,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
           preferred_language: preferredLanguage,
+          terms_accepted: true,
+          terms_version: TERMS_VERSION,
         },
         emailRedirectTo: getAuthRedirectUrl("/auth/callback"),
       },
@@ -180,6 +191,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data.user && checkEmailVerified(data.user)) {
       clearPendingVerificationEmail();
     }
+    return { error: null };
+  }
+
+  async function acceptPlatformTerms() {
+    const { error } = await supabase.rpc("accept_platform_terms", {
+      p_version: TERMS_VERSION,
+    });
+    if (error) return { error: error.message };
+    if (user) await loadProfile(user);
+    return { error: null };
+  }
+
+  async function claimCompanyAccount(details: {
+    company: string;
+    website?: string | null;
+    phone?: string | null;
+    industry?: string | null;
+  }) {
+    const { error } = await supabase.rpc("claim_company_account", {
+      p_company: details.company,
+      p_website: details.website || null,
+      p_phone: details.phone || null,
+      p_industry: details.industry || null,
+    });
+    if (error) return { error: error.message };
+    if (user) await loadProfile(user);
     return { error: null };
   }
 
@@ -216,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        user, session, profile, loading, signIn, signUp, signOut, updateProfile,
+        user, session, profile, loading, signIn, signUp, acceptPlatformTerms, claimCompanyAccount, signOut, updateProfile,
         isPremium, isEnterprise, isAdmin, isEmailVerified, hasPlatformAccess,
       }}
     >
@@ -232,6 +269,8 @@ const defaultAuth: AuthContextType = {
   loading: false,
   signIn: async () => ({ error: "Not available" }),
   signUp: async () => ({ error: "Not available" }),
+  acceptPlatformTerms: async () => ({ error: "Not available" }),
+  claimCompanyAccount: async () => ({ error: "Not available" }),
   signOut: async () => {},
   updateProfile: async () => ({ error: "Not available" }),
   isPremium: false,

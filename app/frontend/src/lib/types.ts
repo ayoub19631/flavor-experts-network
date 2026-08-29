@@ -52,6 +52,8 @@ export interface UserProfile {
   last_seen?: string | null;
   created_at: string;
   updated_at?: string;
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
 }
 
 export interface Member {

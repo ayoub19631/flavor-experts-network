@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { type Language, isLanguage, languageMeta } from "@/lib/languages";
+import { extraTranslations } from "@/lib/locales/extra";
 
-export type Language = "en" | "ar";
+export type { Language };
 
 interface I18nContextType {
   lang: Language;
@@ -9,7 +11,7 @@ interface I18nContextType {
   dir: "ltr" | "rtl";
 }
 
-const translations: Record<Language, Record<string, string>> = {
+const translations: Record<"en" | "ar", Record<string, string>> = {
   en: {
     // Navbar
     "nav.home": "Home",
@@ -125,7 +127,7 @@ const translations: Record<Language, Record<string, string>> = {
     "community.title": "Professional Community",
     "community.desc": "Share insights, company updates, and industry perspectives with Flavor Experts members.",
     "community.composer_ph": "Share a professional update with the network…",
-    "community.composer_hint": "Keep posts professional — insights, milestones, hiring notes, or technical perspectives.",
+    "community.composer_hint": "Educational content only. Politics, anything involving children, and adult/pornographic material are strictly forbidden.",
     "community.guest_composer": "Sign in to publish",
     "community.publish": "Publish",
     "community.published": "Post published",
@@ -173,13 +175,18 @@ const translations: Record<Language, Record<string, string>> = {
     "community.guidelines.expertise": "Share useful professional experience and focused questions.",
     "community.guidelines.respect": "Keep discussions respectful, constructive, and inclusive.",
     "community.guidelines.sources": "Credit sources and never publish confidential information.",
+    "community.guidelines.policy": "No political news, no child-related content, and no adult or pornographic material.",
+    "community.policy_blocked": "This text violates the educational platform policy and cannot be published.",
+    "community.confirm_delete": "Delete this post permanently?",
+    "community.confirm_delete_comment": "Delete this comment?",
+    "community.about_platform": "About the platform",
     "community.join.title": "Join the conversation",
     "community.join.desc": "Create your free professional profile to publish and connect.",
     // Hero
     "hero.badge": "Professional Flavor Community",
     "hero.title": "Flavor Experts Network",
     "hero.subtitle": "A professional community for flavor scientists, food technologists, and industry specialists. Connect, learn, and grow with peers worldwide.",
-    "hero.cta": "Join on LinkedIn",
+    "hero.cta": "Explore the community",
     "hero.cta.join": "Join the platform",
     "hero.cta2": "Explore members",
     "hero.stat.community": "Growing professional community",
@@ -374,6 +381,12 @@ const translations: Record<Language, Record<string, string>> = {
     "auth.currency": "Preferred Currency",
     "auth.currency_hint": "Used to display prices in your local currency throughout the platform.",
     "auth.agree_terms": "By creating an account you agree to our",
+    "auth.agree_required": "You must accept the Terms to create an account.",
+    "auth.accept_terms_label": "I have read and accept the Terms, including a complete ban on political content, any child-related content, and pornography. This is an educational platform.",
+    "lang.label": "Language",
+    "terms.gate_title": "Accept the Terms",
+    "terms.gate_desc": "This educational platform requires an explicit yes to the rules before you continue.",
+    "terms.accept": "I accept and continue",
     "auth.terms_link": "Terms of Service",
     "auth.privacy_link": "Privacy Policy",
     "auth.and": "and",
@@ -382,6 +395,15 @@ const translations: Record<Language, Record<string, string>> = {
     "auth.err.password_match": "Passwords do not match.",
     "auth.err.full_name": "Please enter your full name.",
     "auth.err.required": "Please fill in all required fields.",
+    "auth.err.weak_password": "That password is too common. Choose a longer unique password.",
+    "auth.err.exists": "An account with this email already exists. Sign in instead.",
+    "auth.err.email_hook": "We could not send the verification email. Please try again in a minute.",
+    "auth.err.rate_limit": "Too many attempts. Please wait a minute and try again.",
+    "auth.err.website": "Enter a valid website starting with https://",
+    "auth.err.linkedin_disabled": "LinkedIn sign-in is temporarily disabled. Use Google or your email.",
+    "auth.err.oauth_email": "Your account did not share an email address. Allow email access and try again.",
+    "auth.err.oauth_redirect": "The Google redirect URL does not match. Use https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth?action=callback",
+    "auth.err.oauth_callback": "Sign-in could not be completed. Please try again.",
     "auth.industry.food": "Food & Beverage Manufacturing",
     "auth.industry.flavor": "Flavor & Fragrance",
     "auth.industry.ingredients": "Food Ingredients & Additives",
@@ -416,7 +438,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Terms
     "terms.title": "Terms & Conditions",
     "terms.privacy": "Privacy Policy",
-    "terms.last_updated": "Last updated: May 14, 2026",
+    "terms.last_updated": "Last updated: August 30, 2026",
     // Partners
     "partners.tag": "Our Partners",
     "partners.title": "Trusted by Industry Leaders",
@@ -759,7 +781,7 @@ const translations: Record<Language, Record<string, string>> = {
     "community.title": "المجتمع المهني",
     "community.desc": "شارك الرؤى وتحديثات الشركات ووجهات نظر الصناعة مع أعضاء خبراء النكهات.",
     "community.composer_ph": "شارك تحديثاً مهنياً مع الشبكة…",
-    "community.composer_hint": "اجعل المنشورات مهنية — رؤى، إنجازات، ملاحظات توظيف، أو وجهات نظر تقنية.",
+    "community.composer_hint": "محتوى تعليمي فقط. يُمنع منعاً باتاً السياسة، وأي محتوى يخص الأطفال، والمواد الإباحية.",
     "community.guest_composer": "سجّل الدخول للنشر",
     "community.publish": "نشر",
     "community.published": "تم نشر المنشور",
@@ -807,13 +829,18 @@ const translations: Record<Language, Record<string, string>> = {
     "community.guidelines.expertise": "شارك خبرة مهنية مفيدة وأسئلة متخصصة وواضحة.",
     "community.guidelines.respect": "حافظ على نقاشات محترمة وبنّاءة وشاملة.",
     "community.guidelines.sources": "اذكر المصادر ولا تنشر أي معلومات سرية.",
+    "community.guidelines.policy": "يُمنع الأخبار السياسية، وأي محتوى يخص الأطفال، وأي مواد إباحية.",
+    "community.policy_blocked": "هذا النص يخالف سياسة المنصة التعليمية ولا يمكن نشره.",
+    "community.confirm_delete": "حذف هذا المنشور نهائياً؟",
+    "community.confirm_delete_comment": "حذف هذا التعليق؟",
+    "community.about_platform": "عن المنصة",
     "community.join.title": "انضم إلى الحوار",
     "community.join.desc": "أنشئ ملفك المهني المجاني للنشر وبناء العلاقات.",
     // Hero
     "hero.badge": "مجتمع مهني متخصص في النكهات",
     "hero.title": "شبكة خبراء النكهات",
     "hero.subtitle": "مجتمع مهني لعلماء النكهات وتقنيي الأغذية والمتخصصين في الصناعة. تواصل وتعلم وانمو مع زملائك حول العالم.",
-    "hero.cta": "انضم على لينكد إن",
+    "hero.cta": "استكشف المجتمع",
     "hero.cta.join": "انضم للمنصة",
     "hero.cta2": "استكشف الأعضاء",
     "hero.stat.community": "مجتمع مهني متنامٍ",
@@ -1008,6 +1035,12 @@ const translations: Record<Language, Record<string, string>> = {
     "auth.currency": "العملة المفضلة",
     "auth.currency_hint": "تُستخدم لعرض الأسعار بعملتك المحلية في المنصة.",
     "auth.agree_terms": "بإنشاء حساب فإنك توافق على",
+    "auth.agree_required": "يجب الموافقة على الشروط لإنشاء الحساب.",
+    "auth.accept_terms_label": "قرأت وأوافق على الشروط، بما في ذلك الحظر التام لأي محتوى سياسي أو يخص الأطفال أو إباحي. هذه منصة تعليمية.",
+    "lang.label": "اللغة",
+    "terms.gate_title": "الموافقة على الشروط",
+    "terms.gate_desc": "هذه منصة تعليمية وتتطلب موافقة صريحة على القواعد قبل المتابعة.",
+    "terms.accept": "أوافق وأكمل",
     "auth.terms_link": "شروط الخدمة",
     "auth.privacy_link": "سياسة الخصوصية",
     "auth.and": "و",
@@ -1016,6 +1049,15 @@ const translations: Record<Language, Record<string, string>> = {
     "auth.err.password_match": "كلمتا المرور غير متطابقتين.",
     "auth.err.full_name": "يرجى إدخال اسمك الكامل.",
     "auth.err.required": "يرجى تعبئة جميع الحقول المطلوبة.",
+    "auth.err.weak_password": "كلمة المرور شائعة جداً. اختر كلمة أطول وغير مستخدمة.",
+    "auth.err.exists": "هذا البريد مسجّل مسبقاً. سجّل الدخول بدلاً من ذلك.",
+    "auth.err.email_hook": "تعذّر إرسال رسالة التأكيد. حاول مرة أخرى بعد دقيقة.",
+    "auth.err.rate_limit": "محاولات كثيرة. انتظر دقيقة ثم أعد المحاولة.",
+    "auth.err.website": "أدخل موقعاً صالحاً يبدأ بـ https://",
+    "auth.err.linkedin_disabled": "تسجيل الدخول عبر لينكدإن متوقف مؤقتاً. استخدم Google أو البريد الإلكتروني.",
+    "auth.err.oauth_email": "الحساب لم يُرجع بريداً إلكترونياً. اسمح بالوصول للبريد ثم أعد المحاولة.",
+    "auth.err.oauth_redirect": "رابط إعادة التوجيه في Google غير مطابق. استخدم https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth?action=callback",
+    "auth.err.oauth_callback": "تعذّر إكمال تسجيل الدخول. حاول مرة أخرى.",
     "auth.industry.food": "تصنيع الأغذية والمشروبات",
     "auth.industry.flavor": "النكهات والعطور",
     "auth.industry.ingredients": "مكونات وإضافات غذائية",
@@ -1050,7 +1092,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Terms
     "terms.title": "الشروط والأحكام",
     "terms.privacy": "سياسة الخصوصية",
-    "terms.last_updated": "آخر تحديث: 14 مايو 2026",
+    "terms.last_updated": "آخر تحديث: 30 أغسطس 2026",
     // Partners
     "partners.tag": "شركاؤنا",
     "partners.title": "موثوق من قادة الصناعة",
@@ -1285,7 +1327,7 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Language>(() => {
     const saved = localStorage.getItem("fen-lang");
-    return (saved === "ar" ? "ar" : "en") as Language;
+    return isLanguage(saved) ? saved : "en";
   });
 
   const setLang = useCallback((newLang: Language) => {
@@ -1295,12 +1337,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: string): string => {
-      return translations[lang][key] || translations.en[key] || key;
+      const extra = extraTranslations[lang]?.[key];
+      if (extra) return extra;
+      if (lang === "ar") return translations.ar[key] || translations.en[key] || key;
+      return translations.en[key] || key;
     },
     [lang]
   );
 
-  const dir = lang === "ar" ? "rtl" : "ltr";
+  const dir = languageMeta(lang).dir;
 
   useEffect(() => {
     document.documentElement.setAttribute("dir", dir);

@@ -61,13 +61,9 @@ export default function HeroSection() {
               size="lg"
               className="!bg-transparent border-[hsl(47_23%_85%/0.4)] text-white hover:!bg-white/10 hover:border-[hsl(47_23%_85%/0.6)]"
             >
-              <a
-                href={SITE.linkedInGroup}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Link to="/" className="flex items-center">
                 {t("hero.cta")}
-              </a>
+              </Link>
             </Button>
           </div>
         </div>

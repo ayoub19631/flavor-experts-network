@@ -376,9 +376,12 @@ Deno.serve(async (req: Request) => {
             <p style="margin:0 0 10px;font-weight:700;color:#002D54">ملخص سياسة المنصة</p>
             <ul style="margin:0;padding-right:18px;color:#374151;line-height:1.75">
               <li>باستخدامك للمنصة فإنك توافق على الشروط والأحكام وسياسة الخصوصية.</li>
-              <li>المنصة مخصّصة للتواصل المهني، مشاركة المعرفة، والوصول إلى الأخبار والموارد التعليمية.</li>
+              <li>المنصة تعليمية ومهنية فقط لعلوم النكهات وتكنولوجيا الأغذية.</li>
+              <li>يُمنع منعاً باتاً الأخبار السياسية وأي نقاش سياسي.</li>
+              <li>يُمنع منعاً باتاً أي محتوى يخص الأطفال.</li>
+              <li>يُمنع منعاً باتاً المواد الإباحية أو الجنسية.</li>
               <li>المنصة مجانية بالكامل للأفراد والشركات — بدون اشتراكات مدفوعة.</li>
-              <li>يُتوقع الحفاظ على السلوك المهني؛ ويُحظر المحتوى غير اللائق أو المضلل أو المنتهك لحقوق الملكية الفكرية.</li>
+              <li>المخالفة الجسيمة قد توقف الحساب فوراً.</li>
               <li>نجمع البيانات اللازمة لتقديم الخدمة وتحسينها، ولا نبيع بياناتك لأطراف ثالثة.</li>
               <li>لا نفرض رسوم عضوية حالياً للوصول إلى ميزات المنصة.</li>
             </ul>
@@ -398,9 +401,12 @@ Deno.serve(async (req: Request) => {
             <p style="margin:0 0 10px;font-weight:700;color:#002D54">Platform policy summary</p>
             <ul style="margin:0;padding-left:18px;color:#374151;line-height:1.75">
               <li>By using the platform you agree to our Terms of Service and Privacy Policy.</li>
-              <li>The network is for professional networking, knowledge sharing, industry news, and educational resources.</li>
+              <li>This is an educational professional network for flavor science and food technology only.</li>
+              <li>Political news or political debate is strictly forbidden.</li>
+              <li>Any content involving children is strictly forbidden.</li>
+              <li>Pornography or adult sexual content is strictly forbidden.</li>
               <li>The platform is fully free for individuals and companies — no paid subscriptions.</li>
-              <li>Professional conduct is required; inappropriate, misleading, or IP-infringing content is prohibited.</li>
+              <li>Serious violations can suspend the account immediately.</li>
               <li>We collect only the data needed to deliver and improve the service, and we do not sell your data.</li>
               <li>We do not currently charge membership fees for platform features.</li>
             </ul>

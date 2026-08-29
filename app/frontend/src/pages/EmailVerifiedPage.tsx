@@ -6,7 +6,8 @@ import { CheckCircle, FlaskConical, ArrowRight, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { isEmailVerified } from "@/lib/auth-utils";
+import { consumePendingCompany, isEmailVerified } from "@/lib/auth-utils";
+import { supabase } from "@/lib/supabase";
 
 const REDIRECT_SECONDS = 5;
 
@@ -29,13 +30,23 @@ export default function EmailVerifiedPage() {
     }
     if (!isEmailVerified(user)) {
       navigate(`/verify-email?email=${encodeURIComponent(user.email || "")}`);
+      return;
+    }
+    const pending = consumePendingCompany(user.email);
+    if (pending) {
+      void supabase.rpc("claim_company_account", {
+        p_company: pending.company,
+        p_website: pending.website || null,
+        p_phone: pending.phone || null,
+        p_industry: pending.industry || null,
+      });
     }
   }, [user, navigate]);
 
   useEffect(() => {
     if (!user || !isEmailVerified(user)) return;
     if (countdown <= 0) {
-      navigate("/dashboard?tab=profile");
+      navigate("/");
       return;
     }
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -116,24 +127,26 @@ export default function EmailVerifiedPage() {
               <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center">
                 <span className="font-bold text-primary text-xs">{countdown}</span>
               </div>
-              Redirecting to your dashboard in {countdown} second{countdown !== 1 ? "s" : ""}...
+              {lang === "ar"
+                ? `جاري التحويل إلى المجتمع خلال ${countdown} ثوانٍ...`
+                : `Redirecting to the community in ${countdown} second${countdown !== 1 ? "s" : ""}...`}
             </div>
 
             {/* CTA Buttons */}
             <div className="space-y-2">
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 gap-2"
-                onClick={() => navigate("/dashboard?tab=profile")}
+                onClick={() => navigate("/")}
               >
-                {lang === "ar" ? "أكمل ملفك المهني" : "Complete your professional profile"}
+                {lang === "ar" ? "دخول المجتمع" : "Enter the community"}
                 <ArrowRight className="w-4 h-4" />
               </Button>
               <Button
                 variant="outline"
                 className="w-full h-10"
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/dashboard?tab=profile")}
               >
-                {lang === "ar" ? "الذهاب للوحة التحكم" : "Go to Dashboard"}
+                {lang === "ar" ? "أكمل ملفك المهني" : "Complete your professional profile"}
               </Button>
             </div>
           </CardContent>

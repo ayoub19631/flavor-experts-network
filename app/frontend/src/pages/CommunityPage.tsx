@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   BarChart3,
@@ -44,6 +44,7 @@ import { safeHttpUrl } from "@/lib/url";
 import { SITE } from "@/lib/site-config";
 import type { SocialPost, SocialPostComment } from "@/lib/types";
 import { toast } from "sonner";
+import { violatesEducationalPolicy } from "@/lib/content-policy";
 
 type FeedFilter = "latest" | "popular" | "mine";
 
@@ -80,7 +81,9 @@ function initials(name?: string) {
 export default function CommunityPage() {
   const { t, lang } = useI18n();
   const { user, profile, isAdmin } = useAuth();
-  usePageMeta({ title: t("community.title"), description: t("community.desc"), path: "/community", locale: lang });
+  const { pathname } = useLocation();
+  const isHomeFeed = pathname === "/" || pathname === "/community";
+  usePageMeta({ title: t("community.title"), description: t("community.desc"), path: "/", locale: lang });
 
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -258,6 +261,10 @@ export default function CommunityPage() {
       toast.message(t("community.image_wait"));
       return;
     }
+    if (violatesEducationalPolicy(text)) {
+      toast.error(t("community.policy_blocked"));
+      return;
+    }
     setPublishing(true);
     const { error } = await supabase.from("social_posts").insert({
       author_id: user.id,
@@ -352,6 +359,10 @@ export default function CommunityPage() {
     }
     const text = (commentDrafts[postId] || "").trim();
     if (text.length < 1) return;
+    if (violatesEducationalPolicy(text)) {
+      toast.error(t("community.policy_blocked"));
+      return;
+    }
     setCommentBusy(postId);
     const { data, error } = await supabase
       .from("social_post_comments")
@@ -383,6 +394,7 @@ export default function CommunityPage() {
   };
 
   const removeComment = async (postId: string, commentId: string) => {
+    if (!window.confirm(t("community.confirm_delete_comment"))) return;
     const { error } = await supabase.from("social_post_comments").delete().eq("id", commentId);
     if (error) {
       toast.error(error.message);
@@ -421,6 +433,7 @@ export default function CommunityPage() {
 
   const removePost = async (post: SocialPost) => {
     if (!user || post.author_id !== user.id) return;
+    if (!window.confirm(t("community.confirm_delete"))) return;
     const { error } = await supabase.from("social_posts").delete().eq("id", post.id);
     if (error) {
       toast.error(error.message);
@@ -450,13 +463,23 @@ export default function CommunityPage() {
       <main className="pt-20 pb-16">
         <section className="border-b border-border bg-secondary/20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-5"
-            >
-              <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
-              {t("general.back")}
-            </Link>
+            {!isHomeFeed ? (
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-5"
+              >
+                <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
+                {t("general.back")}
+              </Link>
+            ) : (
+              <Link
+                to="/welcome"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-5"
+              >
+                <Compass className="w-4 h-4" />
+                {t("community.about_platform")}
+              </Link>
+            )}
 
             <div className="relative overflow-hidden rounded-3xl bg-[hsl(208_100%_14%)] text-white shadow-xl">
               <img
@@ -966,6 +989,12 @@ export default function CommunityPage() {
                     <Button asChild variant="outline" size="sm">
                       <Link to="/forum">{t("nav.forum")}</Link>
                     </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/jobs">{t("nav.jobs")}</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/courses">{t("nav.courses")}</Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1007,6 +1036,7 @@ export default function CommunityPage() {
                   </div>
                   <ul className="space-y-2.5">
                     {[
+                      t("community.guidelines.policy"),
                       t("community.guidelines.expertise"),
                       t("community.guidelines.respect"),
                       t("community.guidelines.sources"),

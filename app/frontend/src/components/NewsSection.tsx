@@ -44,11 +44,11 @@ function newsHref(url: string): { to?: string; href?: string; external: boolean 
   return { href: url, external: true };
 }
 
-function formatDate(dateStr: string, locale: "ar" | "en"): string {
+function formatDate(dateStr: string, locale: string): string {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString(locale === "ar" ? "ar" : "en-US", {
+    return d.toLocaleDateString(locale === "ar" ? "ar" : locale === "zh" ? "zh-CN" : locale, {
       month: "short",
       day: "numeric",
       year: "numeric",

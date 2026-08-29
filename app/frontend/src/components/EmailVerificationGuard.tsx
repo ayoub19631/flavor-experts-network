@@ -6,6 +6,8 @@ import { rememberPendingVerificationEmail } from "@/lib/auth-utils";
 /** Paths accessible while logged-in but email is not yet verified */
 const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/",
+  "/welcome",
+  "/community",
   "/auth",
   "/verify-email",
   "/email-verified",
@@ -16,6 +18,11 @@ const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/pricing",
   "/enterprise",
   "/members",
+  "/market",
+  "/forum",
+  "/jobs",
+  "/courses",
+  "/consultations",
 ]);
 
 function isAllowedPath(pathname: string): boolean {

@@ -1402,12 +1402,12 @@ export default function AdminPage() {
                       <Lock className="w-4 h-4 text-[#0077b5]" /> LinkedIn OAuth Setup Guide
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Google and LinkedIn login use the Supabase <code className="text-xs">oauth</code> edge function. Configure credentials once in Supabase secrets:
+                      Google login uses the Supabase <code className="text-xs">oauth</code> edge function. LinkedIn sign-in is disabled for now.
                     </p>
                     <div className="space-y-3">
                       {[
-                        { step: "1", title: "Create OAuth Apps", desc: "Google Cloud Console + LinkedIn Developers (OpenID Connect). See deploy/OAUTH-SETUP.md in the repo.", url: "https://console.cloud.google.com/apis/credentials", urlLabel: "Google Credentials" },
-                        { step: "2", title: "Add Redirect URL (both providers)", desc: "https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth/callback" },
+                        { step: "1", title: "Create OAuth Apps", desc: "Google Cloud Console + LinkedIn Developers. Enable Sign In with LinkedIn (classic or OpenID). See deploy/OAUTH-SETUP.md.", url: "https://console.cloud.google.com/apis/credentials", urlLabel: "Google Credentials" },
+                        { step: "2", title: "Add Redirect URL (both providers)", desc: "https://imucfofvdwfyexdwrsfe.supabase.co/functions/v1/oauth?action=callback" },
                         { step: "3", title: "Set Supabase Secrets", desc: "Copy deploy/oauth.env.example → deploy/oauth.env, fill keys, then run: node deploy/configure-oauth.mjs" },
                         { step: "4", title: "Deploy OAuth Function", desc: "npx supabase functions deploy oauth --project-ref imucfofvdwfyexdwrsfe", url: "https://supabase.com/dashboard/project/imucfofvdwfyexdwrsfe/functions", urlLabel: "Supabase Functions" },
                       ].map(s => (

@@ -141,12 +141,12 @@ export default function FooterSection() {
             <h4 className="font-semibold mb-4">{t("footer.quick_links")}</h4>
             <ul className="space-y-2 text-sm text-[hsl(47_23%_85%/0.7)]">
               <li>
-                <a href="/#about" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                <a href="/welcome#about" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.about")}
                 </a>
               </li>
               <li>
-                <a href="/#news" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                <a href="/welcome#news" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.news")}
                 </a>
               </li>
@@ -156,7 +156,7 @@ export default function FooterSection() {
                 </a>
               </li>
               <li>
-                <a href="/#resources" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                <a href="/welcome#resources" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.resources")}
                 </a>
               </li>

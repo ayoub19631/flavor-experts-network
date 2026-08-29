@@ -3,7 +3,7 @@ import { getAuthRedirectUrl } from "@/lib/auth-utils";
 import { appAuthCallbackUrl, isNativeApp } from "@/lib/native";
 import { Browser } from "@capacitor/browser";
 
-export type OAuthProvider = "google" | "linkedin_oidc";
+export type OAuthProvider = "google";
 
 export type OAuthIntent = "login" | "signup" | "company";
 
@@ -23,13 +23,28 @@ export function consumeOAuthIntent(): OAuthIntent {
 export function isOAuthConfiguredError(message: string): boolean {
   const m = message.toLowerCase();
   return (
-    m.includes("provider") ||
-    m.includes("not enabled") ||
-    m.includes("not supported") ||
     m.includes("not configured") ||
-    m.includes("validation failed") ||
-    m.includes("oauth")
+    m.includes("not enabled") ||
+    m.includes("add oauth credentials") ||
+    (m.includes("provider") && (m.includes("not supported") || m.includes("not enabled")))
   );
+}
+
+export function mapOAuthErrorMessage(message: string): "email" | "redirect" | "callback" | "disabled" | null {
+  const m = message.toLowerCase();
+  if (m.includes("linkedin") && (m.includes("disabled") || m.includes("temporarily"))) {
+    return "disabled";
+  }
+  if (m.includes("did not return an email") || m.includes("did not share an email")) {
+    return "email";
+  }
+  if (m === "oauth_redirect" || m.includes("redirect_uri") || m.includes("redirect uri")) {
+    return "redirect";
+  }
+  if (m === "oauth_callback" || m.includes("invalid oauth callback") || m.includes("could not complete sign in")) {
+    return "callback";
+  }
+  return null;
 }
 
 export async function signInWithOAuthProvider(
@@ -54,12 +69,12 @@ export async function signInWithOAuthProvider(
 
   const startUrl = new URL(`${supabaseUrl}/functions/v1/oauth`);
   startUrl.searchParams.set("action", "start");
-  startUrl.searchParams.set("provider", provider === "linkedin_oidc" ? "linkedin" : provider);
+  startUrl.searchParams.set("provider", provider);
   startUrl.searchParams.set("redirect_to", redirectTo);
   startUrl.searchParams.set("intent", intent);
 
   if (isNativeApp()) {
-    // Google/LinkedIn block embedded webviews — open in the system browser.
+    // Google blocks embedded webviews — open in the system browser.
     await Browser.open({ url: startUrl.toString() });
     return { data: { provider, url: startUrl.toString() }, error: null };
   }
@@ -92,6 +107,5 @@ export async function syncOAuthUserProfile(userId: string, metadata: Record<stri
 
 export function getOAuthProviderLabel(provider: string | undefined): string {
   if (provider === "google") return "Google";
-  if (provider === "linkedin_oidc" || provider === "linkedin") return "LinkedIn";
   return provider || "Social";
 }

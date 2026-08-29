@@ -259,24 +259,27 @@ export default function JobsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="pt-28 pb-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-28 pb-12 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src="/brand/section-community.webp" alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.82)] via-[hsl(208_100%_10%/0.88)] to-background" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8"
+            className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
             {t("general.back")}
           </Link>
-
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-10">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div>
-              <Badge className="bg-primary/10 text-primary border-0 mb-3">
+              <Badge className="bg-white/10 text-[hsl(47_23%_85%)] border-0 mb-3">
                 <Briefcase className="w-3.5 h-3.5 me-1.5" />
                 {t("jobs.tag")}
               </Badge>
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">{t("jobs.title")}</h1>
-              <p className="text-muted-foreground max-w-2xl">{t("jobs.desc")}</p>
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{t("jobs.title")}</h1>
+              <p className="text-white/75 max-w-2xl">{t("jobs.desc")}</p>
             </div>
             {canPost && (
               <Button className="gap-2" onClick={() => setShowForm((v) => !v)}>
@@ -285,6 +288,11 @@ export default function JobsPage() {
               </Button>
             )}
           </div>
+        </div>
+      </section>
+
+      <main className="pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Sign-in gate (platform is fully free) */}
           {!authLoading && !canBrowse && (

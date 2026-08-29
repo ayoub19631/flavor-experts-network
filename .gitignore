@@ -59,6 +59,11 @@ playwright-report/
 **/test-results/
 **/playwright-report/
 
+# ── Accidental nested old copies (do not develop here) ────────────────────────
+موقع خبراء النkehats احterافi/
+موقع خبراء النكهات احترافi/
+app/frontend/qa-screenshots/
+
 # ── Legacy / generator leftovers ──────────────────────────────────────────────
 .mgx/
 logo-search-*

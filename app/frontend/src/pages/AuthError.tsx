@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 import { usePageMeta } from '@/hooks/use-page-meta';
-import { isOAuthConfiguredError } from '@/lib/oauth';
+import { isOAuthConfiguredError, mapOAuthErrorMessage } from '@/lib/oauth';
 
 export default function AuthErrorPage() {
   const [searchParams] = useSearchParams();
@@ -23,7 +23,18 @@ export default function AuthErrorPage() {
     'Sorry, your authentication information is invalid or has expired';
 
   const isOAuthSetup = isOAuthConfiguredError(rawMessage);
-  const errorMessage = isOAuthSetup ? t('auth.oauth_not_configured') : rawMessage;
+  const oauthKind = mapOAuthErrorMessage(rawMessage);
+  const errorMessage = isOAuthSetup
+    ? t('auth.oauth_not_configured')
+    : oauthKind === 'disabled'
+      ? t('auth.err.linkedin_disabled')
+      : oauthKind === 'email'
+        ? t('auth.err.oauth_email')
+        : oauthKind === 'redirect'
+          ? t('auth.err.oauth_redirect')
+          : oauthKind === 'callback'
+            ? t('auth.err.oauth_callback')
+            : rawMessage;
 
   useEffect(() => {
     const timer = setInterval(() => {

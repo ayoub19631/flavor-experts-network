@@ -19,7 +19,11 @@ import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { getAuthRedirectUrl, rememberPendingVerificationEmail } from "@/lib/auth-utils";
+import { getAuthRedirectUrl, mapAuthErrorMessage, rememberPendingCompany, rememberPendingVerificationEmail } from "@/lib/auth-utils";
+import { safeHttpUrl } from "@/lib/url";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TERMS_VERSION } from "@/lib/terms-policy";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 type AuthMode = "login" | "signup" | "reset" | "new-password";
 type AccountType = "individual" | "company";
 
@@ -75,10 +79,21 @@ export default function AuthPage() {
   const [resetSent, setResetSent] = useState(false);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [companyCreated, setCompanyCreated] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, claimCompanyAccount } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+
+  const friendlyAuthError = (raw: string) => {
+    const code = mapAuthErrorMessage(raw);
+    if (code === "WEAK_PASSWORD") return t("auth.err.weak_password");
+    if (code === "ALREADY_EXISTS") return t("auth.err.exists");
+    if (code === "EMAIL_HOOK") return t("auth.err.email_hook");
+    if (code === "RATE_LIMIT") return t("auth.err.rate_limit");
+    if (code === "WEBSITE") return t("auth.err.website");
+    return raw;
+  };
 
   const companyFeatures = useMemo(
     () => [
@@ -116,7 +131,7 @@ export default function AuthPage() {
       if (newPassword !== confirmPassword) { setError(t("auth.err.password_match")); setLoading(false); return; }
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
       if (updateError) setError(updateError.message);
-      else { setPasswordUpdated(true); toast.success(t("auth.password_updated")); setTimeout(() => navigate("/dashboard"), 2000); }
+      else { setPasswordUpdated(true); toast.success(t("auth.password_updated")); setTimeout(() => navigate("/"), 2000); }
       setLoading(false); return;
     }
 
@@ -126,19 +141,21 @@ export default function AuthPage() {
         toast.info(t("auth.verify_required"));
         navigate(`/verify-email?email=${encodeURIComponent(email)}`);
       } else if (result.error) {
-        setError(result.error);
+        setError(friendlyAuthError(result.error));
       } else {
         toast.success(t("auth.welcome_back"));
-        navigate("/dashboard");
+        navigate("/");
       }
       setLoading(false);
       return;
     }
 
+    if (!acceptedTerms) { setError(t("auth.agree_required")); setLoading(false); return; }
+    localStorage.setItem("fen-terms-accepted", TERMS_VERSION);
     if (!fullName.trim()) { setError(t("auth.err.full_name")); setLoading(false); return; }
     if (password.length < 8) { setError(t("auth.err.password_min")); setLoading(false); return; }
     const result = await signUp(email, password, fullName, lang);
-    if (result.error) setError(result.error);
+    if (result.error) setError(friendlyAuthError(result.error));
     else {
       rememberPendingVerificationEmail(email);
       toast.success(t("auth.verify_sent"));
@@ -156,22 +173,46 @@ export default function AuthPage() {
       return;
     }
     if (companyPassword.length < 8) { setError(t("auth.err.password_min")); setLoading(false); return; }
+    if (!acceptedTerms) { setError(t("auth.agree_required")); setLoading(false); return; }
+    localStorage.setItem("fen-terms-accepted", TERMS_VERSION);
 
     const industry = t(industryKey);
+    const website = companyWebsite.trim() ? safeHttpUrl(companyWebsite) : null;
+    if (companyWebsite.trim() && !website) {
+      setError(t("auth.err.website"));
+      setLoading(false);
+      return;
+    }
+
+    rememberPendingCompany({
+      email: companyEmail.trim(),
+      company: companyName.trim(),
+      website,
+      phone: companyPhone.trim() || null,
+      industry,
+    });
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: companyEmail, password: companyPassword,
       options: {
         emailRedirectTo: getAuthRedirectUrl("/auth/callback"),
         data: {
-          full_name: contactName, account_type: "company", company_name: companyName,
-          industry, company_size: companySize, phone: companyPhone || null, website: companyWebsite || null,
+          full_name: contactName,
+          account_type: "company",
+          company_name: companyName,
+          industry,
+          company_size: companySize,
+          phone: companyPhone || null,
+          website,
+          website_url: website,
           preferred_language: lang,
+          terms_accepted: true,
+          terms_version: TERMS_VERSION,
         },
       },
     });
 
-    if (signUpError) { setError(signUpError.message); setLoading(false); return; }
+    if (signUpError) { setError(friendlyAuthError(signUpError.message)); setLoading(false); return; }
 
     // Route lead through rate-limited edge function (avoids RLS block for unverified users)
     const { data: leadRes, error: leadErr } = await supabase.functions.invoke("submit-public-form", {
@@ -182,7 +223,7 @@ export default function AuthPage() {
         email: companyEmail,
         phone: companyPhone || "",
         services_interested: industry,
-        message: `Company registration - Size: ${companySize} | Website: ${companyWebsite || "N/A"}`,
+        message: `Company registration - Size: ${companySize} | Website: ${website || "N/A"}`,
       },
     });
     if (leadErr || leadRes?.error) {
@@ -190,20 +231,12 @@ export default function AuthPage() {
     }
 
     if (data.user) {
-      // Safe identity/company fields only — privileges come from DB defaults / handle_new_user
-      const { error: profileErr } = await supabase.from("user_profiles").upsert({
-        id: data.user.id,
-        email: companyEmail.trim().toLowerCase(),
-        full_name: contactName.trim(),
-        account_type: "company",
+      await claimCompanyAccount({
         company: companyName.trim(),
-        website_url: companyWebsite.trim() || null,
+        website,
         phone: companyPhone.trim() || null,
-        role: industry,
-      }, { onConflict: "id" });
-      if (profileErr) {
-        console.warn("Company profile upsert deferred to trigger:", profileErr.message);
-      }
+        industry,
+      });
     }
 
     rememberPendingVerificationEmail(companyEmail);
@@ -227,9 +260,12 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4" />{t("general.back")}
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="w-4 h-4" />{t("general.back")}
+          </Link>
+          <LanguageSwitcher />
+        </div>
 
         <Card className="border border-border shadow-xl overflow-hidden">
           <div className="h-1.5 bg-gradient-to-r from-primary via-primary/60 to-primary/30" />
@@ -313,7 +349,14 @@ export default function AuthPage() {
                       <h1 className="text-2xl font-bold text-foreground mb-1">{t("auth.company_signup")}</h1>
                       <p className="text-sm text-muted-foreground">{t("auth.company_signup_desc")}</p>
                     </div>
-                    <SocialAuthButtons mode="signup" intent="company" onError={setError} layout="grid" />
+                    <label className="flex items-start gap-3 text-sm mb-4 cursor-pointer">
+                      <Checkbox checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
+                      <span>
+                        {t("auth.accept_terms_label")}{" "}
+                        <Link to="/terms" className="text-primary underline">{t("auth.terms_link")}</Link>
+                      </span>
+                    </label>
+                    <SocialAuthButtons mode="signup" intent="company" onError={setError} layout="grid" disabled={!acceptedTerms} />
                     <SocialAuthDivider />
                     <form onSubmit={handleCompanySubmit} className="space-y-4">
                       <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
@@ -395,7 +438,7 @@ export default function AuthPage() {
                           <p className="text-xs text-amber-600 dark:text-amber-500">{t("auth.enterprise_badge_desc")}</p>
                         </div>
                       </div>
-                      <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11">
+                      <Button type="submit" disabled={loading || !acceptedTerms} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11">
                         {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{t("auth.creating")}</> : <><Building2 className="w-4 h-4 mr-2" />{t("auth.create_company")}</>}
                       </Button>
                     </form>
@@ -426,12 +469,22 @@ export default function AuthPage() {
                 )}
                 {!resetSent && !passwordUpdated && (
                   <>
+                    {mode === "signup" && (
+                      <label className="flex items-start gap-3 text-sm mb-4 cursor-pointer">
+                        <Checkbox checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
+                        <span>
+                          {t("auth.accept_terms_label")}{" "}
+                          <Link to="/terms" className="text-primary underline">{t("auth.terms_link")}</Link>
+                        </span>
+                      </label>
+                    )}
                     {(mode === "login" || mode === "signup") && (
                       <div className="mb-1">
                         <SocialAuthButtons
                           mode={mode}
                           onError={setError}
                           layout="grid"
+                          disabled={mode === "signup" && !acceptedTerms}
                         />
                         <SocialAuthDivider />
                       </div>
@@ -482,7 +535,7 @@ export default function AuthPage() {
                       )}
                       {error && <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">{error}</div>}
 
-                      <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                      <Button type="submit" disabled={loading || (mode === "signup" && !acceptedTerms)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                         {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                         {mode === "login" ? t("auth.login") : mode === "signup" ? t("auth.signup") : mode === "reset" ? t("auth.reset.send") : t("auth.newpw.save")}
                       </Button>

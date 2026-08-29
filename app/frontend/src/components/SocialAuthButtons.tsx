@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Linkedin } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import {
@@ -38,21 +38,14 @@ interface SocialAuthButtonsProps {
   onError?: (message: string) => void;
   layout?: "stack" | "grid";
   className?: string;
+  disabled?: boolean;
 }
 
-function oauthProvidersEnabled(): OAuthProvider[] {
-  // Show social buttons only when explicitly enabled (avoids broken provider UX in production).
-  const flag = String(import.meta.env.VITE_OAUTH_ENABLED || "").toLowerCase();
-  if (flag === "false" || flag === "0") return [];
-  if (flag === "true" || flag === "1") return ["google", "linkedin_oidc"];
-  const enabled: OAuthProvider[] = [];
-  if (String(import.meta.env.VITE_GOOGLE_OAUTH || "").toLowerCase() === "true") {
-    enabled.push("google");
-  }
-  if (String(import.meta.env.VITE_LINKEDIN_OAUTH || "").toLowerCase() === "true") {
-    enabled.push("linkedin_oidc");
-  }
-  return enabled;
+function oauthEnabled(): boolean {
+  const flag = String(import.meta.env.VITE_OAUTH_ENABLED ?? "true").toLowerCase();
+  if (flag === "false" || flag === "0") return false;
+  if (String(import.meta.env.VITE_GOOGLE_OAUTH || "").toLowerCase() === "false") return false;
+  return true;
 }
 
 export default function SocialAuthButtons({
@@ -61,14 +54,14 @@ export default function SocialAuthButtons({
   onError,
   layout = "stack",
   className = "",
+  disabled = false,
 }: SocialAuthButtonsProps) {
   const { t } = useI18n();
   const [loadingProvider, setLoadingProvider] = useState<OAuthProvider | null>(null);
-  const providers = oauthProvidersEnabled();
+
+  if (!oauthEnabled()) return null;
 
   const resolvedIntent: OAuthIntent = intent ?? (mode === "signup" ? "signup" : "login");
-
-  if (providers.length === 0) return null;
 
   const handleOAuth = async (provider: OAuthProvider) => {
     setLoadingProvider(provider);
@@ -81,67 +74,41 @@ export default function SocialAuthButtons({
         onError?.(
           isOAuthConfiguredError(error.message)
             ? t("auth.oauth_not_configured")
-            : t("auth.oauth_failed").replace("{provider}", provider === "google" ? "Google" : "LinkedIn"),
+            : t("auth.oauth_failed").replace("{provider}", "Google"),
         );
       }
     } catch {
       setLoadingProvider(null);
-      onError?.(t("auth.oauth_failed").replace("{provider}", provider === "google" ? "Google" : "LinkedIn"));
+      onError?.(t("auth.oauth_failed").replace("{provider}", "Google"));
     }
   };
 
-  const googleLabel =
-    mode === "login" ? t("auth.google_login") : t("auth.google_signup");
-  const linkedinLabel =
-    mode === "login" ? t("auth.linkedin_login") : t("auth.linkedin_signup");
-
-  const containerClass =
-    layout === "grid"
-      ? `grid grid-cols-1 sm:grid-cols-2 gap-3 ${className}`
-      : `space-y-3 ${className}`;
+  const googleLabel = mode === "login" ? t("auth.google_login") : t("auth.google_signup");
+  const containerClass = layout === "grid" ? `grid grid-cols-1 gap-3 ${className}` : `space-y-3 ${className}`;
 
   return (
     <div className={containerClass}>
-      {providers.includes("google") && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full gap-2.5 h-11 bg-background hover:bg-muted/60 border-border shadow-sm font-medium"
-          onClick={() => handleOAuth("google")}
-          disabled={loadingProvider !== null}
-        >
-          {loadingProvider === "google" ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <GoogleIcon className="w-4 h-4" />
-          )}
-          {loadingProvider === "google" ? t("auth.oauth_redirecting") : googleLabel}
-        </Button>
-      )}
-
-      {providers.includes("linkedin_oidc") && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full gap-2.5 h-11 border-[#0077b5]/40 text-[#0077b5] hover:bg-[#0077b5]/10 dark:text-[#38bdf8] dark:border-[#38bdf8]/40 dark:hover:bg-[#0077b5]/20 font-medium"
-          onClick={() => handleOAuth("linkedin_oidc")}
-          disabled={loadingProvider !== null}
-        >
-          {loadingProvider === "linkedin_oidc" ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Linkedin className="w-4 h-4" />
-          )}
-          {loadingProvider === "linkedin_oidc" ? t("auth.oauth_redirecting") : linkedinLabel}
-        </Button>
-      )}
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full gap-2.5 h-11 bg-background hover:bg-muted/60 border-border shadow-sm font-medium"
+        onClick={() => handleOAuth("google")}
+        disabled={disabled || loadingProvider !== null}
+      >
+        {loadingProvider === "google" ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <GoogleIcon className="w-4 h-4" />
+        )}
+        {loadingProvider === "google" ? t("auth.oauth_redirecting") : googleLabel}
+      </Button>
     </div>
   );
 }
 
 export function SocialAuthDivider() {
   const { t } = useI18n();
-  if (oauthProvidersEnabled().length === 0) return null;
+  if (!oauthEnabled()) return null;
   return (
     <div className="relative my-5">
       <div className="absolute inset-0 flex items-center">

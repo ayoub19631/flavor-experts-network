@@ -76,27 +76,31 @@ export default function ForumPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <section className="pt-28 pb-10 bg-gradient-to-br from-primary/5 via-background to-primary/5">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-28 pb-12 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src="/brand/section-community.webp" alt="" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[hsl(208_100%_10%/0.82)] via-[hsl(208_100%_10%/0.88)] to-background" />
+        </div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             {t("general.back")}
           </Link>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <MessagesSquare className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <MessagesSquare className="w-5 h-5 text-[hsl(47_23%_85%)]" />
             </div>
-            <Badge className="bg-primary/10 text-primary border-0 px-3 py-1">
+            <Badge className="bg-white/10 text-[hsl(47_23%_85%)] border-0 px-3 py-1">
               {t("forum.tag")}
             </Badge>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
             {t("forum.title")}
           </h1>
-          <p className="text-muted-foreground max-w-xl">{t("forum.desc")}</p>
+          <p className="text-white/75 max-w-xl">{t("forum.desc")}</p>
         </div>
       </section>
 

@@ -143,15 +143,15 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   // Registration / signup
   if (/sign.?up|register|join|create.?account|how.?to.?join|تسجيل|انضم|إنشاء|اشترك|كيف أسجل|كيفية التسجيل/.test(m)) {
     return isAr
-      ? `للتسجيل في المنصة بسهولة:\n\n1️⃣ اذهب إلى صفحة **/auth**\n2️⃣ اختر نوع الحساب: **فردي** أو **شركة**\n3️⃣ أدخل بياناتك (الاسم، البريد، كلمة المرور، التخصص)\n4️⃣ تحقق من بريدك برمز **OTP مكوّن من 6 أرقام**\n5️⃣ اختر **عملتك المفضلة** (32 خيار متاح)\n6️⃣ ابدأ الاستكشاف! 🚀\n\n🔗 يمكنك أيضاً الدخول مباشرةً عبر **LinkedIn**!\n\nهل تحتاج مساعدة في خطوة معينة؟`
-      : `To join Flavor Experts Network:\n\n1️⃣ Go to **/auth** page\n2️⃣ Choose account type: **Individual** or **Company**\n3️⃣ Fill in your details (name, email, password, specialty)\n4️⃣ Verify email with a **6-digit OTP** sent to your inbox\n5️⃣ Select your **preferred currency**\n6️⃣ Start exploring! 🚀\n\n🔗 You can also **sign in with LinkedIn** instantly!\n\nNeed help with a specific step?`;
+      ? `للتسجيل في المنصة بسهولة:\n\n1️⃣ اذهب إلى صفحة **/auth**\n2️⃣ اختر نوع الحساب: **فردي** أو **شركة**\n3️⃣ أدخل بياناتك (الاسم، البريد، كلمة المرور، التخصص)\n4️⃣ تحقق من بريدك برمز **OTP مكوّن من 6 أرقام**\n5️⃣ ابدأ الاستكشاف! 🚀\n\n🔗 يمكنك أيضاً الدخول عبر **Google** أو البريد الإلكتروني.\n\nهل تحتاج مساعدة في خطوة معينة؟`
+      : `To join Flavor Experts Network:\n\n1️⃣ Go to **/auth** page\n2️⃣ Choose account type: **Individual** or **Company**\n3️⃣ Fill in your details (name, email, password, specialty)\n4️⃣ Verify email with a **6-digit OTP** sent to your inbox\n5️⃣ Start exploring! 🚀\n\n🔗 You can also **sign in with Google** or email.\n\nNeed help with a specific step?`;
   }
 
   // Login / password
   if (/log.?in|sign.?in|forgot.?pass|reset.?pass|تسجيل دخول|نسيت كلمة|دخول|كلمة المرور/.test(m)) {
     return isAr
-      ? `لتسجيل الدخول:\n\n1️⃣ اذهب إلى **/auth**\n2️⃣ أدخل بريدك الإلكتروني وكلمة المرور\n3️⃣ أو اضغط **تسجيل الدخول بـ LinkedIn** للدخول السريع\n\n**🔑 نسيت كلمة المرور؟**\nاضغط "نسيت كلمة المرور" في صفحة الدخول وسنرسل لك رابط استعادة فوراً.\n\nهل تواجه مشكلة معينة في الدخول؟`
-      : `To log in:\n\n1️⃣ Go to **/auth**\n2️⃣ Enter your email & password\n3️⃣ Or click **Sign in with LinkedIn**\n\n**🔑 Forgot password?**\nClick "Forgot Password" on the login page — we'll send a reset link instantly.\n\nAre you having trouble with a specific issue?`;
+      ? `لتسجيل الدخول:\n\n1️⃣ اذهب إلى **/auth**\n2️⃣ أدخل بريدك الإلكتروني وكلمة المرور\n3️⃣ أو اضغط **المتابعة مع Google**\n\n**🔑 نسيت كلمة المرور؟**\nاضغط "نسيت كلمة المرور" في صفحة الدخول وسنرسل لك رابط استعادة فوراً.\n\nهل تواجه مشكلة معينة في الدخول؟`
+      : `To log in:\n\n1️⃣ Go to **/auth**\n2️⃣ Enter your email & password\n3️⃣ Or click **Continue with Google**\n\n**🔑 Forgot password?**\nClick "Forgot Password" on the login page — we'll send a reset link instantly.\n\nAre you having trouble with a specific issue?`;
   }
 
   // Features / what is the platform
@@ -364,8 +364,9 @@ export default function ChatAssistant() {
         .concat(userMsg)
         .map(m => ({ role: m.role, content: m.content }));
 
-      let reply = await callAI(history, lang);
-      if (!reply) reply = getSmartFallback(content, lang);
+      const botLang = lang === "ar" ? "ar" : "en";
+      let reply = await callAI(history, botLang);
+      if (!reply) reply = getSmartFallback(content, botLang);
 
       const botMsg: Message = {
         id: `a-${Date.now()}`,
@@ -380,7 +381,7 @@ export default function ChatAssistant() {
         {
           id: `err-${Date.now()}`,
           role: "assistant",
-          content: getSmartFallback(content, lang),
+          content: getSmartFallback(content, lang === "ar" ? "ar" : "en"),
           timestamp: new Date(),
         },
       ]);

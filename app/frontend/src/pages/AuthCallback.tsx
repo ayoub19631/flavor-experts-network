@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { FlaskConical, CheckCircle, KeyRound, LogIn, Mail, Sparkles } from "lucide-react";
-import { isEmailVerified, rememberPendingVerificationEmail } from "@/lib/auth-utils";
+import { CheckCircle, KeyRound, LogIn, Mail, Sparkles } from "lucide-react";
+import { consumePendingCompany, isEmailVerified, rememberPendingVerificationEmail } from "@/lib/auth-utils";
+import { TERMS_VERSION } from "@/lib/terms-policy";
 import {
   consumeOAuthIntent,
   getOAuthProviderLabel,
@@ -54,12 +55,33 @@ export default function AuthCallback() {
 
       const user = session.user;
       const provider = user.app_metadata?.provider as string | undefined;
-      const isOAuth =
-        provider === "google" || provider === "linkedin" || provider === "linkedin_oidc";
-      consumeOAuthIntent();
+      const isOAuth = provider === "google";
+      const intent = consumeOAuthIntent();
+      const intentParam = searchParams.get("intent");
+      if (intentParam === "company") {
+        localStorage.setItem("fen-oauth-intent", "company");
+      }
 
       if (user.user_metadata) {
         await syncOAuthUserProfile(user.id, user.user_metadata, user.email);
+      }
+
+      const pendingCompany = consumePendingCompany(user.email);
+      if (localStorage.getItem("fen-terms-accepted") === TERMS_VERSION) {
+        await supabase.rpc("accept_platform_terms", { p_version: TERMS_VERSION });
+      }
+
+      if (intent === "company" || intentParam === "company" || pendingCompany) {
+        await supabase.rpc("claim_company_account", {
+          p_company:
+            pendingCompany?.company ||
+            user.user_metadata?.company_name ||
+            user.user_metadata?.full_name ||
+            "",
+          p_website: pendingCompany?.website || null,
+          p_phone: pendingCompany?.phone || null,
+          p_industry: pendingCompany?.industry || user.user_metadata?.industry || null,
+        });
       }
 
       const hash = window.location.hash;
@@ -76,7 +98,7 @@ export default function AuthCallback() {
               ? "تم تأكيد البريد بنجاح!"
               : "Email verified successfully!",
         );
-        setTimeout(() => navigate(isEmailConfirm ? "/email-verified" : "/dashboard"), 1200);
+        setTimeout(() => navigate(isEmailConfirm ? "/email-verified" : "/"), 1200);
         return;
       }
 
@@ -100,7 +122,7 @@ export default function AuthCallback() {
             ? "مرحباً بعودتك!"
             : "Welcome back!",
       );
-      setTimeout(() => navigate("/dashboard"), 1200);
+      setTimeout(() => navigate("/"), 1200);
     }
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -117,16 +139,44 @@ export default function AuthCallback() {
     });
 
     (async () => {
-      // Edge OAuth may redirect here with token_hash instead of a session hash.
-      const tokenHash = searchParams.get("token_hash");
-      const otpType = searchParams.get("type");
-      if (tokenHash && otpType) {
+      const hashParams = new URLSearchParams(
+        window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash,
+      );
+      const tokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
+      const otpType = (searchParams.get("type") || hashParams.get("type") || "magiclink") as
+        | "magiclink"
+        | "email"
+        | "signup"
+        | "recovery"
+        | "invite";
+      const hasHashSession = hashParams.has("access_token");
+
+      if (hasHashSession) {
+        await new Promise((resolve) => window.setTimeout(resolve, 200));
+        if (cancelled) return;
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+          await finalizeSession(session);
+          return;
+        }
+      }
+
+      if (tokenHash) {
         const { data, error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
-          type: otpType as "magiclink" | "email" | "signup" | "recovery" | "invite",
+          type: otpType,
         });
         if (cancelled) return;
         if (error || !data.session) {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (session) {
+            await finalizeSession(session);
+            return;
+          }
           navigate(
             `/auth/error?msg=${encodeURIComponent(error?.message || "Could not complete sign in.")}`,
           );
@@ -149,10 +199,17 @@ export default function AuthCallback() {
       } = await supabase.auth.getSession();
       if (session) {
         await finalizeSession(session);
-      } else {
-        navigate("/auth?mode=login");
+        return;
       }
-    }, 8000);
+      const tokenHash = searchParams.get("token_hash");
+      const hashHasToken =
+        window.location.hash.includes("access_token") || window.location.hash.includes("token_hash");
+      if (tokenHash || hashHasToken) {
+        navigate("/auth/error?msg=" + encodeURIComponent("Could not complete sign in."));
+        return;
+      }
+      navigate("/auth?mode=login");
+    }, 12000);
 
     return () => {
       cancelled = true;
@@ -206,7 +263,7 @@ export default function AuthCallback() {
     signed_in: {
       icon: <LogIn className="w-10 h-10 text-primary mx-auto" />,
       title: isAR ? "تم تسجيل الدخول!" : "Signed In!",
-      desc: isAR ? "جاري التحويل إلى لوحتك..." : "Redirecting to your dashboard...",
+      desc: isAR ? "جاري التحويل إلى المجتمع..." : "Redirecting to the community...",
       color: "text-primary",
     },
   };
