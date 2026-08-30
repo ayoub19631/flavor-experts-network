@@ -6,7 +6,6 @@ import ResourcesSection from "@/components/ResourcesSection";
 import PartnersSection from "@/components/PartnersSection";
 import ContactSection from "@/components/ContactSection";
 import FooterSection from "@/components/FooterSection";
-import DatabaseStatus from "@/components/DatabaseStatus";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useI18n } from "@/lib/i18n";
 
@@ -30,7 +29,6 @@ export default function Index() {
       <PartnersSection />
       <ContactSection />
       <FooterSection />
-      <DatabaseStatus />
     </div>
   );
 }

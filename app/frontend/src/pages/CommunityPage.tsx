@@ -3,9 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   BarChart3,
+  Bookmark,
+  BookmarkCheck,
   Building2,
   CheckCircle2,
+  Clock,
   Compass,
+  Copy,
   Heart,
   ImagePlus,
   Loader2,
@@ -25,6 +29,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
+import CommunityPostBody from "@/components/CommunityPostBody";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,14 +50,18 @@ import { SITE } from "@/lib/site-config";
 import type { SocialPost, SocialPostComment } from "@/lib/types";
 import { toast } from "sonner";
 import { violatesEducationalPolicy } from "@/lib/content-policy";
+import {
+  extractHashtags,
+  loadSavedPostIds,
+  persistSavedPostIds,
+  readingMinutes,
+  shouldCollapsePost,
+  truncatePost,
+} from "@/lib/community-post";
 
-type FeedFilter = "latest" | "popular" | "mine";
+type FeedFilter = "latest" | "popular" | "mine" | "saved";
 
 const MAX_POST_LENGTH = 5000;
-
-function extractHashtags(text: string): string[] {
-  return text.match(/#[\p{L}\p{N}_-]+/gu) || [];
-}
 
 function formatRelative(date: string, lang: string) {
   const d = new Date(date);
@@ -81,7 +90,7 @@ function initials(name?: string) {
 export default function CommunityPage() {
   const { t, lang } = useI18n();
   const { user, profile, isAdmin } = useAuth();
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const isHomeFeed = pathname === "/" || pathname === "/community";
   usePageMeta({ title: t("community.title"), description: t("community.desc"), path: "/", locale: lang });
 
@@ -99,6 +108,11 @@ export default function CommunityPage() {
   const [commentBusy, setCommentBusy] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("latest");
   const [search, setSearch] = useState("");
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+  const [savedIds, setSavedIds] = useState<string[]>(() =>
+    typeof window === "undefined" ? [] : loadSavedPostIds(),
+  );
+  const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const quickTopics = [
     { tag: "#FlavorScience", label: t("community.topic.science") },
@@ -138,6 +152,7 @@ export default function CommunityPage() {
     const query = search.trim().toLocaleLowerCase();
     const filtered = posts.filter((post) => {
       if (feedFilter === "mine" && post.author_id !== user?.id) return false;
+      if (feedFilter === "saved" && !savedIds.includes(post.id)) return false;
       if (!query) return true;
       const searchable = [
         post.body,
@@ -160,7 +175,7 @@ export default function CommunityPage() {
       );
     }
     return filtered;
-  }, [feedFilter, posts, search, user?.id]);
+  }, [feedFilter, posts, savedIds, search, user?.id]);
 
   const load = async () => {
     setLoading(true);
@@ -195,6 +210,20 @@ export default function CommunityPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  useEffect(() => {
+    if (loading) return;
+    const match = hash.match(/^#post-(.+)$/);
+    if (!match?.[1]) return;
+    const postId = match[1];
+    setExpandedPosts((prev) => ({ ...prev, [postId]: true }));
+    const node = document.getElementById(`post-${postId}`);
+    if (node) {
+      window.requestAnimationFrame(() => {
+        node.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [loading, hash, posts.length]);
+
   const onPickImage = async (file?: File | null) => {
     if (!file || !user) return;
     setUploadingImage(true);
@@ -227,21 +256,23 @@ export default function CommunityPage() {
     });
   };
 
-  const renderPostBody = (text: string) =>
-    text.split(/(#[\p{L}\p{N}_-]+)/gu).map((part, index) =>
-      part.startsWith("#") ? (
-        <button
-          key={`${part}-${index}`}
-          type="button"
-          className="font-medium text-primary hover:underline"
-          onClick={() => setSearch(part)}
-        >
-          {part}
-        </button>
-      ) : (
-        <span key={`${index}-${part.slice(0, 8)}`}>{part}</span>
-      ),
-    );
+  const toggleExpanded = (postId: string) => {
+    setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const toggleSaved = (postId: string) => {
+    setSavedIds((prev) => {
+      const next = prev.includes(postId) ? prev.filter((id) => id !== postId) : [postId, ...prev];
+      persistSavedPostIds(next);
+      toast.success(next.includes(postId) ? t("community.saved") : t("community.unsaved"));
+      return next;
+    });
+  };
+
+  const copyPost = async (post: SocialPost) => {
+    await navigator.clipboard.writeText(post.body);
+    toast.success(t("community.copied"));
+  };
 
   const publish = async () => {
     if (!user) {
@@ -670,6 +701,7 @@ export default function CommunityPage() {
                   ["latest", t("community.filter.latest"), Compass],
                   ["popular", t("community.filter.popular"), TrendingUp],
                   ["mine", t("community.filter.mine"), Users],
+                  ["saved", t("community.filter.saved"), Bookmark],
                 ] as const).map(([value, label, Icon]) => (
                   <button
                     key={value}
@@ -712,12 +744,16 @@ export default function CommunityPage() {
                 <p className="font-semibold text-lg">
                   {search || feedFilter === "mine"
                     ? t("community.empty.filtered")
-                    : t("community.empty")}
+                    : feedFilter === "saved"
+                      ? t("community.empty.saved")
+                      : t("community.empty")}
                 </p>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                   {search || feedFilter === "mine"
                     ? t("community.empty.filtered.desc")
-                    : t("community.empty.desc")}
+                    : feedFilter === "saved"
+                      ? t("community.empty.saved.desc")
+                      : t("community.empty.desc")}
                 </p>
                 {(search || feedFilter !== "latest") && (
                   <Button
@@ -825,9 +861,15 @@ export default function CommunityPage() {
                             </div>
                           </div>
 
-                          <p className="mt-3 text-[15px] leading-relaxed text-foreground whitespace-pre-wrap">
-                            {renderPostBody(post.body)}
-                          </p>
+                          <CommunityPostBody
+                            text={post.body}
+                            expanded={!!expandedPosts[post.id] || hash === `#post-${post.id}`}
+                            onToggle={() => toggleExpanded(post.id)}
+                            onHashtag={setSearch}
+                            seeMore={t("community.see_more")}
+                            seeLess={t("community.see_less")}
+                            technicalLabel={t("community.technical")}
+                          />
                           {postImage && (
                             <a href={postImage} target="_blank" rel="noopener noreferrer" className="block mt-3">
                               <img
@@ -849,7 +891,10 @@ export default function CommunityPage() {
                               aria-label={t("community.like")}
                             >
                               <Heart className={`w-4 h-4 ${post.liked_by_me ? "fill-current" : ""}`} />
-                              {post.likes_count || 0}
+                              <span>{t("community.like_action")}</span>
+                              {(post.likes_count || 0) > 0 && (
+                                <span className="tabular-nums text-xs">{post.likes_count}</span>
+                              )}
                             </Button>
                             <Button
                               variant="ghost"
@@ -859,8 +904,10 @@ export default function CommunityPage() {
                               aria-expanded={commentsOpen}
                             >
                               <MessageCircle className="w-4 h-4" />
-                              {post.comments_count || 0}
-                              <span className="hidden sm:inline">{t("community.comments")}</span>
+                              <span>{t("community.comments")}</span>
+                              {(post.comments_count || 0) > 0 && (
+                                <span className="tabular-nums text-xs">{post.comments_count}</span>
+                              )}
                             </Button>
                             <Button
                               variant="ghost"
@@ -871,6 +918,36 @@ export default function CommunityPage() {
                               <Share2 className="w-4 h-4" />
                               {t("community.share")}
                             </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={`gap-1.5 h-8 ${
+                                savedIds.includes(post.id) ? "text-primary" : "text-muted-foreground"
+                              }`}
+                              onClick={() => toggleSaved(post.id)}
+                            >
+                              {savedIds.includes(post.id) ? (
+                                <BookmarkCheck className="w-4 h-4" />
+                              ) : (
+                                <Bookmark className="w-4 h-4" />
+                              )}
+                              {savedIds.includes(post.id) ? t("community.saved") : t("community.save")}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1.5 h-8 text-muted-foreground"
+                              onClick={() => copyPost(post)}
+                            >
+                              <Copy className="w-4 h-4" />
+                              {t("community.copy")}
+                            </Button>
+                            {shouldCollapsePost(post.body) && (
+                              <span className="ms-auto inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                                <Clock className="w-3 h-3" />
+                                {readingMinutes(post.body)} {t("community.min_read")}
+                              </span>
+                            )}
                           </div>
 
                           {commentsOpen && (
@@ -919,7 +996,27 @@ export default function CommunityPage() {
                                           </Button>
                                         )}
                                       </div>
-                                      <p className="text-sm mt-1 whitespace-pre-wrap">{c.body}</p>
+                                      <p className="text-sm mt-1 whitespace-pre-wrap">
+                                        {expandedComments[c.id] || !shouldCollapsePost(c.body, 220)
+                                          ? c.body
+                                          : `${truncatePost(c.body, 220)}…`}
+                                      </p>
+                                      {shouldCollapsePost(c.body, 220) && (
+                                        <button
+                                          type="button"
+                                          className="mt-1 text-xs font-semibold text-primary hover:underline"
+                                          onClick={() =>
+                                            setExpandedComments((prev) => ({
+                                              ...prev,
+                                              [c.id]: !prev[c.id],
+                                            }))
+                                          }
+                                        >
+                                          {expandedComments[c.id]
+                                            ? t("community.see_less")
+                                            : t("community.see_more")}
+                                        </button>
+                                      )}
                                     </div>
                                   </div>
                                 ))

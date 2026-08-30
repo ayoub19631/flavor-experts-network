@@ -69,8 +69,9 @@ app/frontend/qa-screenshots/
 logo-search-*
 deploy/vercel-login-code.txt
 
-# ── Uploads (user-generated content goes to Supabase Storage) ────────────────
-uploads/images/
+# ── Local leftovers (user content belongs in Supabase Storage) ───────────────
+uploads/
+Video/
 
 # Local secrets
 deploy/LOCAL-CREDENTIALS.secret.txt

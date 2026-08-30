@@ -1,4 +1,4 @@
-# إعداد Google + LinkedIn OAuth — Flavor Experts Network
+# إعداد Google OAuth — Flavor Experts Network
 
 ## الطريقة (Edge Function)
 

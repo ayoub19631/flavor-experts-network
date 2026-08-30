@@ -6,18 +6,14 @@
 |--------|---------|
 | `OPENAI_API_KEY` | `flavorbot` |
 | `OPENAI_MODEL` | `flavorbot` (optional, default `gpt-4o-mini`) |
-| `STRIPE_SECRET_KEY` | `create-checkout-session` |
-| `STRIPE_PRICE_PRO_MONTHLY` / `_ANNUAL` | checkout |
-| `STRIPE_PRICE_ENT_MONTHLY` / `_ANNUAL` | checkout |
-| `STRIPE_WEBHOOK_SECRET` | `stripe-webhook` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | `oauth` |
-| `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | `oauth` |
+| `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | unused while LinkedIn login is disabled |
 | `OAUTH_STATE_SECRET` | `oauth` (HMAC for OAuth state) |
 | `RESEND_API_KEY` | `send-email`, `auth-email-hook` |
 | `EMAIL_FROM` | `send-email`, `auth-email-hook` (must be verified: `Flavor Experts Network <noreply@nexusflavor.com>`) |
 | `SEND_EMAIL_HOOK_SECRET` | `auth-email-hook` — must match Auth → Hooks → Send Email secret |
 | `ADMIN_NOTIFY_EMAIL` | `send-email` |
-| `SITE_URL` | checkout redirects + branded emails |
+| `SITE_URL` | branded emails |
 | `INTERNAL_EMAIL_SECRET` | optional header auth for internal email types |
 
 ### Auth emails (OTP / verify / reset) via Resend
@@ -52,8 +48,7 @@ supabase functions deploy flavorbot --project-ref imucfofvdwfyexdwrsfe
 supabase functions deploy send-email --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
 supabase functions deploy auth-email-hook --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
 supabase functions deploy oauth --project-ref imucfofvdwfyexdwrsfe
-supabase functions deploy create-checkout-session --project-ref imucfofvdwfyexdwrsfe
-supabase functions deploy stripe-webhook --project-ref imucfofvdwfyexdwrsfe
+# Do not redeploy create-checkout-session / stripe-webhook — unused while the platform is free
 
 # Email/OTP ops
 bash deploy/fix-email-delivery.sh

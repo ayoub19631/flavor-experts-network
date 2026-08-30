@@ -109,14 +109,14 @@ node build.mjs                # بناء الويب فقط
 # app/frontend/.env
 VITE_SUPABASE_URL=...
 VITE_SUPABASE_ANON_KEY=...
-VITE_SITE_URL=https://flavorexperts.net
+VITE_SITE_URL=https://flavorexpertsnetwork.com
 ```
 
 ---
 
 ## 📋 ملاحظات مهمة
 
-- تطبيق Android يتصل بـ `https://flavorexperts.net` تلقائياً
+- تطبيق Android يتصل بـ `https://flavorexpertsnetwork.com` تلقائياً
 - تطبيق Electron في وضع التطوير يتصل بـ `http://localhost:3001`
 - تطبيق Electron في الإنتاج يعمل offline مع الملفات المنسوخة
 - جميع التطبيقات تشترك في نفس كود React

@@ -15,9 +15,8 @@
 
 ## Do not run
 
-- `database/MASTER-SETUP.sql` on production
-- Old permissive `database/STORAGE-ONLY-SETUP.sql` variants (file now hardened)
-- `app/frontend/fix-rls.mjs` (exits with error)
+- Any deleted legacy `database/*.sql` bootstrap archive
+- One-off SQL pasted from old chats — use `supabase/migrations/` only
 
 ## Apply
 

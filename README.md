@@ -8,6 +8,7 @@ Free professional network for flavor scientists and food technologists — jobs,
 | **Stack** | React 18 · TypeScript · Vite · Supabase |
 | **Policy** | Fully free for individuals and companies |
 | **Apps** | Web · Electron · Capacitor (Android + iOS) — see [deploy/MOBILE-APPS.md](deploy/MOBILE-APPS.md) |
+| **Platform guide** | [docs/PLATFORM.md](docs/PLATFORM.md) — features, policy, and future-dev rules |
 
 ---
 
@@ -16,11 +17,11 @@ Free professional network for flavor scientists and food technologists — jobs,
 ```
 ├── app/frontend/          React 18 + TypeScript + Vite
 ├── electron/              Desktop shell (Electron)
-├── database/              SQL reference & setup scripts
 ├── supabase/
 │   ├── functions/         Edge Functions (OAuth, FlavorBot, email, cron)
 │   └── migrations/        Versioned database migrations
 ├── deploy/                Hosting, OAuth & ops docs/scripts
+├── docs/PLATFORM.md       Product features & future-dev guide
 └── build.mjs              Unified web → electron / android / ios build
 ```
 
@@ -84,9 +85,7 @@ npx supabase db push
 SUPABASE_ACCESS_TOKEN=... bash deploy/apply-platform-updates.sh
 ```
 
-`database/MASTER-SETUP.sql` and related `database/*.sql` scripts are **legacy bootstrap archives**.  
-Do **not** re-run them on production — they can recreate permissive RLS/storage policies.  
-Never run `app/frontend/fix-rls.mjs` (disabled).
+Do not invent a new bootstrap SQL file. Production already has the migrations applied.
 
 Admin access: `user_profiles.is_admin = true` (service role / SQL only — never from the client).  
 Admin panel: `/admin`
@@ -101,7 +100,7 @@ Admin panel: `/admin`
 | UI | shadcn/ui + Tailwind CSS + Radix UI |
 | Backend | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
 | Routing | React Router v6 |
-| i18n | Custom EN/AR provider (RTL) |
+| i18n | EN / AR (RTL) + FR, ES, DE, TR, ZH |
 | State | TanStack Query + React Context |
 | Membership | Fully free (`PLATFORM_ALWAYS_FREE`) |
 | Desktop / Mobile | Electron 32 + Capacitor 8 |
@@ -112,23 +111,18 @@ Admin panel: `/admin`
 
 ## Features
 
-- Landing page with live DB content (News, Resources, Members)
-- Authentication — individual & company accounts + OAuth
-- Email verification flow
-- Professional dashboard with cover photo, skills, experience, education, projects
-- Members directory with search, filters, talent matching, and connection requests
-- Jobs board with skill-match hints (free browse/apply; free company posting)
-- Community feed with photo posts, likes, comments, share + forum moderation
-- Market briefings with archive + commodity filters
-- Learning paths and free course enrollment
-- Admin analytics overview + broadcast + moderation
-- Consultations inquiry form
-- File uploads — images & PDFs (Supabase Storage, including `community/` media)
-- FlavorBot assistant (Edge Function — OpenAI key server-side)
-- Android / iOS shells via Capacitor (debug on emulator / Xcode simulator)
-- Bilingual EN/AR with RTL support
-- Dark / light mode
-- Responsive design (mobile-first)
+Full catalog and future-dev rules: **[docs/PLATFORM.md](docs/PLATFORM.md)**
+
+- Community home (`/`) with photo posts, likes, comments, and educational content policy
+- Marketing landing at `/welcome` (news, resources, partners, contact)
+- Client Login + individual/company signup — Google or email; LinkedIn login disabled
+- Email verification, welcome email with full Terms, mandatory terms acceptance
+- Professional dashboard, members directory, jobs, forum, courses, market briefings
+- Admin panel (overview, content, users, broadcast, moderation)
+- FlavorBot assistant (OpenAI key server-side only)
+- Web + Electron + Capacitor (Android / iOS)
+- Languages: EN, AR (RTL), FR, ES, DE, TR, ZH — login button stays **Client Login**
+- Dark / light mode, responsive layout
 
 ---
 
@@ -151,7 +145,7 @@ Full notes: [deploy/MOBILE-APPS.md](deploy/MOBILE-APPS.md)
 
 - Production code deploys via Vercel GitHub integration on `main`.
 - Apply pending Supabase migrations with `deploy/apply-platform-updates.sh` (needs `SUPABASE_ACCESS_TOKEN`).
-- Legacy Stripe checkout UI was removed from the frontend. Older edge-function stubs may still exist under `supabase/functions/` but are unused while `PLATFORM_ALWAYS_FREE` is true.
+- Stripe checkout UI is removed. Deprecated `create-checkout-session` / `stripe-webhook` stubs stay unused while `PLATFORM_ALWAYS_FREE` is true.
 
 ## License
 

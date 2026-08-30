@@ -192,7 +192,7 @@ async function main() {
     .single();
 
   if (verifyErr || !profile?.is_admin) {
-    err("Verification failed — please run the MASTER-SETUP.sql script in Supabase.");
+    err("Verification failed — apply supabase/migrations/ then retry.");
   } else {
     console.log("");
     log(BOLD + GREEN, "  ══════════════════════════════════════════════");

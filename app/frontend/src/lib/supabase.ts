@@ -26,67 +26,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// ─── Database connection status ───────────────────────────────────────────────
-export type DbStatus = 'connected' | 'tables_missing' | 'disconnected' | 'checking';
-
-export interface DbHealthResult {
-  status: DbStatus;
-  tables: {
-    members: boolean;
-    industry_news: boolean;
-    educational_resources: boolean;
-    contact_messages: boolean;
-    user_profiles: boolean;
-    enterprise_requests: boolean;
-  };
-  message: string;
-}
-
-// ─── Health check ─────────────────────────────────────────────────────────────
-async function checkTable(tableName: string): Promise<boolean> {
-  try {
-    const { error } = await supabase.from(tableName).select('id').limit(1);
-    return !error || error.code !== 'PGRST205';
-  } catch {
-    return false;
-  }
-}
-
-export async function checkDatabaseHealth(): Promise<DbHealthResult> {
-  try {
-    const [members, industry_news, educational_resources, contact_messages, user_profiles, enterprise_requests] =
-      await Promise.all([
-        checkTable('members'),
-        checkTable('industry_news'),
-        checkTable('educational_resources'),
-        checkTable('contact_messages'),
-        checkTable('user_profiles'),
-        checkTable('enterprise_requests'),
-      ]);
-
-    const tables = { members, industry_news, educational_resources, contact_messages, user_profiles, enterprise_requests };
-    const coreExist = [members, industry_news, educational_resources, contact_messages].every(Boolean);
-    const allExist = Object.values(tables).every(Boolean);
-    const existingCount = Object.values(tables).filter(Boolean).length;
-
-    if (allExist) {
-      return { status: 'connected', tables, message: 'All 6 tables connected and operational.' };
-    } else if (existingCount === 0) {
-      return { status: 'tables_missing', tables, message: 'Supabase reachable but no tables found. Run the database setup SQL.' };
-    } else if (coreExist) {
-      return { status: 'connected', tables, message: `${existingCount}/6 tables found. Core tables active.` };
-    } else {
-      return { status: 'tables_missing', tables, message: `${existingCount}/6 tables found. Run the complete database setup SQL.` };
-    }
-  } catch {
-    return {
-      status: 'disconnected',
-      tables: { members: false, industry_news: false, educational_resources: false, contact_messages: false, user_profiles: false, enterprise_requests: false },
-      message: 'Unable to connect to Supabase.',
-    };
-  }
-}
-
 // ─── Generic fetch helper ─────────────────────────────────────────────────────
 export async function fetchFromSupabase<T>(
   tableName: string,
