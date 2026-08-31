@@ -77,7 +77,7 @@ Members get full access to:
 - White-label content opportunities
 
 ## Technical Support
-- Email: ${SITE.supportEmail}
+- Email: ${SITE.supportEmail || "use the homepage contact form"}
 - Response within 24 hours
 - Common issues: login problems, email verification, profile setup
 
@@ -165,15 +165,15 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   // Enterprise
   if (/enterprise|company.?plan|corporate|b2b|شركة|مؤسسة|شراكة|إعلان/.test(m)) {
     return isAr
-      ? `خدمات الشركات متاحة **مجاناً** على المنصة:\n\n🏢 حساب شركة مجاني بالكامل\n📝 نشر وظائف وتحديثات الشركة\n🤝 الوصول للمجتمع ودليل الأعضاء\n📊 الموارد والأخبار الصناعية\n\nاطلب خدمات إضافية أو شراكات عبر **/enterprise**\n📧 ${SITE.supportEmail}\n\nهل تريد مساعدة في تسجيل حساب شركة؟`
-      : `Company services are available **for free** on the platform:\n\n🏢 Fully free company accounts\n📝 Post jobs and company updates\n🤝 Community and members directory access\n📊 Industry resources and news\n\nRequest partnerships or extra services via **/enterprise**\n📧 ${SITE.supportEmail}\n\nNeed help creating a company account?`;
+      ? `خدمات الشركات متاحة **مجاناً** على المنصة:\n\n🏢 حساب شركة مجاني بالكامل\n📝 نشر وظائف وتحديثات الشركة\n🤝 الوصول للمجتمع ودليل الأعضاء\n📊 الموارد والأخبار الصناعية\n\nاطلب خدمات إضافية أو شراكات عبر **/enterprise**\n📧 ${SITE.supportEmail || (isAr ? "نموذج التواصل في الصفحة الرئيسية" : "homepage contact form")}\n\nهل تريد مساعدة في تسجيل حساب شركة؟`
+      : `Company services are available **for free** on the platform:\n\n🏢 Fully free company accounts\n📝 Post jobs and company updates\n🤝 Community and members directory access\n📊 Industry resources and news\n\nRequest partnerships or extra services via **/enterprise**\n📧 ${SITE.supportEmail || (isAr ? "نموذج التواصل في الصفحة الرئيسية" : "homepage contact form")}\n\nNeed help creating a company account?`;
   }
 
   // Contact / support
   if (/contact|support|help|email|reach|problem|issue|تواصل|دعم|مساعدة|بريد|مشكلة/.test(m)) {
     return isAr
-      ? `فريق الدعم جاهز لمساعدتك:\n\n📧 **البريد الإلكتروني:** ${SITE.supportEmail}\n🌐 **الموقع:** ${SITE.domain}\n⏱️ **وقت الرد:** خلال 24 ساعة\n\nنتعامل مع:\n• مشاكل تسجيل الدخول أو الحساب\n• المشاكل التقنية\n• استفسارات الشركات والشراكات\n\nهل يمكنني مساعدتك بأي استفسار محدد قبل التواصل معهم؟`
-      : `Our support team is ready to help:\n\n📧 **Email:** ${SITE.supportEmail}\n🌐 **Website:** ${SITE.domain}\n⏱️ **Response time:** Within 24 hours\n\nWe handle:\n• Login & account issues\n• Technical problems\n• Company & partnership inquiries\n\nCan I help with a specific question before you contact support?`;
+      ? `فريق الدعم جاهز لمساعدتك:\n\n📧 **التواصل:** ${SITE.supportEmail || "نموذج التواصل في الصفحة الرئيسية"}\n🌐 **الموقع:** ${SITE.domain}\n⏱️ **وقت الرد:** خلال 24 ساعة\n\nنتعامل مع:\n• مشاكل تسجيل الدخول أو الحساب\n• المشاكل التقنية\n• استفسارات الشركات والشراكات\n\nهل يمكنني مساعدتك بأي استفسار محدد قبل التواصل معهم؟`
+      : `Our support team is ready to help:\n\n📧 **Contact:** ${SITE.supportEmail || "the homepage contact form"}\n🌐 **Website:** ${SITE.domain}\n⏱️ **Response time:** Within 24 hours\n\nWe handle:\n• Login & account issues\n• Technical problems\n• Company & partnership inquiries\n\nCan I help with a specific question before you contact support?`;
   }
 
   // Flavor science — Maillard

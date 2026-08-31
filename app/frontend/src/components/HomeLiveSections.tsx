@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { filterPublicMembers } from "@/lib/public-members";
+import { blogPosts, getBlogRoute } from "@/lib/blog";
 
 type PathRow = { id: string; title?: string; name?: string; slug?: string };
 type CourseRow = { id: string; title: string; slug: string; level?: string | null };
@@ -14,7 +15,6 @@ type MemberRow = { id: string; full_name: string; role?: string | null; company?
 type JobRow = { id: string; title: string; company?: string | null; location?: string | null };
 type MarketRow = { id: string; title: string };
 type PartnerRow = { id: string; name: string };
-type NewsRow = { id: string; title: string; slug?: string | null };
 type Stats = {
   public_members?: number;
   published_courses?: number;
@@ -76,7 +76,6 @@ export default function HomeLiveSections() {
   const [courses, setCourses] = useState<CourseRow[]>([]);
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [experts, setExperts] = useState<MemberRow[]>([]);
-  const [articles, setArticles] = useState<NewsRow[]>([]);
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [market, setMarket] = useState<MarketRow[]>([]);
   const [partners, setPartners] = useState<PartnerRow[]>([]);
@@ -90,7 +89,6 @@ export default function HomeLiveSections() {
         coursesRes,
         postsRes,
         membersRes,
-        newsRes,
         jobsRes,
         marketRes,
         partnersRes,
@@ -115,12 +113,6 @@ export default function HomeLiveSections() {
           .order("is_featured", { ascending: false })
           .limit(8),
         supabase
-          .from("industry_news")
-          .select("id, title")
-          .eq("is_published", true)
-          .order("created_at", { ascending: false })
-          .limit(4),
-        supabase
           .from("job_listings")
           .select("id, title, company, location")
           .eq("is_published", true)
@@ -140,7 +132,6 @@ export default function HomeLiveSections() {
       setCourses(((coursesRes.data as CourseRow[]) || []).filter((c) => c.slug && c.title));
       setPosts((postsRes.data as PostRow[]) || []);
       setExperts(filterPublicMembers((membersRes.data as MemberRow[]) || []).slice(0, 4));
-      setArticles((newsRes.data as NewsRow[]) || []);
       setJobs((jobsRes.data as JobRow[]) || []);
       setMarket((marketRes.data as MarketRow[]) || []);
       setPartners((partnersRes.data as PartnerRow[]) || []);
@@ -162,7 +153,7 @@ export default function HomeLiveSections() {
 
   return (
     <>
-      <Section id="learning" title={t("home.paths.title")} href="/courses" loading={loading} empty={t("home.paths.empty")} hasItems={paths.length > 0}>
+      <Section id="resources" title={t("home.paths.title")} href="/courses" loading={loading} empty={t("home.paths.empty")} hasItems={paths.length > 0}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {paths.map((path) => (
             <Card key={path.id} className="h-full border-border">
@@ -216,13 +207,16 @@ export default function HomeLiveSections() {
         </div>
       </Section>
 
-      <Section id="articles" title={t("home.articles.title")} href="/blog" loading={loading} empty={t("home.articles.empty")} hasItems={articles.length > 0}>
+      <Section id="news" title={t("home.articles.title")} href="/blog" loading={false} empty={t("home.articles.empty")} hasItems={blogPosts.length > 0}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {articles.map((article) => (
-            <Link key={article.id} to="/blog" className="block h-full">
+          {blogPosts.slice(0, 4).map((article) => (
+            <Link key={article.slug} to={getBlogRoute(article.slug)} className="block h-full">
               <Card className="h-full border-border">
                 <CardContent className="p-5">
                   <h3 className="font-semibold text-foreground">{article.title}</h3>
+                  {article.description ? (
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{article.description}</p>
+                  ) : null}
                 </CardContent>
               </Card>
             </Link>

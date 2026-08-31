@@ -316,6 +316,7 @@ export interface SocialPost {
   image_url?: string | null;
   is_published: boolean;
   is_hidden: boolean;
+  comments_disabled?: boolean;
   likes_count: number;
   comments_count?: number;
   repost_of_id?: string | null;

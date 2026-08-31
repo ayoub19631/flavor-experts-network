@@ -1,9 +1,9 @@
 export const platformTranslations = {
   en: {
     "nav.academy": "Academy",
-    "hero.title": "Learn Flavor Science. Build Better Formulations. Connect Globally.",
+    "hero.title": "Learn Flavor Science",
     "hero.subtitle":
-      "A free professional network for flavor scientists and food technologists — academy, community, jobs, and industry knowledge.",
+      "Build better formulations and connect globally. A free professional network for flavor scientists and food technologists — academy, community, jobs, and industry knowledge.",
     "hero.cta": "Explore Courses",
     "hero.cta.join": "Join the Community",
     "home.paths.title": "Featured learning paths",
@@ -72,9 +72,9 @@ export const platformTranslations = {
   },
   ar: {
     "nav.academy": "الأكاديمية",
-    "hero.title": "تعلّم علم النكهات. ابنِ تركيبات أفضل. تواصل عالمياً.",
+    "hero.title": "تعلّم علم النكهات",
     "hero.subtitle":
-      "شبكة مهنية مجانية لعلماء النكهات وتقنيي الأغذية — أكاديمية، مجتمع، وظائف، ومعرفة صناعية.",
+      "ابنِ تركيبات أفضل وتواصل عالمياً. شبكة مهنية مجانية لعلماء النكهات وتقنيي الأغذية — أكاديمية، مجتمع، وظائف، ومعرفة صناعية.",
     "hero.cta": "استكشف الدورات",
     "hero.cta.join": "انضم للمجتمع",
     "home.paths.title": "مسارات التعلّم المميزة",

@@ -96,16 +96,18 @@ export default function UnderDevelopmentPage() {
           </Button>
         </div>
 
-        <div className="flex items-center justify-center gap-2 text-sm text-[hsl(47_23%_85%/0.65)] pt-2">
-          <Mail className="h-4 w-4" />
-          <span>{copy.contact}</span>
-          <a
-            href={`mailto:${SITE.supportEmail}`}
-            className="underline underline-offset-4 hover:text-[hsl(47_23%_92%)] transition-colors"
-          >
-            {SITE.supportEmail}
-          </a>
-        </div>
+        {SITE.supportEmail ? (
+          <div className="flex items-center justify-center gap-2 text-sm text-[hsl(47_23%_85%/0.65)] pt-2">
+            <Mail className="h-4 w-4" />
+            <span>{copy.contact}</span>
+            <a
+              href={`mailto:${SITE.supportEmail}`}
+              className="underline underline-offset-4 hover:text-[hsl(47_23%_92%)] transition-colors"
+            >
+              {SITE.supportEmail}
+            </a>
+          </div>
+        ) : null}
       </div>
     </div>
   );

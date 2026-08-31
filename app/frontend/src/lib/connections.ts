@@ -89,18 +89,25 @@ export function peerUserId(connection: MemberConnection, userId: string): string
   return connection.requester_id === userId ? connection.addressee_id : connection.requester_id;
 }
 
-export async function fetchProfileNames(userIds: string[]): Promise<Record<string, string>> {
+export async function fetchProfileCards(
+  userIds: string[],
+): Promise<Record<string, { name: string; avatar: string | null }>> {
   const unique = [...new Set(userIds.filter(Boolean))];
   if (unique.length === 0) return {};
   const { data } = await supabase
     .from("public_author_profiles")
-    .select("id, full_name")
+    .select("id, full_name, avatar_url")
     .in("id", unique);
-  const map: Record<string, string> = {};
-  (data || []).forEach((p: { id: string; full_name: string }) => {
-    map[p.id] = p.full_name;
+  const map: Record<string, { name: string; avatar: string | null }> = {};
+  (data || []).forEach((p: { id: string; full_name: string; avatar_url?: string | null }) => {
+    map[p.id] = { name: p.full_name, avatar: p.avatar_url || null };
   });
   return map;
+}
+
+export async function fetchProfileNames(userIds: string[]): Promise<Record<string, string>> {
+  const cards = await fetchProfileCards(userIds);
+  return Object.fromEntries(Object.entries(cards).map(([id, card]) => [id, card.name]));
 }
 
 /** Map auth profile ids → public member_directory ids for profile links. */

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +15,11 @@ import { supabase } from "@/lib/supabase";
 export default function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { lang, setLang, t } = useI18n();
   const { user } = useAuth();
+  const [open, setOpen] = useState(false);
   const current = LANGUAGES.find((item) => item.code === lang) || LANGUAGES[0];
 
   const persistLang = (code: Language) => {
+    setOpen(false);
     setLang(code);
     if (user) {
       void supabase.from("user_profiles").update({ preferred_language: code }).eq("id", user.id);
@@ -24,7 +27,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu key={lang} open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -41,7 +44,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         {LANGUAGES.map((item) => (
           <DropdownMenuItem
             key={item.code}
-            onClick={() => persistLang(item.code)}
+            onSelect={() => persistLang(item.code)}
             className={item.code === lang ? "bg-primary/10 font-semibold" : ""}
           >
             <span className="flex-1">{item.native}</span>

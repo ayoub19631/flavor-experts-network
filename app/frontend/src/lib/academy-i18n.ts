@@ -114,7 +114,7 @@ export const academyTranslations = {
     "academy.curriculum": "المنهج",
     "academy.disclaimer": "نموذج تعليمي — للتدريب والتقييم في البحث والتطوير تحت إشراف فقط.",
     "academy.regulatory": "تحقق من صلاحية الدرجة الغذائية ومواصفات المورّد والاستخدام المقصود ومتطلبات الاتحاد الأوروبي والولايات المتحدة والهند. الصيغ التعليمية ليست معتمدة تجارياً.",
-    "academy.signin": "Client Login للالتحاق",
+    "academy.signin": "سجّل الدخول للالتحاق",
     "academy.dashboard": "لوحة التعلّم",
     "academy.dashboard.empty": "لست مسجلاً في دورة بعد.",
     "academy.next": "الدرس التالي",

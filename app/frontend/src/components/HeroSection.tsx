@@ -6,7 +6,7 @@ import { SITE } from "@/lib/site-config";
 import BrandLogo from "@/components/BrandLogo";
 
 export default function HeroSection() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <section
@@ -36,7 +36,13 @@ export default function HeroSection() {
             {SITE.tagline}
           </p>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-4 animate-[fadeIn_1s_ease-out]">
+          <h1
+            className={`font-bold text-white leading-[1.3] mb-4 text-balance animate-[fadeIn_1s_ease-out] ${
+              lang === "ar"
+                ? "text-[1.6rem] sm:text-3xl lg:text-[2.35rem] max-w-lg"
+                : "text-4xl sm:text-5xl lg:text-6xl"
+            }`}
+          >
             {t("hero.title")}
           </h1>
 

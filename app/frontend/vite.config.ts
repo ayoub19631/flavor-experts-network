@@ -35,6 +35,9 @@ export default defineConfig(({ command, mode }) => {
   env.VITE_SITE_URL ??= 'https://flavorexpertsnetwork.com';
   env.VITE_SUPPORT_EMAIL ??= env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
   env.VITE_PRIVACY_EMAIL ??= env.NEXT_PUBLIC_PRIVACY_EMAIL || '';
+  const retiredPublicEmail = /ayoub@flavorexperts\.net|nexusflavor\.com/i;
+  if (retiredPublicEmail.test(env.VITE_SUPPORT_EMAIL || '')) env.VITE_SUPPORT_EMAIL = '';
+  if (retiredPublicEmail.test(env.VITE_PRIVACY_EMAIL || '')) env.VITE_PRIVACY_EMAIL = '';
   process.env.VITE_SUPPORT_EMAIL = env.VITE_SUPPORT_EMAIL;
   process.env.VITE_PRIVACY_EMAIL = env.VITE_PRIVACY_EMAIL;
   // Vite HTML %VITE_*% replacement reads process.env / mode env files — not the local object.

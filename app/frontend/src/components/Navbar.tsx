@@ -24,7 +24,6 @@ import {
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
-import BrandLogo from "@/components/BrandLogo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import InboxButton from "@/components/InboxButton";
@@ -74,13 +73,12 @@ export default function Navbar() {
       <TestingModeBanner />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <BrandLogo size="sm" className="transition-transform duration-300 group-hover:scale-[1.03]" />
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-[15px] font-bold tracking-tight text-foreground">
+          <Link to="/" className="flex items-center gap-2.5 group min-w-0">
+            <div className="flex flex-col justify-center leading-none shrink-0">
+              <span className="text-[14px] font-bold tracking-tight text-foreground whitespace-nowrap">
                 {lang === "ar" ? "خبراء النكهات" : "Flavor Experts"}
               </span>
-              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              <span className="mt-0.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground whitespace-nowrap">
                 {lang === "ar" ? "خبرة · نكهات · علم" : SITE.tagline}
               </span>
             </div>

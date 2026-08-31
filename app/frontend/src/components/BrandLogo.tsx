@@ -14,7 +14,7 @@ type BrandLogoProps = {
 };
 
 const sizeClass: Record<NonNullable<BrandLogoProps["size"]>, string> = {
-  sm: "h-9 w-auto max-w-[120px]",
+  sm: "h-12 w-12 shrink-0 rounded-md",
   md: "h-11 w-auto max-w-[140px]",
   lg: "h-16 w-auto max-w-[200px]",
   hero: "h-24 sm:h-28 w-auto max-w-[min(90vw,420px)]",
@@ -23,8 +23,7 @@ const sizeClass: Record<NonNullable<BrandLogoProps["size"]>, string> = {
 function srcForSize(size: NonNullable<BrandLogoProps["size"]>) {
   if (size === "hero") return LOGO_HERO;
   if (size === "lg") return LOGO_FULL;
-  if (size === "md") return LOGO_NAV;
-  return LOGO_TINY;
+  return LOGO_NAV;
 }
 
 export default function BrandLogo({

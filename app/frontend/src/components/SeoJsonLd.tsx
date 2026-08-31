@@ -27,6 +27,30 @@ export function websiteJsonLd() {
   };
 }
 
+export function articleJsonLd(input: {
+  title: string;
+  description?: string;
+  path: string;
+  date?: string;
+  image?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: input.title,
+    description: input.description || SITE.description,
+    url: canonicalUrl(input.path),
+    image: input.image || SITE.ogImage,
+    datePublished: input.date,
+    publisher: {
+      "@type": "Organization",
+      name: SITE.name,
+      logo: `${SITE.url}/brand/logo-512.webp`,
+    },
+    mainEntityOfPage: canonicalUrl(input.path),
+  };
+}
+
 export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
   return {
     "@context": "https://schema.org",

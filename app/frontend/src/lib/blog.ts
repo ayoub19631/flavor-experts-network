@@ -187,11 +187,11 @@ function getBlogRoute(slug: string) {
 
 function getSiteDomainUrl() {
   const configuredUrl = import.meta.env.VITE_SITE_URL?.trim();
-  return configuredUrl ? configuredUrl.replace(/\/+$/, '') : undefined;
+  return (configuredUrl || 'https://flavorexpertsnetwork.com').replace(/\/+$/, '');
 }
 
 function getSiteName() {
-  return import.meta.env.VITE_APP_TITLE?.trim() || 'Atoms';
+  return import.meta.env.VITE_APP_TITLE?.trim() || 'Flavor Experts Network';
 }
 
 function getTwitterSiteHandle() {
@@ -250,7 +250,7 @@ function getPostSeoMeta(post?: BlogPost | null): SeoMeta {
   const twitterCreatorHandle = getTwitterCreatorHandle();
   const fallbackTitle = `Blog | ${siteName}`;
   const fallbackDescription =
-    'This is a flexible blog starter that can be filled with Markdown content and prerendered into indexable pages.';
+    'Industry articles and technical notes from Flavor Experts Network.';
 
   if (!post) {
     const fallbackUrl = getAbsoluteUrl('/blog/');
@@ -295,7 +295,7 @@ function getPostSeoMeta(post?: BlogPost | null): SeoMeta {
     lang: frontmatterString(post.frontmatter, 'lang'),
     url,
     siteName: frontmatterString(post.frontmatter, 'og_site_name') ?? siteName,
-    ogTitle: frontmatterString(post.frontmatter, 'og_title') ?? title,
+    ogTitle: frontmatterString(post.frontmatter, 'og_title') ?? post.title,
     ogDescription:
       frontmatterString(post.frontmatter, 'og_description') ?? description,
     ogImage,

@@ -8,6 +8,7 @@ interface PageMetaOptions {
   image?: string;
   noIndex?: boolean;
   locale?: string;
+  type?: "website" | "article";
 }
 
 function upsertMeta(name: string, content: string, attr: "name" | "property" = "name") {
@@ -30,7 +31,7 @@ function upsertLink(rel: string, href: string) {
   el.href = href;
 }
 
-export function usePageMeta({ title, description, path = "", image, noIndex = false, locale }: PageMetaOptions) {
+export function usePageMeta({ title, description, path = "", image, noIndex = false, locale, type = "website" }: PageMetaOptions) {
   useEffect(() => {
     const pageTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     const pageDescription = description || SITE.description;
@@ -42,7 +43,7 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
     upsertMeta("description", pageDescription);
     upsertMeta("og:title", pageTitle, "property");
     upsertMeta("og:description", pageDescription, "property");
-    upsertMeta("og:type", "website", "property");
+    upsertMeta("og:type", type, "property");
     upsertMeta("og:url", canonical, "property");
     upsertMeta("og:image", ogImage, "property");
     upsertMeta("og:locale", ogLocale, "property");
@@ -70,5 +71,5 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
       const robots = document.querySelector('meta[name="robots"]');
       robots?.remove();
     }
-  }, [title, description, path, image, noIndex, locale]);
+  }, [title, description, path, image, noIndex, locale, type]);
 }

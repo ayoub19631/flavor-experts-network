@@ -2,9 +2,6 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
 import HomeLiveSections from "@/components/HomeLiveSections";
-import NewsSection from "@/components/NewsSection";
-import ResourcesSection from "@/components/ResourcesSection";
-import PartnersSection from "@/components/PartnersSection";
 import ContactSection from "@/components/ContactSection";
 import FooterSection from "@/components/FooterSection";
 import SeoJsonLd, { breadcrumbJsonLd, organizationJsonLd, websiteJsonLd } from "@/components/SeoJsonLd";
@@ -37,9 +34,6 @@ export default function Index() {
       <HeroSection />
       <AboutSection />
       <HomeLiveSections />
-      <NewsSection />
-      <ResourcesSection />
-      <PartnersSection />
       <ContactSection />
       <FooterSection />
     </div>

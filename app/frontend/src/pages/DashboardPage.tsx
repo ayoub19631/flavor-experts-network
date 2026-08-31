@@ -1258,11 +1258,19 @@ export default function DashboardPage() {
                         <Building2 className="w-4 h-4" /> {lang === "ar" ? "خدمات الشركات" : "Enterprise services"}
                       </Button>
                     </Link>
-                    <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
-                      <a href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Membership support — Flavor Experts Network")}`}>
-                        <RefreshCw className="w-4 h-4" /> {lang === "ar" ? "الدعم" : "Support"}
-                      </a>
-                    </Button>
+                    {SITE.supportEmail ? (
+                      <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
+                        <a href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Membership support — Flavor Experts Network")}`}>
+                          <RefreshCw className="w-4 h-4" /> {lang === "ar" ? "الدعم" : "Support"}
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
+                        <Link to="/#contact">
+                          <RefreshCw className="w-4 h-4" /> {lang === "ar" ? "الدعم" : "Support"}
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}

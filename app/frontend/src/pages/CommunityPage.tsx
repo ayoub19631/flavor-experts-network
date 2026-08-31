@@ -27,9 +27,12 @@ import {
   TrendingUp,
   Users,
   EyeOff,
+  MessageCircleOff,
+  Pencil,
   X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import SeoJsonLd, { breadcrumbJsonLd } from "@/components/SeoJsonLd";
 import FooterSection from "@/components/FooterSection";
 import CommunityPostBody from "@/components/CommunityPostBody";
 import { Badge } from "@/components/ui/badge";
@@ -99,7 +102,7 @@ export default function CommunityPage() {
   const { user, profile, isAdmin } = useAuth();
   const { pathname, hash } = useLocation();
   const isHomeFeed = pathname === "/" || pathname === "/community";
-  usePageMeta({ title: t("community.title"), description: t("community.desc"), path: "/", locale: lang });
+  usePageMeta({ title: t("community.title"), description: t("community.desc"), path: "/community", locale: lang });
 
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,6 +124,9 @@ export default function CommunityPage() {
   const [networkIds, setNetworkIds] = useState<string[]>([]);
   const [reactionMenu, setReactionMenu] = useState<string | null>(null);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editBody, setEditBody] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const quickTopics = [
     { tag: "#FlavorScience", label: t("community.topic.science") },
@@ -411,7 +417,52 @@ export default function CommunityPage() {
     }
   };
 
+  const saveEdit = async (post: SocialPost) => {
+    if (!user || post.author_id !== user.id) return;
+    const next = editBody.trim();
+    if (next.length < 1) return;
+    if (violatesEducationalPolicy(next)) {
+      toast.error(t("community.policy_blocked"));
+      return;
+    }
+    setEditBusy(true);
+    const { error } = await supabase
+      .from("social_posts")
+      .update({ body: next, updated_at: new Date().toISOString() })
+      .eq("id", post.id)
+      .eq("author_id", user.id);
+    setEditBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setPosts((prev) => prev.map((row) => (row.id === post.id ? { ...row, body: next } : row)));
+    setEditingId(null);
+    toast.success(t("community.updated"));
+  };
+
+  const toggleCommentsLock = async (post: SocialPost) => {
+    if (!user || post.author_id !== user.id) return;
+    const next = !post.comments_disabled;
+    const { error } = await supabase
+      .from("social_posts")
+      .update({ comments_disabled: next })
+      .eq("id", post.id)
+      .eq("author_id", user.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setPosts((prev) => prev.map((row) => (row.id === post.id ? { ...row, comments_disabled: next } : row)));
+    toast.success(next ? t("community.comments_disabled_toast") : t("community.comments_enabled_toast"));
+  };
+
   const submitComment = async (postId: string) => {
+    const target = posts.find((post) => post.id === postId);
+    if (target?.comments_disabled) {
+      toast.error(t("community.comments_disabled"));
+      return;
+    }
     if (!user) {
       toast.error(t("community.login_required"));
       return;
@@ -495,7 +546,7 @@ export default function CommunityPage() {
   const removePost = async (post: SocialPost) => {
     if (!user || post.author_id !== user.id) return;
     if (!window.confirm(t("community.confirm_delete"))) return;
-    const { error } = await supabase.from("social_posts").delete().eq("id", post.id);
+    const { error } = await supabase.from("social_posts").delete().eq("id", post.id).eq("author_id", user.id);
     if (error) {
       toast.error(error.message);
       return;
@@ -520,6 +571,12 @@ export default function CommunityPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SeoJsonLd
+        data={breadcrumbJsonLd([
+          { name: t("nav.home"), path: "/" },
+          { name: t("community.title"), path: "/community" },
+        ])}
+      />
       <Navbar />
       <main className="pt-20 pb-16">
         <section className="border-b border-border bg-secondary/20">
@@ -892,15 +949,51 @@ export default function CommunityPage() {
                                 </Button>
                               )}
                               {user?.id === post.author_id && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                  onClick={() => removePost(post)}
-                                  aria-label={lang === "ar" ? "حذف المنشور" : "Delete post"}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                    onClick={() => {
+                                      setEditingId(post.id);
+                                      setEditBody(post.body);
+                                    }}
+                                    aria-label={t("community.edit")}
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={`h-8 w-8 ${
+                                      post.comments_disabled
+                                        ? "text-amber-600"
+                                        : "text-muted-foreground hover:text-amber-600"
+                                    }`}
+                                    onClick={() => toggleCommentsLock(post)}
+                                    aria-label={
+                                      post.comments_disabled
+                                        ? t("community.comments_on")
+                                        : t("community.comments_off")
+                                    }
+                                    title={
+                                      post.comments_disabled
+                                        ? t("community.comments_on")
+                                        : t("community.comments_off")
+                                    }
+                                  >
+                                    <MessageCircleOff className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    onClick={() => removePost(post)}
+                                    aria-label={lang === "ar" ? "حذف المنشور" : "Delete post"}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </>
                               )}
                             </div>
                           </div>
@@ -911,15 +1004,38 @@ export default function CommunityPage() {
                               {t("community.reposted")}
                             </p>
                           )}
-                          <CommunityPostBody
-                            text={post.original?.body || post.body}
-                            expanded={!!expandedPosts[post.id] || hash === `#post-${post.id}`}
-                            onToggle={() => toggleExpanded(post.id)}
-                            onHashtag={setSearch}
-                            seeMore={t("community.see_more")}
-                            seeLess={t("community.see_less")}
-                            technicalLabel={t("community.technical")}
-                          />
+                          {editingId === post.id ? (
+                            <div className="mt-3 space-y-2">
+                              <Textarea
+                                rows={5}
+                                value={editBody}
+                                onChange={(e) => setEditBody(e.target.value.slice(0, MAX_POST_LENGTH))}
+                                className="resize-none"
+                              />
+                              <div className="flex flex-wrap gap-2">
+                                <Button size="sm" disabled={editBusy} onClick={() => saveEdit(post)}>
+                                  {editBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : t("community.save_edit")}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingId(null)}
+                                >
+                                  {t("community.cancel_edit")}
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <CommunityPostBody
+                              text={post.original?.body || post.body}
+                              expanded={!!expandedPosts[post.id] || hash === `#post-${post.id}`}
+                              onToggle={() => toggleExpanded(post.id)}
+                              onHashtag={setSearch}
+                              seeMore={t("community.see_more")}
+                              seeLess={t("community.see_less")}
+                              technicalLabel={t("community.technical")}
+                            />
+                          )}
                           {postImage && (
                             <a href={postImage} target="_blank" rel="noopener noreferrer" className="block mt-3">
                               <img
@@ -1110,7 +1226,11 @@ export default function CommunityPage() {
                                 ))
                               )}
 
-                              {user ? (
+                              {post.comments_disabled ? (
+                                <p className="text-xs text-muted-foreground text-center py-2">
+                                  {t("community.comments_disabled")}
+                                </p>
+                              ) : user ? (
                                 <div className="space-y-2 pt-1">
                                   {replyTo[post.id] && (
                                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">

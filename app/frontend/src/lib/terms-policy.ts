@@ -1,4 +1,5 @@
 import type { Language } from "@/lib/languages";
+import { SITE } from "@/lib/site-config";
 
 export const TERMS_VERSION = "2026-08-30";
 
@@ -43,7 +44,7 @@ const EN: TermsSection[] = [
   },
   {
     title: "10. Contact",
-    body: "Questions: ayoub@flavorexperts.net",
+    body: "Questions: use the homepage contact form.",
   },
 ];
 
@@ -86,12 +87,22 @@ const AR: TermsSection[] = [
   },
   {
     title: "10. التواصل",
-    body: "للاستفسار: ayoub@flavorexperts.net",
+    body: "للاستفسار استخدم نموذج التواصل في الصفحة الرئيسية.",
   },
 ];
 
 export function getTermsSections(lang: Language): TermsSection[] {
-  return lang === "ar" ? AR : EN;
+  const sections = lang === "ar" ? AR : EN;
+  const contact = SITE.supportEmail
+    ? lang === "ar"
+      ? `للاستفسار: ${SITE.supportEmail}`
+      : `Questions: ${SITE.supportEmail}`
+    : lang === "ar"
+      ? "للاستفسار استخدم نموذج التواصل في الصفحة الرئيسية."
+      : "Questions: use the homepage contact form.";
+  return sections.map((section, index) =>
+    index === sections.length - 1 ? { ...section, body: contact } : section,
+  );
 }
 
 export function termsPlainText(lang: Language): string {
@@ -101,7 +112,7 @@ export function termsPlainText(lang: Language): string {
 }
 
 export function termsEmailHtml(lang: "ar" | "en"): string {
-  const sections = lang === "ar" ? AR : EN;
+  const sections = getTermsSections(lang);
   const title = lang === "ar" ? "الشروط والأحكام — نسخة كاملة" : "Terms & Conditions — full copy";
   const items = sections
     .map(
