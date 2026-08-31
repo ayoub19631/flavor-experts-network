@@ -39,6 +39,7 @@ test.describe("phase 1 platform stabilization", () => {
     await expect(instagram).toHaveAttribute("target", "_blank");
     await expect(instagram).toHaveAttribute("rel", /noopener/);
     await expect(page.locator("footer a[href*='/admin']")).toHaveCount(0);
+    await expect(page.locator("footer a[href='/#contact']")).toBeVisible();
   });
 
   test("primary navigation includes insights and community", async ({ page }) => {

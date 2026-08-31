@@ -218,15 +218,23 @@ export default function FooterSection() {
               <SocialMediaLinks variant="footer" />
             </div>
             <h4 className="font-semibold mt-6 mb-3">{t("footer.connect")}</h4>
-            <div className="flex items-center gap-3">
-              {SITE.supportEmail ? (
+            <div className="flex flex-wrap items-center gap-2">
               <a
-                href={`mailto:${SITE.supportEmail}`}
-                className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                aria-label={SITE.supportEmail}
+                href="/#contact"
+                className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-2.5 py-2 text-xs hover:bg-white/20 transition-colors"
+                aria-label={t("nav.contact")}
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>{t("nav.contact")}</span>
               </a>
+              {SITE.supportEmail ? (
+                <a
+                  href={`mailto:${SITE.supportEmail}`}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  aria-label={SITE.supportEmail}
+                >
+                  <Mail className="w-4 h-4" aria-hidden="true" />
+                </a>
               ) : null}
             </div>
           </div>
