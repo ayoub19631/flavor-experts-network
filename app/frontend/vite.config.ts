@@ -49,9 +49,8 @@ export default defineConfig(({ command, mode }) => {
   return {
     plugins: [
       react(),
-      ...(isPlatformPrivate
-        ? []
-        : [
+      ...(command === 'build' && !isPlatformPrivate
+        ? [
             Sitemap({
               hostname: env.VITE_SITE_URL || 'https://flavorexpertsnetwork.com',
               lastmod: getSitemapLastmod(),

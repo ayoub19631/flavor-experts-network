@@ -56,7 +56,7 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
 
-const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations"];
+const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations", "/members", "/messages", "/community"];
 
 const LanguageProfileSync = () => {
   const { profile } = useAuth();

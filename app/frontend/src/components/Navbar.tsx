@@ -48,6 +48,7 @@ export default function Navbar() {
     { href: "/community", label: t("nav.community") },
     { href: "/courses", label: t("nav.academy") },
     { href: "/members", label: t("nav.members") },
+    ...(user ? [{ href: "/messages", label: t("nav.messages") }] : []),
     { href: "/jobs", label: t("nav.jobs") },
     { href: "/forum", label: t("nav.forum") },
     { href: "/market", label: t("nav.market") },
@@ -254,15 +255,6 @@ export default function Navbar() {
             >
               {t("nav.search")}
             </Link>
-            {user && (
-              <Link
-                to="/messages"
-                className="block px-3 py-2 text-sm font-medium text-foreground hover:text-primary"
-                onClick={() => setMobileOpen(false)}
-              >
-                {t("nav.messages")}
-              </Link>
-            )}
             <p className="px-3 pt-3 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
               {t("nav.explore")}
             </p>
