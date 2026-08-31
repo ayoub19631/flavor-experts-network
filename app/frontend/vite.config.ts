@@ -81,8 +81,9 @@ export default defineConfig(({ command, mode }) => {
                 '/email-verified',
               ],
             }),
-          ]),
-      ...(blogPrerenderRoutes.length > 0
+          ]
+        : []),
+      ...(blogPrerenderRoutes.length > 0)
         ? vitePrerenderPlugin({
             renderTarget: '#root',
             prerenderScript: path.resolve(__dirname, 'prerender/blog.js'),
