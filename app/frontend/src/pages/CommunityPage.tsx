@@ -15,7 +15,9 @@ import {
   Loader2,
   MessageCircle,
   MessageSquareText,
+  Network,
   PenLine,
+  Repeat2,
   Search,
   Send,
   Share2,
@@ -42,24 +44,29 @@ import { supabase } from "@/lib/supabase";
 import {
   enrichComments,
   enrichSocialPosts,
-  fetchMyLikedPostIds,
   uploadCommunityImage,
 } from "@/lib/social";
 import { safeHttpUrl } from "@/lib/url";
 import { SITE } from "@/lib/site-config";
-import type { SocialPost, SocialPostComment } from "@/lib/types";
+import type { ReactionType, SocialPost, SocialPostComment } from "@/lib/types";
 import { toast } from "sonner";
 import { violatesEducationalPolicy } from "@/lib/content-policy";
 import {
   extractHashtags,
-  loadSavedPostIds,
-  persistSavedPostIds,
   readingMinutes,
   shouldCollapsePost,
   truncatePost,
 } from "@/lib/community-post";
+import {
+  REACTIONS,
+  fetchMyReactions,
+  fetchNetworkAuthorIds,
+  fetchSavedPostIds,
+  setPostReaction,
+  setPostSaved,
+} from "@/lib/network";
 
-type FeedFilter = "latest" | "popular" | "mine" | "saved";
+type FeedFilter = "latest" | "popular" | "mine" | "saved" | "network";
 
 const MAX_POST_LENGTH = 5000;
 
@@ -106,12 +113,13 @@ export default function CommunityPage() {
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({});
   const [commentBusy, setCommentBusy] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<Record<string, string | null>>({});
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("latest");
   const [search, setSearch] = useState("");
   const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
-  const [savedIds, setSavedIds] = useState<string[]>(() =>
-    typeof window === "undefined" ? [] : loadSavedPostIds(),
-  );
+  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [networkIds, setNetworkIds] = useState<string[]>([]);
+  const [reactionMenu, setReactionMenu] = useState<string | null>(null);
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const quickTopics = [
@@ -153,6 +161,7 @@ export default function CommunityPage() {
     const filtered = posts.filter((post) => {
       if (feedFilter === "mine" && post.author_id !== user?.id) return false;
       if (feedFilter === "saved" && !savedIds.includes(post.id)) return false;
+      if (feedFilter === "network" && !networkIds.includes(post.author_id)) return false;
       if (!query) return true;
       const searchable = [
         post.body,
@@ -175,7 +184,7 @@ export default function CommunityPage() {
       );
     }
     return filtered;
-  }, [feedFilter, posts, savedIds, search, user?.id]);
+  }, [feedFilter, networkIds, posts, savedIds, search, user?.id]);
 
   const load = async () => {
     setLoading(true);
@@ -195,11 +204,18 @@ export default function CommunityPage() {
 
     let enriched = await enrichSocialPosts(data as SocialPost[]);
     if (user) {
-      const liked = await fetchMyLikedPostIds(
-        user.id,
-        enriched.map((p) => p.id),
-      );
-      enriched = enriched.map((p) => ({ ...p, liked_by_me: liked.has(p.id) }));
+      const [reactions, saved, network] = await Promise.all([
+        fetchMyReactions(user.id, enriched.map((p) => p.id)),
+        fetchSavedPostIds(user.id),
+        fetchNetworkAuthorIds(user.id),
+      ]);
+      enriched = enriched.map((p) => ({
+        ...p,
+        my_reaction: reactions.get(p.id) || null,
+        liked_by_me: reactions.has(p.id),
+      }));
+      setSavedIds(saved);
+      setNetworkIds(network);
     }
     setPosts(enriched);
     setLoading(false);
@@ -260,13 +276,66 @@ export default function CommunityPage() {
     setExpandedPosts((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
-  const toggleSaved = (postId: string) => {
-    setSavedIds((prev) => {
-      const next = prev.includes(postId) ? prev.filter((id) => id !== postId) : [postId, ...prev];
-      persistSavedPostIds(next);
-      toast.success(next.includes(postId) ? t("community.saved") : t("community.unsaved"));
-      return next;
+  const toggleSaved = async (postId: string) => {
+    if (!user) {
+      toast.error(t("community.login_required"));
+      return;
+    }
+    const saved = savedIds.includes(postId);
+    setSavedIds((prev) => (saved ? prev.filter((id) => id !== postId) : [postId, ...prev]));
+    const { error } = await setPostSaved(user.id, postId, !saved);
+    if (error) {
+      setSavedIds((prev) => (saved ? [postId, ...prev] : prev.filter((id) => id !== postId)));
+      toast.error(error);
+      return;
+    }
+    toast.success(!saved ? t("community.saved") : t("community.unsaved"));
+  };
+
+  const reactToPost = async (post: SocialPost, reaction: ReactionType) => {
+    if (!user) {
+      toast.error(t("community.login_required"));
+      return;
+    }
+    const current = post.my_reaction || null;
+    const removing = current === reaction;
+    setReactionMenu(null);
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === post.id
+          ? {
+              ...p,
+              my_reaction: removing ? null : reaction,
+              liked_by_me: !removing,
+              likes_count: Math.max(0, p.likes_count + (current && !removing ? 0 : removing ? -1 : 1)),
+            }
+          : p,
+      ),
+    );
+    const { error } = await setPostReaction(user.id, post.id, removing ? null : reaction, current);
+    if (error) {
+      toast.error(error);
+      load();
+    }
+  };
+
+  const repost = async (post: SocialPost) => {
+    if (!user) {
+      toast.error(t("community.login_required"));
+      return;
+    }
+    const { error } = await supabase.from("social_posts").insert({
+      author_id: user.id,
+      body: lang === "ar" ? "أعاد النشر" : "Reposted",
+      is_published: true,
+      repost_of_id: post.repost_of_id || post.id,
     });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("community.reposted"));
+    load();
   };
 
   const copyPost = async (post: SocialPost) => {
@@ -314,48 +383,7 @@ export default function CommunityPage() {
     load();
   };
 
-  const toggleLike = async (post: SocialPost) => {
-    if (!user) {
-      toast.error(t("community.login_required"));
-      return;
-    }
-    const liked = !!post.liked_by_me;
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === post.id
-          ? {
-              ...p,
-              liked_by_me: !liked,
-              likes_count: Math.max(0, p.likes_count + (liked ? -1 : 1)),
-            }
-          : p,
-      ),
-    );
-    const { error } = liked
-      ? await supabase
-        .from("social_post_likes")
-        .delete()
-        .eq("post_id", post.id)
-        .eq("user_id", user.id)
-      : await supabase.from("social_post_likes").insert({
-          post_id: post.id,
-          user_id: user.id,
-        });
-    if (error) {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === post.id
-            ? {
-                ...p,
-                liked_by_me: liked,
-                likes_count: Math.max(0, p.likes_count + (liked ? 1 : -1)),
-              }
-            : p,
-        ),
-      );
-      toast.error(error.message);
-    }
-  };
+  const toggleLike = (post: SocialPost) => reactToPost(post, post.my_reaction || "like");
 
   const loadComments = async (postId: string) => {
     setCommentsLoading((p) => ({ ...p, [postId]: true }));
@@ -401,6 +429,7 @@ export default function CommunityPage() {
         post_id: postId,
         author_id: user.id,
         body: text,
+        parent_comment_id: replyTo[postId] || null,
       })
       .select("*")
       .single();
@@ -415,6 +444,7 @@ export default function CommunityPage() {
       [postId]: [...(p[postId] || []), enriched],
     }));
     setCommentDrafts((p) => ({ ...p, [postId]: "" }));
+    setReplyTo((p) => ({ ...p, [postId]: null }));
     setPosts((prev) =>
       prev.map((post) =>
         post.id === postId
@@ -504,7 +534,7 @@ export default function CommunityPage() {
               </Link>
             ) : (
               <Link
-                to="/welcome"
+                to="/"
                 className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-5"
               >
                 <Compass className="w-4 h-4" />
@@ -702,11 +732,12 @@ export default function CommunityPage() {
                   ["popular", t("community.filter.popular"), TrendingUp],
                   ["mine", t("community.filter.mine"), Users],
                   ["saved", t("community.filter.saved"), Bookmark],
+                  ["network", t("community.filter.network"), Network],
                 ] as const).map(([value, label, Icon]) => (
                   <button
                     key={value}
                     type="button"
-                    disabled={value === "mine" && !user}
+                    disabled={(value === "mine" || value === "network") && !user}
                     onClick={() => setFeedFilter(value)}
                     className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
                       feedFilter === value
@@ -732,8 +763,21 @@ export default function CommunityPage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="space-y-4" aria-busy="true" aria-label={t("community.title")}>
+              {[0, 1, 2].map((item) => (
+                <Card key={item}>
+                  <CardContent className="p-5 space-y-3">
+                    <div className="flex gap-3">
+                      <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-40 bg-muted animate-pulse rounded" />
+                        <div className="h-3 w-24 bg-muted animate-pulse rounded" />
+                      </div>
+                    </div>
+                    <div className="h-20 bg-muted animate-pulse rounded" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ) : visiblePosts.length === 0 ? (
             <Card>
@@ -861,8 +905,14 @@ export default function CommunityPage() {
                             </div>
                           </div>
 
+                          {post.original && (
+                            <p className="mt-3 text-xs text-muted-foreground inline-flex items-center gap-1">
+                              <Repeat2 className="w-3.5 h-3.5" />
+                              {t("community.reposted")}
+                            </p>
+                          )}
                           <CommunityPostBody
-                            text={post.body}
+                            text={post.original?.body || post.body}
                             expanded={!!expandedPosts[post.id] || hash === `#post-${post.id}`}
                             onToggle={() => toggleExpanded(post.id)}
                             onHashtag={setSearch}
@@ -881,21 +931,43 @@ export default function CommunityPage() {
                           )}
 
                           <div className="mt-4 flex flex-wrap items-center gap-1 border-t border-border/70 pt-3">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className={`gap-1.5 h-8 ${
-                                post.liked_by_me ? "text-rose-600" : "text-muted-foreground"
-                              }`}
-                              onClick={() => toggleLike(post)}
-                              aria-label={t("community.like")}
-                            >
-                              <Heart className={`w-4 h-4 ${post.liked_by_me ? "fill-current" : ""}`} />
-                              <span>{t("community.like_action")}</span>
-                              {(post.likes_count || 0) > 0 && (
-                                <span className="tabular-nums text-xs">{post.likes_count}</span>
+                            <div className="relative">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`gap-1.5 h-8 ${
+                                  post.liked_by_me ? "text-rose-600" : "text-muted-foreground"
+                                }`}
+                                onClick={() => setReactionMenu((id) => (id === post.id ? null : post.id))}
+                                onDoubleClick={() => toggleLike(post)}
+                                aria-label={t("community.like")}
+                              >
+                                <Heart className={`w-4 h-4 ${post.liked_by_me ? "fill-current" : ""}`} />
+                                <span>
+                                  {post.my_reaction
+                                    ? REACTIONS.find((r) => r.type === post.my_reaction)?.[lang === "ar" ? "ar" : "en"]
+                                    : t("community.like_action")}
+                                </span>
+                                {(post.likes_count || 0) > 0 && (
+                                  <span className="tabular-nums text-xs">{post.likes_count}</span>
+                                )}
+                              </Button>
+                              {reactionMenu === post.id && (
+                                <div className="absolute bottom-full mb-1 start-0 z-20 flex gap-1 rounded-full border border-border bg-card px-2 py-1 shadow-lg">
+                                  {REACTIONS.map((r) => (
+                                    <button
+                                      key={r.type}
+                                      type="button"
+                                      title={lang === "ar" ? r.ar : r.en}
+                                      className="text-lg leading-none hover:scale-125 transition"
+                                      onClick={() => reactToPost(post, r.type)}
+                                    >
+                                      {r.icon}
+                                    </button>
+                                  ))}
+                                </div>
                               )}
-                            </Button>
+                            </div>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -917,6 +989,15 @@ export default function CommunityPage() {
                             >
                               <Share2 className="w-4 h-4" />
                               {t("community.share")}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="gap-1.5 h-8 text-muted-foreground"
+                              onClick={() => repost(post)}
+                            >
+                              <Repeat2 className="w-4 h-4" />
+                              {t("community.repost")}
                             </Button>
                             <Button
                               variant="ghost"
@@ -962,7 +1043,7 @@ export default function CommunityPage() {
                                 </p>
                               ) : (
                                 (commentsByPost[post.id] || []).map((c) => (
-                                  <div key={c.id} className="flex gap-2">
+                                  <div key={c.id} className={`flex gap-2 ${c.parent_comment_id ? "ms-8" : ""}`}>
                                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0 overflow-hidden">
                                       {c.author?.avatar_url ? (
                                         <img
@@ -1001,6 +1082,13 @@ export default function CommunityPage() {
                                           ? c.body
                                           : `${truncatePost(c.body, 220)}…`}
                                       </p>
+                                      <button
+                                        type="button"
+                                        className="mt-1 text-[11px] font-medium text-primary"
+                                        onClick={() => setReplyTo((p) => ({ ...p, [post.id]: c.id }))}
+                                      >
+                                        {t("community.reply")}
+                                      </button>
                                       {shouldCollapsePost(c.body, 220) && (
                                         <button
                                           type="button"
@@ -1023,14 +1111,31 @@ export default function CommunityPage() {
                               )}
 
                               {user ? (
-                                <div className="flex gap-2 pt-1">
+                                <div className="space-y-2 pt-1">
+                                  {replyTo[post.id] && (
+                                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                      <span>{t("community.replying")}</span>
+                                      <button
+                                        type="button"
+                                        className="font-medium text-primary"
+                                        onClick={() => setReplyTo((p) => ({ ...p, [post.id]: null }))}
+                                      >
+                                        {t("community.cancel_reply")}
+                                      </button>
+                                    </div>
+                                  )}
+                                  <div className="flex gap-2">
                                   <Textarea
                                     rows={2}
                                     value={commentDrafts[post.id] || ""}
                                     onChange={(e) =>
                                       setCommentDrafts((p) => ({ ...p, [post.id]: e.target.value }))
                                     }
-                                    placeholder={t("community.comment_ph")}
+                                    placeholder={
+                                      replyTo[post.id]
+                                        ? t("community.reply_ph")
+                                        : t("community.comment_ph")
+                                    }
                                     className="resize-none text-sm"
                                   />
                                   <Button
@@ -1046,6 +1151,7 @@ export default function CommunityPage() {
                                       <Send className="w-4 h-4" />
                                     )}
                                   </Button>
+                                  </div>
                                 </div>
                               ) : (
                                 <Button asChild size="sm" variant="outline" className="w-full">

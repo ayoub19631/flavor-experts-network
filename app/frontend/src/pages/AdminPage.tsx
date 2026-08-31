@@ -32,6 +32,7 @@ import AdminModerationPanel from "@/components/admin/AdminModerationPanel";
 import AdminCoursesPanel from "@/components/admin/AdminCoursesPanel";
 import AdminConsultationsPanel from "@/components/admin/AdminConsultationsPanel";
 import AdminForumCategoriesPanel from "@/components/admin/AdminForumCategoriesPanel";
+import AdminMemberQualityPanel from "@/components/admin/AdminMemberQualityPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type NewsItem = IndustryNews;
@@ -793,6 +794,9 @@ export default function AdminPage() {
               </TabsTrigger>
               <TabsTrigger value="forum" className="gap-1.5 rounded-lg text-xs sm:text-sm">
                 <Radio className="w-3.5 h-3.5" /> {T.tabForum}
+              </TabsTrigger>
+              <TabsTrigger value="qa" className="gap-1.5 rounded-lg text-xs sm:text-sm">
+                <Shield className="w-3.5 h-3.5" /> QA
               </TabsTrigger>
             </TabsList>
 
@@ -1697,6 +1701,10 @@ export default function AdminPage() {
 
             <TabsContent value="forum">
               <AdminForumCategoriesPanel />
+            </TabsContent>
+
+            <TabsContent value="qa">
+              <AdminMemberQualityPanel />
             </TabsContent>
           </Tabs>
         </div>

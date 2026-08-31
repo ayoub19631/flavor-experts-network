@@ -54,6 +54,12 @@ export interface UserProfile {
   updated_at?: string;
   terms_accepted_at?: string | null;
   terms_version?: string | null;
+  country?: string | null;
+  preferred_language?: string | null;
+  is_test_account?: boolean;
+  verification_type?: string | null;
+  verified_at?: string | null;
+  adult_confirmed_at?: string | null;
 }
 
 export interface Member {
@@ -225,15 +231,21 @@ export interface ConsultationRequest {
 
 export interface Course {
   id: string;
+  slug?: string | null;
   title: string;
   title_ar?: string | null;
   description: string;
   description_ar?: string | null;
   level: string;
   duration_hours: number;
+  estimated_minutes?: number | null;
   image_url: string | null;
   is_published: boolean;
   premium: boolean;
+  status?: "draft" | "review" | "published" | "archived";
+  primary_language?: string;
+  has_capstone?: boolean;
+  version_number?: number;
   created_at: string;
 }
 
@@ -295,6 +307,8 @@ export interface JobApplication {
   created_at: string;
 }
 
+export type ReactionType = "like" | "celebrate" | "support" | "insightful" | "curious";
+
 export interface SocialPost {
   id: string;
   author_id: string;
@@ -304,6 +318,7 @@ export interface SocialPost {
   is_hidden: boolean;
   likes_count: number;
   comments_count?: number;
+  repost_of_id?: string | null;
   created_at: string;
   updated_at?: string;
   author?: ForumAuthor & {
@@ -313,6 +328,8 @@ export interface SocialPost {
     member_id?: string | null;
   };
   liked_by_me?: boolean;
+  my_reaction?: ReactionType | null;
+  original?: SocialPost | null;
 }
 
 export interface SocialPostComment {
@@ -320,6 +337,7 @@ export interface SocialPostComment {
   post_id: string;
   author_id: string;
   body: string;
+  parent_comment_id?: string | null;
   is_hidden?: boolean;
   created_at: string;
   updated_at?: string;

@@ -75,40 +75,23 @@ export default function ConsultationsPage() {
     }
 
     try {
-      if (user) {
-        const { error: insertError } = await supabase.from("consultation_requests").insert({
-          user_id: user.id,
+      const { data, error: fnError } = await supabase.functions.invoke("submit-public-form", {
+        body: {
+          form: "consultation",
           name,
           email,
           topic,
           preferred_date,
           message,
-          status: "new",
-        });
+          website_url: "",
+          user_id: user?.id || null,
+        },
+      });
 
-        if (insertError) {
-          setError(insertError.message || t("consultations.error.submit"));
-          setLoading(false);
-          return;
-        }
-      } else {
-        const { data, error: fnError } = await supabase.functions.invoke("submit-public-form", {
-          body: {
-            form: "consultation",
-            name,
-            email,
-            topic,
-            preferred_date,
-            message,
-            website_url: "",
-          },
-        });
-
-        if (fnError || data?.error) {
-          setError(data?.error || fnError?.message || t("consultations.error.submit"));
-          setLoading(false);
-          return;
-        }
+      if (fnError || data?.error) {
+        setError(data?.error || fnError?.message || t("consultations.error.submit"));
+        setLoading(false);
+        return;
       }
 
       setSubmitted(true);

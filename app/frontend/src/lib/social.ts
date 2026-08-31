@@ -19,6 +19,26 @@ export async function enrichSocialPosts(posts: SocialPost[]): Promise<SocialPost
   const map = new Map((profiles || []).map((p) => [p.id, p]));
   const memberMap = new Map((directory || []).map((m) => [m.profile_id, m.id]));
 
+  const originalsNeeded = [...new Set(posts.map((p) => p.repost_of_id).filter(Boolean))] as string[];
+  const originals = new Map<string, SocialPost>();
+  if (originalsNeeded.length > 0) {
+    const { data } = await supabase.from("social_posts").select("*").in("id", originalsNeeded);
+    const extraAuthors = [...new Set(((data as SocialPost[]) || []).map((row) => row.author_id))];
+    const { data: extraProfiles } = extraAuthors.length
+      ? await supabase
+          .from("public_author_profiles")
+          .select("id, full_name, avatar_url, role, company, account_type")
+          .in("id", extraAuthors)
+      : { data: [] };
+    const extraMap = new Map((extraProfiles || []).map((p) => [p.id, p]));
+    ((data as SocialPost[]) || []).forEach((row) => {
+      originals.set(row.id, {
+        ...row,
+        author: extraMap.get(row.author_id) || row.author,
+      });
+    });
+  }
+
   return posts.map((p) => {
     const author = map.get(p.author_id) || p.author;
     return {
@@ -27,6 +47,7 @@ export async function enrichSocialPosts(posts: SocialPost[]): Promise<SocialPost
       author: author
         ? { ...author, member_id: memberMap.get(p.author_id) ?? null }
         : author,
+      original: p.repost_of_id ? originals.get(p.repost_of_id) || null : null,
     };
   });
 }

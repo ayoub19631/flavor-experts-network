@@ -15,6 +15,7 @@ import {
   BookOpen, GraduationCap, Loader2, Pencil, Plus, RefreshCw, Trash2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { publishCourse } from "@/lib/academy";
 import type { Course } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -28,7 +29,7 @@ const emptyForm = {
   level: "beginner",
   duration_hours: "1",
   image_url: "",
-  is_published: true,
+  is_published: false,
 };
 
 export default function AdminCoursesPanel() {
@@ -102,6 +103,12 @@ export default function AdminCoursesPanel() {
       return;
     }
     setSaving(true);
+    const slug = form.title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 80);
     const payload = {
       title: form.title.trim(),
       title_ar: form.title_ar.trim() || null,
@@ -111,6 +118,8 @@ export default function AdminCoursesPanel() {
       duration_hours: Number(form.duration_hours) || 1,
       image_url: form.image_url.trim() || null,
       is_published: form.is_published,
+      status: form.is_published ? "published" : "draft",
+      slug: editing?.slug || `${slug || "course"}-${Date.now().toString(36)}`,
       premium: false,
       updated_at: new Date().toISOString(),
     };
@@ -125,12 +134,18 @@ export default function AdminCoursesPanel() {
       courseId = res.data?.id ?? null;
     }
     if (!error && courseId && form.is_published) {
+      const published = await publishCourse(courseId, "Admin catalog publish");
+      if (published.error) {
+        setSaving(false);
+        toast.error(published.error);
+        return;
+      }
       await attachToLearningPath(courseId, form.level);
     }
     setSaving(false);
     if (error) toast.error(error.message);
     else {
-      toast.success(editing ? "Course updated" : "Course published");
+      toast.success(editing ? "Course updated" : form.is_published ? "Course published" : "Draft course created");
       setDialog(false);
       load();
     }
@@ -150,9 +165,17 @@ export default function AdminCoursesPanel() {
 
   const togglePublished = async (course: Course) => {
     setBusyId(course.id);
+    if (!course.is_published) {
+      const published = await publishCourse(course.id, "Admin catalog publish");
+      if (!published.error) await attachToLearningPath(course.id, course.level);
+      setBusyId(null);
+      if (published.error) toast.error(published.error);
+      else load();
+      return;
+    }
     const { error } = await supabase
       .from("courses")
-      .update({ is_published: !course.is_published })
+      .update({ status: "draft" })
       .eq("id", course.id);
     setBusyId(null);
     if (error) toast.error(error.message);
@@ -168,7 +191,7 @@ export default function AdminCoursesPanel() {
             Courses catalog
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Publish free courses that appear under Learning paths.
+            Create draft Academy courses, then open the builder to edit English/Arabic content before publishing.
           </p>
         </div>
         <div className="flex gap-2">
@@ -191,7 +214,7 @@ export default function AdminCoursesPanel() {
             <BookOpen className="w-10 h-10 mx-auto text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">No courses yet</p>
             <Button size="sm" onClick={openAdd} className="gap-2">
-              <Plus className="w-3.5 h-3.5" /> Publish first course
+              <Plus className="w-3.5 h-3.5" /> Create first draft
             </Button>
           </CardContent>
         </Card>
@@ -214,6 +237,9 @@ export default function AdminCoursesPanel() {
                 <div className="flex flex-wrap gap-2 shrink-0">
                   <Button size="sm" variant="outline" className="h-8" disabled={busyId === course.id} onClick={() => togglePublished(course)}>
                     {course.is_published ? "Unpublish" : "Publish"}
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
+                    <a href={`/admin/academy/${course.id}`}>Builder</a>
                   </Button>
                   <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => openEdit(course)}>
                     <Pencil className="w-3 h-3" /> Edit
@@ -278,7 +304,7 @@ export default function AdminCoursesPanel() {
             <Button variant="outline" onClick={() => setDialog(false)}>Cancel</Button>
             <Button onClick={save} disabled={saving} className="gap-2">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
-              {editing ? "Save" : "Publish"}
+              {editing ? "Save" : form.is_published ? "Publish" : "Create draft"}
             </Button>
           </DialogFooter>
         </DialogContent>

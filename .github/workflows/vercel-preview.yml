@@ -1,0 +1,77 @@
+name: Vercel Preview
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/frontend/**"
+      - "vercel.json"
+      - "package.json"
+      - ".github/workflows/vercel-preview.yml"
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Vercel secrets
+        id: secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping preview deploy — add VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID. Vercel Git integration can still publish PR previews."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.configured == 'true'
+
+      - uses: pnpm/action-setup@v4
+        if: steps.secrets.outputs.configured == 'true'
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.configured == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: app/frontend/pnpm-lock.yaml
+
+      - name: Install
+        if: steps.secrets.outputs.configured == 'true'
+        working-directory: app/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Quality gate
+        if: steps.secrets.outputs.configured == 'true'
+        working-directory: app/frontend
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder
+          VITE_SITE_URL: https://flavorexpertsnetwork.com
+        run: |
+          set -e
+          pnpm typecheck || { echo "::error::Typecheck failed"; exit 1; }
+          pnpm lint || { echo "::error::Lint failed"; exit 1; }
+          pnpm test || { echo "::error::Unit tests failed"; exit 1; }
+          pnpm build || { echo "::error::Production build failed"; exit 1; }
+
+      - name: Deploy preview
+        if: steps.secrets.outputs.configured == 'true'
+        working-directory: app/frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set +x
+          pnpm dlx vercel@39 pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          url=$(pnpm dlx vercel@39 deploy --token="$VERCEL_TOKEN")
+          echo "Preview URL written without printing the token."
+          echo "preview_url=$url" >> "$GITHUB_OUTPUT"
+          echo "::notice::Preview deployed"

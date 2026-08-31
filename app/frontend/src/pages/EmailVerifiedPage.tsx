@@ -46,7 +46,7 @@ export default function EmailVerifiedPage() {
   useEffect(() => {
     if (!user || !isEmailVerified(user)) return;
     if (countdown <= 0) {
-      navigate("/");
+      navigate("/community");
       return;
     }
     const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
@@ -136,7 +136,7 @@ export default function EmailVerifiedPage() {
             <div className="space-y-2">
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 gap-2"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/community")}
               >
                 {lang === "ar" ? "دخول المجتمع" : "Enter the community"}
                 <ArrowRight className="w-4 h-4" />

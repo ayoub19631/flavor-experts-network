@@ -28,6 +28,8 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import { toast } from "sonner";
+import { ENTERPRISE_SERVICE_OPTIONS } from "@/lib/countries";
+import { isValidEmail } from "@/lib/registration";
 
 const services = [
   {
@@ -56,11 +58,11 @@ const services = [
   },
 ];
 
-const stats = [
-  { key: "members", icon: Users, valueKey: "enterprise.stat.members" },
-  { key: "countries", icon: Globe, valueKey: "enterprise.stat.countries" },
-  { key: "engagement", icon: TrendingUp, valueKey: "enterprise.stat.engagement" },
-  { key: "satisfaction", icon: Star, valueKey: "enterprise.stat.satisfaction" },
+const benefits = [
+  { key: "network", icon: Users },
+  { key: "reach", icon: Globe },
+  { key: "focus", icon: TrendingUp },
+  { key: "support", icon: Star },
 ] as const;
 
 export default function EnterpriseServicesPage() {
@@ -92,8 +94,13 @@ export default function EnterpriseServicesPage() {
       message: (formData.get("message") as string).trim(),
     };
 
-    if (!data.company_name || !data.contact_name || !data.email || !data.message) {
+    if (!data.company_name || !data.contact_name || !data.email || !data.message || !data.services_interested) {
       setError(t("contact.error.fields"));
+      setLoading(false);
+      return;
+    }
+    if (!isValidEmail(data.email)) {
+      setError(t("auth.err.email"));
       setLoading(false);
       return;
     }
@@ -154,19 +161,22 @@ export default function EnterpriseServicesPage() {
         </div>
       </section>
 
-      {/* Stats */}
       <section className="py-10 border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat) => {
-              const Icon = stat.icon;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {benefits.map((benefit) => {
+              const Icon = benefit.icon;
               return (
-                <div key={stat.key} className="text-center">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <div key={benefit.key} className="h-full rounded-xl border border-border bg-card p-5 text-start">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <p className="text-2xl font-bold text-foreground">{t(stat.valueKey)}</p>
-                  <p className="text-sm text-muted-foreground">{t(`enterprise.stat.${stat.key}`)}</p>
+                  <h2 className="text-base font-semibold text-foreground">
+                    {t(`enterprise.benefit.${benefit.key}.title`)}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    {t(`enterprise.benefit.${benefit.key}.desc`)}
+                  </p>
                 </div>
               );
             })}
@@ -206,9 +216,6 @@ export default function EnterpriseServicesPage() {
                           <h3 className="text-lg font-bold text-foreground">
                             {t(`enterprise.service.${service.key}.title`)}
                           </h3>
-                          <Badge variant="secondary" className="text-xs">
-                            {service.highlight}
-                          </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {t(`enterprise.service.${service.key}.desc`)}
@@ -319,12 +326,19 @@ export default function EnterpriseServicesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="services">{t("enterprise.form.services")}</Label>
-                    <Input
+                    <select
                       id="services"
                       name="services"
-                      placeholder={t("enterprise.form.services_placeholder")}
+                      required
                       disabled={loading}
-                    />
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>{t("enterprise.form.service_select")}</option>
+                      {ENTERPRISE_SERVICE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="message">{t("enterprise.form.message")}</Label>
@@ -339,7 +353,7 @@ export default function EnterpriseServicesPage() {
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                    <div id="enterprise-form-error" role="alert" className="flex items-center gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       {error}
                     </div>
@@ -348,6 +362,7 @@ export default function EnterpriseServicesPage() {
                   <Button
                     type="submit"
                     disabled={loading}
+                    aria-busy={loading}
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
                   >
                     {loading ? (

@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       ? "كيف تجمع شبكة خبراء النكهات بياناتك وتستخدمها وتحميها."
       : "How Flavor Experts Network collects, uses, and protects your data.",
     path: "/privacy",
-    noIndex: true,
+    noIndex: false,
   });
 
   return (
@@ -126,9 +126,11 @@ export default function PrivacyPage() {
                   <h2 className="text-xl font-bold text-foreground mb-3">9. التواصل</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     لأي استفسارات تتعلق بالخصوصية، تواصل معنا عبر:{" "}
-                    <a href={`mailto:${SITE.supportEmail}`} className="text-primary hover:underline">
-                      {SITE.supportEmail}
+                    {SITE.privacyEmail ? (
+                    <a href={`mailto:${SITE.privacyEmail}`} className="text-primary hover:underline">
+                      {SITE.privacyEmail}
                     </a>
+                    ) : t("privacy.email_unconfigured")}
                   </p>
                 </section>
               </>
@@ -216,9 +218,11 @@ export default function PrivacyPage() {
                   <h2 className="text-xl font-bold text-foreground mb-3">9. Contact</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     For privacy-related inquiries, contact us at:{" "}
-                    <a href={`mailto:${SITE.supportEmail}`} className="text-primary hover:underline">
-                      {SITE.supportEmail}
+                    {SITE.privacyEmail ? (
+                    <a href={`mailto:${SITE.privacyEmail}`} className="text-primary hover:underline">
+                      {SITE.privacyEmail}
                     </a>
+                    ) : t("privacy.email_unconfigured")}
                   </p>
                 </section>
               </>

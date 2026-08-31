@@ -71,7 +71,11 @@ function siteUrl() {
 }
 
 function fromAddress() {
-  return Deno.env.get("EMAIL_FROM") || "Flavor Experts Network <noreply@nexusflavor.com>";
+  return (
+    Deno.env.get("TRANSACTIONAL_FROM_EMAIL") ||
+    Deno.env.get("EMAIL_FROM") ||
+    "Flavor Experts Network <noreply@nexusflavor.com>"
+  );
 }
 
 function brandShell(title: string, innerHtml: string, preheader = "", lang: "ar" | "en" = "en") {

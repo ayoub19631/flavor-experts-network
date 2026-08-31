@@ -122,7 +122,7 @@ export default function AuthCallback() {
             ? "مرحباً بعودتك!"
             : "Welcome back!",
       );
-      setTimeout(() => navigate("/"), 1200);
+      setTimeout(() => navigate("/community"), 1200);
     }
 
     const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {

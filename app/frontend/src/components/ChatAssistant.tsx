@@ -16,7 +16,8 @@ const SYSTEM_PROMPT = `You are "FlavorBot" (فليفربوت), the official AI a
 Flavor Experts Network is a professional community connecting flavor scientists, food technologists, R&D professionals, sensory experts, and ingredient suppliers worldwide.
 
 ## Website Pages & Navigation
-- **/** — Home page (hero, features, testimonials, news preview)
+- **/** — Public landing page
+- **/community** — Professional member feed
 - **/auth** — Login & Registration (individual or company) — fully free
 - **/dashboard** — Member dashboard (after login)
 - **/members** — Member directory
@@ -279,10 +280,16 @@ function renderMarkdown(text: string) {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export default function ChatAssistant() {
+export default function ChatAssistant({
+  minimizedByDefault = false,
+  compactTrigger = false,
+}: {
+  minimizedByDefault?: boolean;
+  compactTrigger?: boolean;
+}) {
   const { lang, dir } = useI18n();
   const [open, setOpen] = useState(false);
-  const [minimized, setMinimized] = useState(false);
+  const [minimized, setMinimized] = useState(minimizedByDefault);
   const [messages, setMessages] = useState<Message[]>([
     { id: "welcome", role: "assistant", content: initialWelcome(), timestamp: new Date() },
   ]);
@@ -294,6 +301,13 @@ export default function ChatAssistant() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (minimizedByDefault) {
+      setOpen(false);
+      setMinimized(true);
+    }
+  }, [minimizedByDefault]);
 
   const welcomeForLang = lang === "ar" ? WELCOME_MSG_AR : WELCOME_MSG_EN;
   const isRTL = dir === "rtl" || lang === "ar";
@@ -431,7 +445,7 @@ export default function ChatAssistant() {
         onClick={handleOpen}
         aria-label={fabLabel}
         className={`
-          fixed bottom-6 z-[9999] flex items-center gap-2.5 px-4 py-3
+          fixed bottom-20 sm:bottom-6 z-[40] flex items-center gap-2.5 px-4 py-3
           rounded-2xl bg-primary text-primary-foreground font-semibold text-sm
           shadow-xl shadow-primary/40
           transition-all duration-300 ease-out
@@ -439,13 +453,14 @@ export default function ChatAssistant() {
           active:scale-95
           ${isRTL ? "left-6 right-auto" : "right-6"}
           ${open ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100"}
+          ${compactTrigger ? "px-3" : ""}
         `}
       >
         <div className="relative flex-shrink-0">
           <MessageCircle className="w-5 h-5" />
           <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
         </div>
-        <span>{fabLabel}</span>
+        {!compactTrigger && <span>{fabLabel}</span>}
         {unread > 0 && (
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs min-w-5 h-5 rounded-full flex items-center justify-center font-bold px-1">
             {unread}
@@ -458,7 +473,7 @@ export default function ChatAssistant() {
         role="dialog"
         aria-label={`${fabLabel} — FlavorBot`}
         className={`
-          fixed bottom-6 z-[9999] flex flex-col
+          fixed bottom-20 sm:bottom-6 z-[40] flex flex-col
           bg-background border border-border rounded-2xl shadow-2xl
           transition-all duration-300 ease-out
           ${isRTL ? "left-6 right-auto origin-bottom-left" : "right-6 origin-bottom-right"}

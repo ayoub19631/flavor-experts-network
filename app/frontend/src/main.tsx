@@ -36,6 +36,14 @@ async function initializeApp() {
   if (Capacitor.isNativePlatform()) {
     try { await SplashScreen.hide(); } catch { /* ignore */ }
   }
+
+  if (import.meta.env.PROD && 'serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
+    try {
+      await navigator.serviceWorker.register('/sw.js');
+    } catch {
+      /* offline cache is optional */
+    }
+  }
 }
 
 initializeApp();

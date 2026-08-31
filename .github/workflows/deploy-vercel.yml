@@ -48,6 +48,20 @@ jobs:
         working-directory: app/frontend
         run: pnpm install --frozen-lockfile
 
+      - name: Quality gate
+        if: steps.secrets.outputs.configured == 'true'
+        working-directory: app/frontend
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SITE_URL: https://flavorexpertsnetwork.com
+        run: |
+          set -e
+          pnpm typecheck || { echo "::error::Typecheck failed"; exit 1; }
+          pnpm lint || { echo "::error::Lint failed"; exit 1; }
+          pnpm test || { echo "::error::Unit tests failed"; exit 1; }
+          pnpm build || { echo "::error::Production build failed"; exit 1; }
+
       - name: Deploy production via Vercel CLI
         if: steps.secrets.outputs.configured == 'true'
         working-directory: app/frontend
@@ -64,8 +78,8 @@ jobs:
           VITE_OAUTH_ENABLED: "true"
           VITE_PAYMENTS_ENABLED: "false"
         run: |
-          # Deploy from the frontend package root (matches historical CLI workflow).
-          # Avoids monorepo Root Directory / root vercel.json mismatches.
+          set +x
+          # Production deploys only from main (workflow trigger). Never echo tokens.
           pnpm dlx vercel@39 pull --yes --environment=production --token="$VERCEL_TOKEN"
           pnpm dlx vercel@39 build --prod --token="$VERCEL_TOKEN"
           url=$(pnpm dlx vercel@39 deploy --prebuilt --prod --token="$VERCEL_TOKEN")

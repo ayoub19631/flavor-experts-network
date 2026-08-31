@@ -33,6 +33,10 @@ export default defineConfig(({ command, mode }) => {
   env.VITE_APP_DESCRIPTION = escapeHtmlAttr(env.VITE_APP_DESCRIPTION);
   env.VITE_APP_LOGO_URL ??= '/favicon.svg';
   env.VITE_SITE_URL ??= 'https://flavorexpertsnetwork.com';
+  env.VITE_SUPPORT_EMAIL ??= env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
+  env.VITE_PRIVACY_EMAIL ??= env.NEXT_PUBLIC_PRIVACY_EMAIL || '';
+  process.env.VITE_SUPPORT_EMAIL = env.VITE_SUPPORT_EMAIL;
+  process.env.VITE_PRIVACY_EMAIL = env.VITE_PRIVACY_EMAIL;
   // Vite HTML %VITE_*% replacement reads process.env / mode env files — not the local object.
   process.env.VITE_APP_TITLE = env.VITE_APP_TITLE;
   process.env.VITE_APP_DESCRIPTION = env.VITE_APP_DESCRIPTION;
@@ -52,7 +56,31 @@ export default defineConfig(({ command, mode }) => {
               hostname: env.VITE_SITE_URL || 'https://flavorexpertsnetwork.com',
               lastmod: getSitemapLastmod(),
               readable: true,
-              generateRobotsTxt: true,
+              generateRobotsTxt: false,
+              dynamicRoutes: [
+                '/',
+                '/community',
+                '/courses',
+                '/members',
+                '/jobs',
+                '/forum',
+                '/market',
+                '/blog',
+                '/consultations',
+                '/enterprise',
+                '/terms',
+                '/privacy',
+                ...getBlogRoutes(),
+              ],
+              exclude: [
+                '/admin',
+                '/dashboard',
+                '/auth',
+                '/learn',
+                '/messages',
+                '/verify-email',
+                '/email-verified',
+              ],
             }),
           ]),
       ...(blogPrerenderRoutes.length > 0

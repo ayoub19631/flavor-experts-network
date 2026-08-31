@@ -18,6 +18,8 @@ import {
   Building2,
   ShieldCheck,
   ChevronDown,
+  Search,
+  GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -25,6 +27,7 @@ import { useTheme } from "@/lib/theme";
 import BrandLogo from "@/components/BrandLogo";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
+import InboxButton from "@/components/InboxButton";
 import TestingModeBanner from "@/components/TestingModeBanner";
 import { SITE } from "@/lib/site-config";
 
@@ -37,12 +40,13 @@ export default function Navbar() {
   const { pathname } = useLocation();
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/" || pathname === "/community";
+    if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   const primaryLinks = [
-    { href: "/", label: t("nav.community") },
+    { href: "/community", label: t("nav.community") },
+    { href: "/courses", label: t("nav.academy") },
     { href: "/members", label: t("nav.members") },
     { href: "/jobs", label: t("nav.jobs") },
     { href: "/forum", label: t("nav.forum") },
@@ -51,18 +55,17 @@ export default function Navbar() {
   ];
 
   const exploreLinks = [
-    { href: "/welcome#about", label: t("nav.about") },
-    { href: "/welcome#news", label: t("nav.news") },
-    { href: "/welcome#resources", label: t("nav.resources") },
-    { href: "/courses", label: t("nav.courses") },
+    { href: "/#about", label: t("nav.about") },
+    { href: "/#news", label: t("nav.news") },
+    { href: "/#resources", label: t("nav.resources") },
     { href: "/consultations", label: t("nav.consultations") },
     { href: "/enterprise", label: t("nav.enterprise") },
-    { href: "/welcome#contact", label: t("nav.contact") },
+    { href: "/#contact", label: t("nav.contact") },
   ];
 
   const handleSignOut = async () => {
     await signOut();
-    navigate("/");
+    navigate("/community");
   };
 
   return (
@@ -130,6 +133,7 @@ export default function Navbar() {
               size="icon"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               className="h-9 w-9"
+              aria-label={t("a11y.theme")}
               title={resolvedTheme === "dark" ? (lang === "ar" ? "الوضع الفاتح" : "Light mode") : (lang === "ar" ? "الوضع الداكن" : "Dark mode")}
             >
               {resolvedTheme === "dark" ? (
@@ -139,6 +143,12 @@ export default function Navbar() {
               )}
             </Button>
 
+            <Link to="/search" className="hidden sm:inline-flex" aria-label={t("nav.search")}>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <Search className="w-4 h-4" />
+              </Button>
+            </Link>
+            {user && <InboxButton />}
             {user && <NotificationBell />}
 
             {user ? (
@@ -155,10 +165,16 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   {isEmailVerified ? (
+                    <>
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       <LayoutDashboard className="w-4 h-4 me-2" />
                       {t("nav.dashboard")}
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/learn")}>
+                      <GraduationCap className="w-4 h-4 me-2" />
+                      {t("nav.learn")}
+                    </DropdownMenuItem>
+                    </>
                   ) : (
                     <DropdownMenuItem onClick={() => navigate(`/verify-email?email=${encodeURIComponent(user.email || "")}`)} className="text-amber-600 dark:text-amber-400 font-medium">
                       <LayoutDashboard className="w-4 h-4 me-2" />
@@ -231,6 +247,22 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              to="/search"
+              className="block px-3 py-2 text-sm font-medium text-foreground hover:text-primary"
+              onClick={() => setMobileOpen(false)}
+            >
+              {t("nav.search")}
+            </Link>
+            {user && (
+              <Link
+                to="/messages"
+                className="block px-3 py-2 text-sm font-medium text-foreground hover:text-primary"
+                onClick={() => setMobileOpen(false)}
+              >
+                {t("nav.messages")}
+              </Link>
+            )}
             <p className="px-3 pt-3 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
               {t("nav.explore")}
             </p>

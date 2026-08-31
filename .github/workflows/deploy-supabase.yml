@@ -6,6 +6,7 @@ on:
     paths:
       - "supabase/functions/send-email/**"
       - "supabase/functions/auth-email-hook/**"
+      - "supabase/functions/submit-public-form/**"
       - "supabase/migrations/**"
       - ".github/workflows/deploy-supabase.yml"
   workflow_dispatch:
@@ -73,6 +74,7 @@ jobs:
         run: |
           supabase functions deploy send-email --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
           supabase functions deploy auth-email-hook --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
+          supabase functions deploy submit-public-form --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
 
       - name: Verify welcome trigger exists
         if: steps.creds.outputs.access_token == 'true'

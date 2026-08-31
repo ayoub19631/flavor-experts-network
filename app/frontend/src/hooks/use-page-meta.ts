@@ -51,6 +51,18 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
     upsertMeta("twitter:description", pageDescription);
     upsertMeta("twitter:image", ogImage);
     upsertLink("canonical", canonical);
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
+    for (const [hreflang, href] of [
+      ["en", canonical],
+      ["ar", canonical],
+      ["x-default", canonical],
+    ] as const) {
+      const link = document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = hreflang;
+      link.href = href;
+      document.head.appendChild(link);
+    }
 
     if (noIndex) {
       upsertMeta("robots", "noindex, nofollow");

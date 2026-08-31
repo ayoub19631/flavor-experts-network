@@ -50,9 +50,9 @@ export default function HeroSection() {
               size="lg"
               className="bg-[hsl(47_23%_85%)] hover:bg-[hsl(47_25%_90%)] text-[hsl(208_100%_14%)] font-semibold shadow-lg shadow-black/25"
             >
-              <Link to="/auth" className="flex items-center gap-2">
-                {t("hero.cta.join")}
-                <ArrowRight className="w-4 h-4" />
+              <Link to="/courses" className="flex items-center gap-2">
+                {t("hero.cta")}
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </Button>
             <Button
@@ -61,8 +61,8 @@ export default function HeroSection() {
               size="lg"
               className="!bg-transparent border-[hsl(47_23%_85%/0.4)] text-white hover:!bg-white/10 hover:border-[hsl(47_23%_85%/0.6)]"
             >
-              <Link to="/" className="flex items-center">
-                {t("hero.cta")}
+              <Link to="/auth?mode=signup" className="flex items-center">
+                {t("hero.cta.join")}
               </Link>
             </Button>
           </div>

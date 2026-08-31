@@ -1,4 +1,6 @@
-﻿/** Central branding & contact configuration */
+﻿import { PUBLIC_PRIVACY_EMAIL, PUBLIC_SUPPORT_EMAIL } from "@/lib/public-emails";
+
+/** Central branding & contact configuration */
 export const SITE = {
   name: import.meta.env.VITE_APP_TITLE || "Flavor Experts Network",
   tagline: "Flavor Expertise & Science",
@@ -7,15 +9,11 @@ export const SITE = {
     "A free professional network for flavor scientists and food technologists — jobs, community, and industry knowledge",
   url: (import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, ""),
   domain: "flavorexpertsnetwork.com",
-  supportEmail:
-    import.meta.env.VITE_SUPPORT_EMAIL ||
-    import.meta.env.VITE_ADMIN_EMAIL ||
-    "noreply@nexusflavor.com",
+  supportEmail: PUBLIC_SUPPORT_EMAIL,
+  privacyEmail: PUBLIC_PRIVACY_EMAIL,
   billingEmail:
     import.meta.env.VITE_BILLING_EMAIL ||
-    import.meta.env.VITE_SUPPORT_EMAIL ||
-    import.meta.env.VITE_ADMIN_EMAIL ||
-    "noreply@nexusflavor.com",
+    PUBLIC_SUPPORT_EMAIL,
   linkedInGroup: "https://www.linkedin.com/groups/13155714/",
   logo: "/brand/flavor-expertise-science.webp",
   ogImage:

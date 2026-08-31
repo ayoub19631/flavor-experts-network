@@ -6,12 +6,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LANGUAGES } from "@/lib/languages";
+import { LANGUAGES, type Language } from "@/lib/languages";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 
 export default function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { lang, setLang, t } = useI18n();
+  const { user } = useAuth();
   const current = LANGUAGES.find((item) => item.code === lang) || LANGUAGES[0];
+
+  const persistLang = (code: Language) => {
+    setLang(code);
+    if (user) {
+      void supabase.from("user_profiles").update({ preferred_language: code }).eq("id", user.id);
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -31,7 +41,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         {LANGUAGES.map((item) => (
           <DropdownMenuItem
             key={item.code}
-            onClick={() => setLang(item.code)}
+            onClick={() => persistLang(item.code)}
             className={item.code === lang ? "bg-primary/10 font-semibold" : ""}
           >
             <span className="flex-1">{item.native}</span>

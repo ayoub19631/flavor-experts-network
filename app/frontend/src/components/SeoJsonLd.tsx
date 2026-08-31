@@ -1,0 +1,59 @@
+import { useEffect } from "react";
+import { SITE } from "@/lib/site-config";
+import { canonicalUrl } from "@/lib/seo-routes";
+
+type JsonLdProps = {
+  data: Record<string, unknown> | Array<Record<string, unknown>>;
+};
+
+export function organizationJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: SITE.name,
+    url: SITE.url,
+    logo: `${SITE.url}/brand/logo-512.webp`,
+    sameAs: [SITE.linkedInGroup],
+  };
+}
+
+export function websiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE.name,
+    url: SITE.url,
+    inLanguage: ["en", "ar"],
+  };
+}
+
+export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: canonicalUrl(item.path),
+    })),
+  };
+}
+
+export default function SeoJsonLd({ data }: JsonLdProps) {
+  useEffect(() => {
+    const scriptId = "fen-jsonld";
+    let el = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = scriptId;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(data);
+    return () => {
+      el?.remove();
+    };
+  }, [data]);
+  return null;
+}

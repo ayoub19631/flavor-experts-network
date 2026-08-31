@@ -119,12 +119,16 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-foreground mb-1">{t("contact.email")}</h4>
-                  <a
-                    href={`mailto:${SITE.supportEmail}`}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {SITE.supportEmail}
-                  </a>
+                  {SITE.supportEmail ? (
+                    <a
+                      href={`mailto:${SITE.supportEmail}`}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {SITE.supportEmail}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t("contact.email_unconfigured")}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

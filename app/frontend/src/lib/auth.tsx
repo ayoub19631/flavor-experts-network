@@ -31,6 +31,13 @@ interface AuthContextType {
     password: string,
     fullName: string,
     preferredLanguage?: Language,
+    extras?: {
+      country?: string;
+      role?: string;
+      specialty?: string;
+      company?: string;
+      adultConfirmed?: boolean;
+    },
   ) => Promise<{ error: string | null }>;
   acceptPlatformTerms: () => Promise<{ error: string | null }>;
   claimCompanyAccount: (details: {
@@ -171,6 +178,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     fullName: string,
     preferredLanguage: Language = "en",
+    extras?: {
+      country?: string;
+      role?: string;
+      specialty?: string;
+      company?: string;
+      adultConfirmed?: boolean;
+    },
   ) {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -181,6 +195,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           preferred_language: preferredLanguage,
           terms_accepted: true,
           terms_version: TERMS_VERSION,
+          country: extras?.country || "",
+          role: extras?.role || "",
+          specialty: extras?.specialty || "",
+          company: extras?.company || "",
+          adult_confirmed: extras?.adultConfirmed === true,
         },
         emailRedirectTo: getAuthRedirectUrl("/auth/callback"),
       },

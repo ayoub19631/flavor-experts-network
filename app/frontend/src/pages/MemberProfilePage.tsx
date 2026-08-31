@@ -17,6 +17,8 @@ import {
   UserPlus,
   Check,
   Clock,
+  MessageSquare,
+  UserCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,7 +43,18 @@ import {
   type MemberConnection,
 } from "@/lib/connections";
 import { rankBySkillOverlap, tokenizeSkills } from "@/lib/matching";
-import type { JobListing } from "@/lib/types";
+import type { JobListing, SocialPost } from "@/lib/types";
+import {
+  fetchAcceptedRecommendations,
+  fetchEndorsements,
+  fetchFollowerCount,
+  fetchProfileViewCount,
+  isFollowing,
+  recordProfileView,
+  submitRecommendation,
+  toggleEndorsement,
+  toggleFollow,
+} from "@/lib/network";
 import { toast } from "sonner";
 
 function getInitials(name: string) {
@@ -69,6 +82,14 @@ export default function MemberProfilePage() {
   const [targetUserId, setTargetUserId] = useState<string | null>(null);
   const [connection, setConnection] = useState<MemberConnection | null>(null);
   const [connectBusy, setConnectBusy] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [followers, setFollowers] = useState(0);
+  const [views, setViews] = useState(0);
+  const [activity, setActivity] = useState<SocialPost[]>([]);
+  const [endorsements, setEndorsements] = useState<Map<string, { count: number; mine: boolean }>>(new Map());
+  const [recs, setRecs] = useState<Array<{ id: string; author_id: string; relationship: string; body: string }>>([]);
+  const [recDraft, setRecDraft] = useState("");
+  const [recBusy, setRecBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -154,6 +175,46 @@ export default function MemberProfilePage() {
     };
   }, [user?.id, targetUserId]);
 
+  useEffect(() => {
+    if (!targetUserId) return;
+    let cancelled = false;
+    async function loadNetwork() {
+      const [follows, count, posts, endorseMap, accepted, viewCount] = await Promise.all([
+        user?.id && user.id !== targetUserId ? isFollowing(user.id, targetUserId) : Promise.resolve(false),
+        fetchFollowerCount(targetUserId),
+        supabase
+          .from("social_posts")
+          .select("id, body, created_at, likes_count, image_url")
+          .eq("author_id", targetUserId)
+          .eq("is_published", true)
+          .eq("is_hidden", false)
+          .order("created_at", { ascending: false })
+          .limit(4),
+        fetchEndorsements(targetUserId),
+        fetchAcceptedRecommendations(targetUserId),
+        user?.id === targetUserId ? fetchProfileViewCount(targetUserId) : Promise.resolve(0),
+      ]);
+      if (cancelled) return;
+      setFollowing(follows);
+      setFollowers(count);
+      setActivity((posts.data as SocialPost[]) || []);
+      const mapped = new Map<string, { count: number; mine: boolean }>();
+      endorseMap.forEach((value, skill) => {
+        mapped.set(skill, { count: value.count, mine: !!user?.id && value.endorsers.includes(user.id) });
+      });
+      setEndorsements(mapped);
+      setRecs(accepted as Array<{ id: string; author_id: string; relationship: string; body: string }>);
+      setViews(viewCount);
+      if (user?.id && user.id !== targetUserId) {
+        recordProfileView(user.id, targetUserId);
+      }
+    }
+    loadNetwork();
+    return () => {
+      cancelled = true;
+    };
+  }, [targetUserId, user?.id]);
+
   const isOwnProfile = !!(user?.id && targetUserId && user.id === targetUserId);
 
   const handleConnect = async () => {
@@ -183,6 +244,45 @@ export default function MemberProfilePage() {
       }
     }
     setConnectBusy(false);
+  };
+
+  const handleFollow = async () => {
+    if (!user || !targetUserId) {
+      toast.message(t("profile.connect.signin"));
+      return;
+    }
+    const { error } = await toggleFollow(user.id, targetUserId, following);
+    if (error) toast.error(error);
+    else {
+      setFollowing(!following);
+      setFollowers((n) => Math.max(0, n + (following ? -1 : 1)));
+    }
+  };
+
+  const handleEndorse = async (skill: string) => {
+    if (!user || !targetUserId || isOwnProfile) return;
+    const current = endorsements.get(skill);
+    const mine = !!current?.mine;
+    const { error } = await toggleEndorsement(user.id, targetUserId, skill, mine);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    const next = new Map(endorsements);
+    next.set(skill, { count: Math.max(0, (current?.count || 0) + (mine ? -1 : 1)), mine: !mine });
+    setEndorsements(next);
+  };
+
+  const handleRecommend = async () => {
+    if (!user || !targetUserId) return;
+    setRecBusy(true);
+    const { error } = await submitRecommendation(user.id, targetUserId, recDraft, "colleague");
+    setRecBusy(false);
+    if (error) toast.error(error);
+    else {
+      toast.success(t("profile.rec.sent"));
+      setRecDraft("");
+    }
   };
 
   const title = member
@@ -311,6 +411,10 @@ export default function MemberProfilePage() {
                       <p className="text-base sm:text-lg text-primary font-medium">
                         {member.title || member.role}
                       </p>
+                      <p className="text-xs text-muted-foreground">
+                        {followers} {t("profile.followers")}
+                        {isOwnProfile ? ` · ${views} ${t("profile.views")}` : ""}
+                      </p>
                       <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                         {member.company && (
                           <span className="inline-flex items-center gap-1.5">
@@ -369,6 +473,20 @@ export default function MemberProfilePage() {
                               : connection?.status === "pending"
                                 ? t("profile.connect.pending")
                                 : t("profile.connect")}
+                      </Button>
+                    )}
+                    {!isOwnProfile && user && (
+                      <Button size="sm" variant="outline" className="gap-1.5" onClick={handleFollow}>
+                        <UserCheck className="w-4 h-4" />
+                        {following ? t("profile.following") : t("profile.follow")}
+                      </Button>
+                    )}
+                    {!isOwnProfile && connection?.status === "accepted" && targetUserId && (
+                      <Button asChild size="sm" variant="outline" className="gap-1.5">
+                        <Link to={`/messages?with=${targetUserId}`}>
+                          <MessageSquare className="w-4 h-4" />
+                          {t("profile.message")}
+                        </Link>
                       </Button>
                     )}
                     {linkedinHref && (
@@ -477,6 +595,25 @@ export default function MemberProfilePage() {
                       </p>
                     )}
                   </section>
+
+                  {activity.length > 0 && (
+                    <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                        {t("profile.activity")}
+                      </h2>
+                      <div className="space-y-3">
+                        {activity.map((post) => (
+                          <Link
+                            key={post.id}
+                            to={`/community#post-${post.id}`}
+                            className="block rounded-xl border border-border/70 p-3 hover:border-primary/30"
+                          >
+                            <p className="text-sm line-clamp-3">{post.body}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
                   <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
                     <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 inline-flex items-center gap-2">
@@ -595,18 +732,53 @@ export default function MemberProfilePage() {
                       {t("profile.skills")}
                     </h2>
                     <div className="flex flex-wrap gap-2">
-                      {skills.map((skill) => (
-                        <Badge
-                          key={skill}
-                          className="bg-primary/10 text-primary border-0 font-normal"
-                        >
-                          {skill}
-                        </Badge>
-                      ))}
+                      {skills.map((skill) => {
+                        const meta = endorsements.get(skill);
+                        return (
+                          <button
+                            key={skill}
+                            type="button"
+                            disabled={!user || isOwnProfile}
+                            onClick={() => handleEndorse(skill)}
+                            className={`rounded-full px-2.5 py-1 text-xs border ${
+                              meta?.mine
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-primary/10 text-primary border-transparent"
+                            }`}
+                          >
+                            {skill}
+                            {meta?.count ? ` · ${meta.count}` : ""}
+                          </button>
+                        );
+                      })}
                       {!skills.length && (
                         <p className="text-sm text-muted-foreground">{t("profile.skills.empty")}</p>
                       )}
                     </div>
+                    {!isOwnProfile && user && connection?.status === "accepted" && (
+                      <div className="mt-5 space-y-2">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground">{t("profile.rec.write")}</p>
+                        <textarea
+                          value={recDraft}
+                          onChange={(e) => setRecDraft(e.target.value.slice(0, 2000))}
+                          className="w-full min-h-20 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          placeholder={t("profile.rec.ph")}
+                        />
+                        <Button size="sm" disabled={recBusy || recDraft.trim().length < 20} onClick={handleRecommend}>
+                          {t("profile.rec.send")}
+                        </Button>
+                      </div>
+                    )}
+                    {recs.length > 0 && (
+                      <div className="mt-5 space-y-3">
+                        <p className="text-xs font-semibold uppercase text-muted-foreground">{t("profile.rec.title")}</p>
+                        {recs.map((rec) => (
+                          <p key={rec.id} className="text-sm text-muted-foreground leading-relaxed">
+                            “{rec.body}”
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="rounded-2xl border border-border bg-card p-6 overflow-hidden relative">

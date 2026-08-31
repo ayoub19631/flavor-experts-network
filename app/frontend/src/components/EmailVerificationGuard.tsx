@@ -18,6 +18,7 @@ const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/pricing",
   "/enterprise",
   "/members",
+  "/search",
   "/market",
   "/forum",
   "/jobs",
@@ -28,6 +29,8 @@ const ALLOWED_WHILE_UNVERIFIED = new Set([
 function isAllowedPath(pathname: string): boolean {
   if (ALLOWED_WHILE_UNVERIFIED.has(pathname)) return true;
   if (pathname.startsWith("/blog")) return true;
+  if (pathname.startsWith("/courses")) return true;
+  if (pathname.startsWith("/certificates")) return true;
   return false;
 }
 

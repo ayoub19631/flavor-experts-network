@@ -60,10 +60,11 @@ Branding / free-policy flags: `app/frontend/src/lib/site-config.ts`
 
 ## 4. Features catalog
 
-### 4.1 Public marketing (`/welcome`)
+### 4.1 Public marketing (`/`)
 
-Landing page: hero, about, news, educational resources, partners, contact, footer.  
-Home for members is the community (`/`), not this page.
+Professional landing page: hero, live academy/community/jobs/market sections, about, news, resources, partners, contact, footer.  
+`/welcome` permanently redirects to `/` (hash fragments are preserved).  
+Canonical community feed is `/community`.
 
 ### 4.2 Authentication (`/auth`)
 
@@ -78,11 +79,21 @@ Home for members is the community (`/`), not this page.
 | Terms gate | `TermsAcceptanceGuard` for signed-in users whose `terms_version` ≠ current |
 | Private preview | Optional `VITE_PLATFORM_PRIVATE` + allowlist; otherwise public |
 
-After login / OAuth, land on community `/`.
+After login / OAuth, land on community `/community`.
 
-### 4.3 Community (`/`, `/community`)
+### 4.2b Network (LinkedIn-style)
 
-Professional feed: posts, photos, likes, comments, hashtags, share.  
+- Messaging between accepted connections (`/messages`)
+- Follow, skill endorsements, written recommendations
+- Profile activity, follower count, profile-view count (owner)
+- Feed: reactions, repost, My network filter, server-side saved posts, nested comment replies
+- Global search (`/search`)
+
+### 4.3 Community (`/community`)
+
+Canonical feed route is `/community`. `/` is the public landing page.
+
+Professional feed: posts, photos, reactions, comments with replies, reposts, hashtags, share.  
 Client-side policy filter in `content-policy.ts` blocks banned topics before publish.  
 Guests can browse; publishing and interaction require Client Login.
 
@@ -99,9 +110,22 @@ Open listings for guests; apply and company posting after login. Skill-match hin
 
 Categories, topics, replies. Admin can manage categories. Login required to participate.
 
-### 4.7 Courses (`/courses`)
+### 4.7 Flavor Experts Academy (`/courses`, `/learn`)
 
-Learning paths and enrollment. Access is free while `PLATFORM_ALWAYS_FREE` is true.
+Bilingual LMS. Public visitors see **published** summaries only. Draft content is staff-only.
+
+| Path | Role |
+|---|---|
+| `/courses` | Catalog with live path counts, search, filters |
+| `/courses/:slug` | Course detail + enroll |
+| `/learn` | Student dashboard |
+| `/learn/:slug/:lessonId` | Lesson player |
+| `/certificates/:code` | Public certificate verification |
+| `/admin/academy/:id` | Admin builder (EN/AR, publish, versions, stats) |
+
+First course: *Introduction to Flavor Science and Formulation* — 10 modules, seeded as **draft**.
+
+**Academy rollback:** drop RPCs and new tables in reverse FK order (`lesson_comments`, `course_certificates`, `capstone_submissions`, `lab_submissions`, `lab_assignments`, `quiz_attempts`, `lesson_progress`, `quiz_answers`, `quiz_questions`, `quizzes`, `lesson_resources`, `lesson_translations`, `lessons`, `module_translations`, `course_modules`, `course_versions`, `course_translations`, `course_instructors`), drop added course columns, restore `member_directory` view, drop `academy` storage bucket.
 
 ### 4.8 Market (`/market`)
 
@@ -202,7 +226,7 @@ Important live behaviors:
 
 ### 6.4 Email
 
-- Provider: Resend (`noreply@nexusflavor.com` / verified domain)
+- Provider: Resend. Public UI uses `VITE_SUPPORT_EMAIL` / `VITE_PRIVACY_EMAIL` (or `NEXT_PUBLIC_*` aliases). Transactional sender is `TRANSACTIONAL_FROM_EMAIL` or `EMAIL_FROM` (Edge Function secrets only).
 - Docs: `deploy/EMAIL-DELIVERY.md`, `deploy/RESEND-DNS-SETUP.md`
 - New accounts receive a professional welcome email with the full Terms
 
@@ -212,8 +236,9 @@ Important live behaviors:
 
 | Path | Page | Access |
 |---|---|---|
-| `/` `/community` | Community feed | Public browse |
-| `/welcome` | Marketing site | Public |
+| `/` | Public landing page | Public |
+| `/community` | Community feed (canonical) | Public browse |
+| `/welcome` | Redirects to `/` | Public |
 | `/auth` | Client Login / signup | Public |
 | `/auth/callback` `/auth/error` | OAuth result | Public |
 | `/verify-email` `/email-verified` | OTP verify | Session |
@@ -221,7 +246,7 @@ Important live behaviors:
 | `/members` `/members/:id` | Directory / profile | Public |
 | `/jobs` | Jobs | Public browse |
 | `/forum` … | Forum | Public browse |
-| `/courses` | Courses | Public browse |
+| `/courses` `/learn` `/certificates` | Academy | Public catalog; learn is signed-in |
 | `/market` | Market briefings | Public |
 | `/consultations` `/enterprise` | Inquiries | Public |
 | `/blog/*` | SEO blog | Public |

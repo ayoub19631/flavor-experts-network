@@ -12,6 +12,18 @@
     <meta name="description" content="%VITE_APP_DESCRIPTION%" />
     <meta name="author" content="Flavor Experts Network" />
     <meta name="theme-color" content="#002D54" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme = stored === "light" || stored === "dark"
+            ? stored
+            : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+          document.documentElement.classList.add(theme);
+          document.documentElement.dataset.theme = theme;
+        } catch (e) {}
+      })();
+    </script>
 
     <meta property="og:title" content="%VITE_APP_TITLE%" />
     <meta property="og:description" content="%VITE_APP_DESCRIPTION%" />

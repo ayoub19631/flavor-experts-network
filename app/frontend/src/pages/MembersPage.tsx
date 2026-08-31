@@ -28,6 +28,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import { rankBySkillOverlap, tokenizeSkills } from "@/lib/matching";
+import { filterPublicMembers } from "@/lib/public-members";
 
 function getInitials(name: string) {
   return name
@@ -59,7 +60,10 @@ export default function MembersPage() {
   const [specialtyFilter, setSpecialtyFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [companyFilter, setCompanyFilter] = useState("all");
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(24);
 
   useEffect(() => {
     async function load() {
@@ -70,11 +74,12 @@ export default function MembersPage() {
             "id, full_name, role, specialty, linkedin_url, joined_at, avatar_url, cover_url, is_featured, title, company, location, bio, member_type, years_experience, website, profile_id, skills",
           )
           .order("is_featured", { ascending: false })
-          .order("joined_at", { ascending: false });
+          .order("joined_at", { ascending: false })
+          .limit(120);
         if (error || !data) {
           setMembers([]);
         } else {
-          setMembers(data as Member[]);
+          setMembers(filterPublicMembers(data as Member[]));
         }
       } catch {
         setMembers([]);
@@ -93,6 +98,24 @@ export default function MembersPage() {
         .map((s) => s.trim())
         .filter(Boolean)
         .forEach((s) => set.add(s));
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [members]);
+
+  const roles = useMemo(() => {
+    const set = new Set<string>();
+    members.forEach((m) => {
+      const role = (m.role || "").trim();
+      if (role) set.add(role);
+    });
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [members]);
+
+  const companies = useMemo(() => {
+    const set = new Set<string>();
+    members.forEach((m) => {
+      const company = (m.company || "").trim();
+      if (company) set.add(company);
     });
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [members]);
@@ -128,9 +151,13 @@ export default function MembersPage() {
     const matchesFeatured = !featuredOnly || m.is_featured;
     const matchesType =
       typeFilter === "all" ||
-      (m.member_type || "individual") === typeFilter;
+      (typeFilter === "expert"
+        ? /scientist|technologist|sensory|regulatory|application|flavor/i.test(`${m.role || ""} ${m.specialty || ""}`)
+        : (m.member_type || "individual") === typeFilter);
+    const matchesRole = roleFilter === "all" || (m.role || "").trim() === roleFilter;
+    const matchesCompany = companyFilter === "all" || (m.company || "").trim() === companyFilter;
 
-    return matchesSearch && matchesSpecialty && matchesLocation && matchesFeatured && matchesType;
+    return matchesSearch && matchesSpecialty && matchesLocation && matchesFeatured && matchesType && matchesRole && matchesCompany;
   });
 
   const hasFilters =
@@ -138,6 +165,8 @@ export default function MembersPage() {
     specialtyFilter !== "all" ||
     locationFilter !== "all" ||
     typeFilter !== "all" ||
+    roleFilter !== "all" ||
+    companyFilter !== "all" ||
     featuredOnly;
 
   const recommended = useMemo(() => {
@@ -194,7 +223,7 @@ export default function MembersPage() {
 
       <section className="py-6 border-b border-border sticky top-16 bg-background/95 backdrop-blur z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -237,6 +266,28 @@ export default function MembersPage() {
                 <SelectItem value="expert">{t("members.filter.type.expert")}</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={t("members.filter.role")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("members.filter.all")}</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role} value={role}>{role}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={companyFilter} onValueChange={setCompanyFilter}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={t("members.filter.company")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("members.filter.all")}</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company} value={company}>{company}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -257,6 +308,8 @@ export default function MembersPage() {
                     setSpecialtyFilter("all");
                     setLocationFilter("all");
                     setTypeFilter("all");
+                    setRoleFilter("all");
+                    setCompanyFilter("all");
                     setFeaturedOnly(false);
                   }}
                 >
@@ -295,6 +348,8 @@ export default function MembersPage() {
                     setSpecialtyFilter("all");
                     setLocationFilter("all");
                     setTypeFilter("all");
+                    setRoleFilter("all");
+                    setCompanyFilter("all");
                     setFeaturedOnly(false);
                   }}
                 >
@@ -335,7 +390,7 @@ export default function MembersPage() {
                 {search && ` — "${search}"`}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {filtered.map((member, i) => {
+                {filtered.slice(0, visibleCount).map((member, i) => {
                   const specialty = (member.specialty || "")
                     .split(/[|,]/)
                     .map((s) => s.trim())
@@ -421,6 +476,13 @@ export default function MembersPage() {
                   );
                 })}
               </div>
+              {visibleCount < filtered.length && (
+                <div className="flex justify-center mt-8">
+                  <Button variant="outline" onClick={() => setVisibleCount((n) => n + 24)}>
+                    {t("home.view_all")}
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>

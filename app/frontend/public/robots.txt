@@ -1,2 +1,16 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /auth
+Disallow: /auth/
+Disallow: /learn
+Disallow: /learn/
+Disallow: /messages
+Disallow: /messages/
+Disallow: /verify-email
+Disallow: /email-verified
+
+Sitemap: https://flavorexpertsnetwork.com/sitemap.xml

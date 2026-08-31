@@ -5,9 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
   Loader2, ArrowLeft, Eye, EyeOff, CheckCircle,
   User, Building2, Globe, Phone, Briefcase, ChevronDown,
 } from "lucide-react";
@@ -24,6 +21,12 @@ import { safeHttpUrl } from "@/lib/url";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TERMS_VERSION } from "@/lib/terms-policy";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { COUNTRIES, PROFESSIONAL_ROLES, SPECIALTIES } from "@/lib/countries";
+import {
+  authDocumentTitle,
+  validateCompanySignup,
+  validateIndividualSignup,
+} from "@/lib/registration";
 type AuthMode = "login" | "signup" | "reset" | "new-password";
 type AccountType = "individual" | "company";
 
@@ -44,17 +47,20 @@ const COMPANY_SIZES = ["1-10", "11-50", "51-200", "201-500", "500+"];
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
-  usePageMeta({
-    title: "Sign in",
-    description: "Sign in or create your Flavor Experts Network account.",
-    path: "/auth",
-    noIndex: true,
-  });
   const initialMode = (searchParams.get("mode") as AuthMode) || "login";
   const initialType = (searchParams.get("type") as AccountType) || "individual";
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [accountType, setAccountType] = useState<AccountType>(initialType);
+  usePageMeta({
+    title: authDocumentTitle(mode, accountType),
+    description:
+      mode === "signup"
+        ? "Create your Flavor Experts Network account."
+        : "Sign in or create your Flavor Experts Network account.",
+    path: "/auth",
+    noIndex: true,
+  });
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +86,12 @@ export default function AuthPage() {
   const [passwordUpdated, setPasswordUpdated] = useState(false);
   const [companyCreated, setCompanyCreated] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
+  const [country, setCountry] = useState("");
+  const [professionalRole, setProfessionalRole] = useState("");
+  const [specialty, setSpecialty] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [companyCountry, setCompanyCountry] = useState("");
 
   const { signIn, signUp, claimCompanyAccount } = useAuth();
   const { t, lang } = useI18n();
@@ -131,7 +143,7 @@ export default function AuthPage() {
       if (newPassword !== confirmPassword) { setError(t("auth.err.password_match")); setLoading(false); return; }
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
       if (updateError) setError(updateError.message);
-      else { setPasswordUpdated(true); toast.success(t("auth.password_updated")); setTimeout(() => navigate("/"), 2000); }
+      else { setPasswordUpdated(true); toast.success(t("auth.password_updated")); setTimeout(() => navigate("/community"), 2000); }
       setLoading(false); return;
     }
 
@@ -144,17 +156,36 @@ export default function AuthPage() {
         setError(friendlyAuthError(result.error));
       } else {
         toast.success(t("auth.welcome_back"));
-        navigate("/");
+        navigate("/community");
       }
       setLoading(false);
       return;
     }
 
-    if (!acceptedTerms) { setError(t("auth.agree_required")); setLoading(false); return; }
+    const issue = validateIndividualSignup({
+      fullName,
+      email,
+      password,
+      country,
+      role: professionalRole,
+      acceptedTerms,
+      adultConfirmed,
+    });
+    if (issue === "agree_required") { setError(t("auth.agree_required")); setLoading(false); return; }
+    if (issue === "adult_required") { setError(t("auth.err.adult")); setLoading(false); return; }
+    if (issue === "country") { setError(t("auth.err.country")); setLoading(false); return; }
+    if (issue === "role") { setError(t("auth.err.role")); setLoading(false); return; }
+    if (issue === "email") { setError(t("auth.err.email")); setLoading(false); return; }
+    if (issue === "password_min") { setError(t("auth.err.password_min")); setLoading(false); return; }
+    if (issue === "required") { setError(t("auth.err.full_name")); setLoading(false); return; }
     localStorage.setItem("fen-terms-accepted", TERMS_VERSION);
-    if (!fullName.trim()) { setError(t("auth.err.full_name")); setLoading(false); return; }
-    if (password.length < 8) { setError(t("auth.err.password_min")); setLoading(false); return; }
-    const result = await signUp(email, password, fullName, lang);
+    const result = await signUp(email, password, fullName, lang, {
+      country,
+      role: professionalRole,
+      specialty,
+      company: organization,
+      adultConfirmed,
+    });
     if (result.error) setError(friendlyAuthError(result.error));
     else {
       rememberPendingVerificationEmail(email);
@@ -167,13 +198,23 @@ export default function AuthPage() {
   const handleCompanySubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setError(null);
 
-    if (!companyName.trim() || !contactName.trim() || !companyEmail.trim()) {
-      setError(t("auth.err.required"));
-      setLoading(false);
-      return;
-    }
-    if (companyPassword.length < 8) { setError(t("auth.err.password_min")); setLoading(false); return; }
-    if (!acceptedTerms) { setError(t("auth.agree_required")); setLoading(false); return; }
+    const issue = validateCompanySignup({
+      companyName,
+      contactName,
+      email: companyEmail,
+      password: companyPassword,
+      country: companyCountry,
+      website: companyWebsite,
+      acceptedTerms,
+      adultConfirmed,
+    });
+    if (issue === "agree_required") { setError(t("auth.agree_required")); setLoading(false); return; }
+    if (issue === "adult_required") { setError(t("auth.err.adult")); setLoading(false); return; }
+    if (issue === "country") { setError(t("auth.err.country")); setLoading(false); return; }
+    if (issue === "email") { setError(t("auth.err.email")); setLoading(false); return; }
+    if (issue === "password_min") { setError(t("auth.err.password_min")); setLoading(false); return; }
+    if (issue === "website") { setError(t("auth.err.website")); setLoading(false); return; }
+    if (issue === "required") { setError(t("auth.err.required")); setLoading(false); return; }
     localStorage.setItem("fen-terms-accepted", TERMS_VERSION);
 
     const industry = t(industryKey);
@@ -208,6 +249,8 @@ export default function AuthPage() {
           preferred_language: lang,
           terms_accepted: true,
           terms_version: TERMS_VERSION,
+          country: companyCountry,
+          adult_confirmed: true,
         },
       },
     });
@@ -349,14 +392,20 @@ export default function AuthPage() {
                       <h1 className="text-2xl font-bold text-foreground mb-1">{t("auth.company_signup")}</h1>
                       <p className="text-sm text-muted-foreground">{t("auth.company_signup_desc")}</p>
                     </div>
-                    <label className="flex items-start gap-3 text-sm mb-4 cursor-pointer">
+                    <label className="flex items-start gap-3 text-sm mb-3 cursor-pointer">
                       <Checkbox checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
                       <span>
                         {t("auth.accept_terms_label")}{" "}
                         <Link to="/terms" className="text-primary underline">{t("auth.terms_link")}</Link>
+                        {" "}{t("auth.and")}{" "}
+                        <Link to="/privacy" className="text-primary underline">{t("auth.privacy_link")}</Link>
                       </span>
                     </label>
-                    <SocialAuthButtons mode="signup" intent="company" onError={setError} layout="grid" disabled={!acceptedTerms} />
+                    <label className="flex items-start gap-3 text-sm mb-4 cursor-pointer">
+                      <Checkbox checked={adultConfirmed} onCheckedChange={(v) => setAdultConfirmed(v === true)} className="mt-0.5" />
+                      <span>{t("auth.adult_label")}</span>
+                    </label>
+                    <SocialAuthButtons mode="signup" intent="company" onError={setError} layout="grid" disabled={!acceptedTerms || !adultConfirmed} />
                     <SocialAuthDivider />
                     <form onSubmit={handleCompanySubmit} className="space-y-4">
                       <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
@@ -396,6 +445,22 @@ export default function AuthPage() {
                           </div>
                         </div>
                         <div className="space-y-2">
+                          <Label htmlFor="companyCountry">{t("auth.country")} <span className="text-red-500">*</span></Label>
+                          <select
+                            id="companyCountry"
+                            value={companyCountry}
+                            onChange={(e) => setCompanyCountry(e.target.value)}
+                            disabled={loading}
+                            required
+                            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          >
+                            <option value="">{t("auth.country_placeholder")}</option>
+                            {COUNTRIES.map((item) => (
+                              <option key={item} value={item}>{item}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
                           <Label htmlFor="companyWebsite"><span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t("auth.website")}</span></Label>
                           <Input id="companyWebsite" type="url" value={companyWebsite} onChange={(e) => setCompanyWebsite(e.target.value)} placeholder="https://yourcompany.com" disabled={loading} />
                         </div>
@@ -428,7 +493,7 @@ export default function AuthPage() {
                           </button>
                         </div>
                       </div>
-                      {error && <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">{error}</div>}
+                      {error && <div id="company-auth-error" role="alert" className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">{error}</div>}
                       <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
                         <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-800/50 flex items-center justify-center flex-shrink-0">
                           <Briefcase className="w-4 h-4 text-amber-600" />
@@ -438,7 +503,7 @@ export default function AuthPage() {
                           <p className="text-xs text-amber-600 dark:text-amber-500">{t("auth.enterprise_badge_desc")}</p>
                         </div>
                       </div>
-                      <Button type="submit" disabled={loading || !acceptedTerms} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11">
+                      <Button type="submit" disabled={loading || !acceptedTerms || !adultConfirmed} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11">
                         {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />{t("auth.creating")}</> : <><Building2 className="w-4 h-4 mr-2" />{t("auth.create_company")}</>}
                       </Button>
                     </form>
@@ -470,13 +535,21 @@ export default function AuthPage() {
                 {!resetSent && !passwordUpdated && (
                   <>
                     {mode === "signup" && (
-                      <label className="flex items-start gap-3 text-sm mb-4 cursor-pointer">
-                        <Checkbox checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
-                        <span>
-                          {t("auth.accept_terms_label")}{" "}
-                          <Link to="/terms" className="text-primary underline">{t("auth.terms_link")}</Link>
-                        </span>
-                      </label>
+                      <>
+                        <label className="flex items-start gap-3 text-sm mb-3 cursor-pointer">
+                          <Checkbox checked={acceptedTerms} onCheckedChange={(v) => setAcceptedTerms(v === true)} className="mt-0.5" />
+                          <span>
+                            {t("auth.accept_terms_label")}{" "}
+                            <Link to="/terms" className="text-primary underline">{t("auth.terms_link")}</Link>
+                            {" "}{t("auth.and")}{" "}
+                            <Link to="/privacy" className="text-primary underline">{t("auth.privacy_link")}</Link>
+                          </span>
+                        </label>
+                        <label className="flex items-start gap-3 text-sm mb-4 cursor-pointer">
+                          <Checkbox checked={adultConfirmed} onCheckedChange={(v) => setAdultConfirmed(v === true)} className="mt-0.5" />
+                          <span>{t("auth.adult_label")}</span>
+                        </label>
+                      </>
                     )}
                     {(mode === "login" || mode === "signup") && (
                       <div className="mb-1">
@@ -484,7 +557,7 @@ export default function AuthPage() {
                           mode={mode}
                           onError={setError}
                           layout="grid"
-                          disabled={mode === "signup" && !acceptedTerms}
+                          disabled={mode === "signup" && (!acceptedTerms || !adultConfirmed)}
                         />
                         <SocialAuthDivider />
                       </div>
@@ -508,10 +581,41 @@ export default function AuthPage() {
                         </>
                       )}
                       {mode === "signup" && (
-                        <div className="space-y-2">
-                          <Label htmlFor="fullName">{t("auth.name")}</Label>
-                          <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" required disabled={loading} />
-                        </div>
+                        <>
+                          <div className="space-y-2">
+                            <Label htmlFor="fullName">{t("auth.name")}</Label>
+                            <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" required disabled={loading} />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label htmlFor="country">{t("auth.country")}</Label>
+                              <select id="country" value={country} onChange={(e) => setCountry(e.target.value)} disabled={loading} required className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <option value="">{t("auth.country_placeholder")}</option>
+                                {COUNTRIES.map((item) => <option key={item} value={item}>{item}</option>)}
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="professionalRole">{t("auth.role")}</Label>
+                              <select id="professionalRole" value={professionalRole} onChange={(e) => setProfessionalRole(e.target.value)} disabled={loading} required className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <option value="">{t("auth.role_placeholder")}</option>
+                                {PROFESSIONAL_ROLES.map((item) => <option key={item} value={item}>{item}</option>)}
+                              </select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <Label htmlFor="specialty">{t("auth.specialty")}</Label>
+                              <select id="specialty" value={specialty} onChange={(e) => setSpecialty(e.target.value)} disabled={loading} className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <option value="">{t("auth.specialty_placeholder")}</option>
+                                {SPECIALTIES.map((item) => <option key={item} value={item}>{item}</option>)}
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="organization">{t("auth.organization")}</Label>
+                              <Input id="organization" value={organization} onChange={(e) => setOrganization(e.target.value)} disabled={loading} />
+                            </div>
+                          </div>
+                        </>
                       )}
                       {mode !== "new-password" && (
                         <div className="space-y-2">
@@ -533,9 +637,9 @@ export default function AuthPage() {
                           </div>
                         </div>
                       )}
-                      {error && <div className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">{error}</div>}
+                      {error && <div id="auth-error" role="alert" className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg">{error}</div>}
 
-                      <Button type="submit" disabled={loading || (mode === "signup" && !acceptedTerms)} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                      <Button type="submit" disabled={loading || (mode === "signup" && (!acceptedTerms || !adultConfirmed))} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                         {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                         {mode === "login" ? t("auth.login") : mode === "signup" ? t("auth.signup") : mode === "reset" ? t("auth.reset.send") : t("auth.newpw.save")}
                       </Button>

@@ -48,7 +48,7 @@ test.describe("public pages smoke", () => {
     if (url.includes("/pricing")) {
       await expect(page.getByText(/Subscribe Now|\$29|\$99|اشترك الآن/i)).toHaveCount(0);
     } else {
-      await expect(page).toHaveURL(/\/(?:$|\?|#)/);
+      await expect(page).toHaveURL(/\/(?:$|\?|#|community)/);
     }
   });
 
