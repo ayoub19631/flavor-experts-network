@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { SITE } from "@/lib/site-config";
 import { canonicalUrl } from "@/lib/seo-routes";
+import { PUBLIC_SITE_ORIGIN, socialSameAs } from "@/lib/social-links";
 
 type JsonLdProps = {
   data: Record<string, unknown> | Array<Record<string, unknown>>;
@@ -11,9 +12,9 @@ export function organizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE.name,
-    url: SITE.url,
-    logo: `${SITE.url}/brand/logo-512.webp`,
-    sameAs: [SITE.linkedInGroup],
+    url: PUBLIC_SITE_ORIGIN,
+    logo: `${PUBLIC_SITE_ORIGIN}/brand/logo-512.webp`,
+    sameAs: socialSameAs(),
   };
 }
 
@@ -22,8 +23,9 @@ export function websiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE.name,
-    url: SITE.url,
+    url: PUBLIC_SITE_ORIGIN,
     inLanguage: ["en", "ar"],
+    description: SITE.description,
   };
 }
 
@@ -45,7 +47,7 @@ export function articleJsonLd(input: {
     publisher: {
       "@type": "Organization",
       name: SITE.name,
-      logo: `${SITE.url}/brand/logo-512.webp`,
+      logo: `${PUBLIC_SITE_ORIGIN}/brand/logo-512.webp`,
     },
     mainEntityOfPage: canonicalUrl(input.path),
   };

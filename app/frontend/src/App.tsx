@@ -36,15 +36,8 @@ const MemberProfilePage = lazy(() => import("./pages/MemberProfilePage"));
 const ForumPage = lazy(() => import("./pages/ForumPage"));
 const ForumCategoryPage = lazy(() => import("./pages/ForumCategoryPage"));
 const ForumTopicPage = lazy(() => import("./pages/ForumTopicPage"));
+const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
-const CourseDetailPage = lazy(() => import("./pages/CourseDetailPage"));
-const LearningDashboardPage = lazy(() => import("./pages/LearningDashboardPage"));
-const LessonPlayerPage = lazy(() => import("./pages/LessonPlayerPage"));
-const AcademyQuizPage = lazy(() => import("./pages/AcademyQuizPage"));
-const AcademyLabPage = lazy(() => import("./pages/AcademyLabPage"));
-const AcademyCapstonePage = lazy(() => import("./pages/AcademyCapstonePage"));
-const CourseCompletePage = lazy(() => import("./pages/CourseCompletePage"));
-const CertificateVerifyPage = lazy(() => import("./pages/CertificateVerifyPage"));
 const AcademyBuilderPage = lazy(() => import("./pages/admin/AcademyBuilderPage"));
 const ConsultationsPage = lazy(() => import("./pages/ConsultationsPage"));
 const MarketPage = lazy(() => import("./pages/MarketPage"));
@@ -127,16 +120,13 @@ const AppRoutes = () => (
       <Route path="/forum/c/:slug" element={<ForumCategoryPage />} />
       <Route path="/forum/t/:id" element={<ForumTopicPage />} />
       <Route path="/forum" element={<ForumPage />} />
-      <Route path="/courses/:slug" element={<CourseDetailPage />} />
+      <Route path="/insights" element={<InsightsPage />} />
+      <Route path="/courses/:slug" element={<Navigate to="/insights" replace />} />
       <Route path="/courses" element={<CoursesPage />} />
-      <Route path="/learn/:slug/quiz/:quizId" element={<ProtectedRoute><AcademyQuizPage /></ProtectedRoute>} />
-      <Route path="/learn/:slug/lab/:labId" element={<ProtectedRoute><AcademyLabPage /></ProtectedRoute>} />
-      <Route path="/learn/:slug/capstone" element={<ProtectedRoute><AcademyCapstonePage /></ProtectedRoute>} />
-      <Route path="/learn/:slug/complete" element={<ProtectedRoute><CourseCompletePage /></ProtectedRoute>} />
-      <Route path="/learn/:slug/:lessonId" element={<ProtectedRoute><LessonPlayerPage /></ProtectedRoute>} />
-      <Route path="/learn" element={<ProtectedRoute><LearningDashboardPage /></ProtectedRoute>} />
-      <Route path="/certificates/:code" element={<CertificateVerifyPage />} />
-      <Route path="/certificates" element={<CertificateVerifyPage />} />
+      <Route path="/learn/*" element={<Navigate to="/insights" replace />} />
+      <Route path="/learn" element={<Navigate to="/insights" replace />} />
+      <Route path="/certificates/*" element={<Navigate to="/insights" replace />} />
+      <Route path="/certificates" element={<Navigate to="/insights" replace />} />
       <Route path="/consultations" element={<ConsultationsPage />} />
       <Route path="/market" element={<MarketPage />} />
       <Route path="/jobs" element={<JobsPage />} />

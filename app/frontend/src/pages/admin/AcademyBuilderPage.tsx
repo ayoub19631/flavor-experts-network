@@ -378,7 +378,7 @@ export default function AcademyBuilderPage() {
   };
 
   const doPublish = async () => {
-    if (!confirm("Publish this course version? It will become visible in the catalog.")) return;
+    if (!confirm("Publish this catalog version? Existing rows stay in the database.")) return;
     const { error } = await publishCourse(courseId, "Admin publish");
     if (error) toast.error(error);
     else {
@@ -388,7 +388,7 @@ export default function AcademyBuilderPage() {
   };
 
   if (loading) return <><Navbar /><SoftPageLoader /></>;
-  if (!course) return <><Navbar /><div className="pt-28 text-center">Course not found</div></>;
+  if (!course) return <><Navbar /><div className="pt-28 text-center">Catalog entry not found</div></>;
 
   return (
     <div className="min-h-screen bg-background">
@@ -412,7 +412,7 @@ export default function AcademyBuilderPage() {
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
             <TabsTrigger value="lesson">Lesson editor</TabsTrigger>
-            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
+            <TabsTrigger value="quizzes">Assessments</TabsTrigger>
             <TabsTrigger value="resources">Resources</TabsTrigger>
             <TabsTrigger value="versions">Versions</TabsTrigger>
             <TabsTrigger value="stats">{t("admin.academy.stats")}</TabsTrigger>

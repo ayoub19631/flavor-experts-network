@@ -56,13 +56,13 @@ export default function EmailVerifiedPage() {
   const FEATURES = lang === "ar"
     ? [
         "الوصول إلى مجتمع متخصصي النكهات",
-        "موارد تعليمية وبحثية مجانية بالكامل",
+        "رؤى الصناعة والمقالات التقنية",
         "أخبار الصناعة ورؤى السوق",
         "وظائف وفرص تواصل مهني مع الشركات",
       ]
     : [
         "Access to the flavor professional community",
-        "Fully free educational resources & research",
+        "Industry Insights and technical articles",
         "Industry news and market insights",
         "Jobs and professional networking with companies",
       ];

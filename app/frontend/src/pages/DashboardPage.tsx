@@ -219,7 +219,7 @@ export default function DashboardPage() {
       setEnrollments(
         rows.map((r) => ({
           ...r,
-          title: titleMap.get(r.course_id) || (lang === "ar" ? "دورة" : "Course"),
+          title: titleMap.get(r.course_id) || (lang === "ar" ? "محتوى مهني" : "Professional content"),
         })),
       );
     }
@@ -542,7 +542,7 @@ export default function DashboardPage() {
     { icon: Users, label: lang === "ar" ? "دليل الأعضاء" : "Members Directory", desc: lang === "ar" ? "تواصل مع المتخصصين" : "Connect with professionals", color: "bg-purple-100 dark:bg-purple-900/30", iconColor: "text-purple-600", href: "/members" },
     { icon: TrendingUp, label: lang === "ar" ? "أخبار الصناعة" : "Industry News", desc: lang === "ar" ? "آخر تطورات علوم النكهات" : "Latest flavor science updates", color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#news" },
     { icon: Star, label: lang === "ar" ? "عضويتي" : "My Membership", desc: lang === "ar" ? "منصة مجانية بالكامل" : "Fully free platform access", color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: undefined, onClick: () => setActiveTab("subscription") },
-    { icon: ExternalLink, label: lang === "ar" ? "مجموعة لينكد إن" : "LinkedIn Group", desc: lang === "ar" ? "مجتمع محترفي النكهات" : "Flavor professionals community", color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: "https://www.linkedin.com/groups/13155714/" },
+    { icon: ExternalLink, label: lang === "ar" ? "مجموعة لينكد إن" : "LinkedIn Group", desc: lang === "ar" ? "مجتمع محترفي النكهات" : "Flavor professionals community", color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: SITE.linkedInGroup },
   ];
 
   const ACHIEVEMENTS = [
@@ -846,15 +846,15 @@ export default function DashboardPage() {
                       <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <BookMarked className="w-4 h-4 text-primary" />
-                          {lang === "ar" ? "تعلّمي" : "My learning"}
+                          {lang === "ar" ? "رؤى الصناعة" : "Industry Insights"}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-2 space-y-3">
                         {enrollments.length === 0 ? (
                           <div className="text-sm text-muted-foreground space-y-3">
-                            <p>{lang === "ar" ? "لم تسجّل في أي دورة بعد" : "No course enrollments yet"}</p>
+                            <p>{lang === "ar" ? "اطلع على المقالات التقنية والمنشورات المهنية." : "Browse technical articles and professional posts."}</p>
                             <Button asChild size="sm" variant="outline">
-                              <Link to="/courses">{lang === "ar" ? "استكشف الدورات" : "Explore courses"}</Link>
+                              <Link to="/insights">{lang === "ar" ? "استكشف رؤى الصناعة" : "Explore industry insights"}</Link>
                             </Button>
                           </div>
                         ) : (
@@ -1236,10 +1236,10 @@ export default function DashboardPage() {
                     <CardContent className="p-4 pt-0">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {[
-                          lang === "ar" ? "الأخبار والمقالات والموارد التعليمية" : "News, articles, and educational resources",
+                          lang === "ar" ? "الأخبار والمقالات ورؤى الصناعة" : "News, articles, and Industry Insights",
                           lang === "ar" ? "فرص العمل والتقديم عليها" : "Job listings and applications",
                           lang === "ar" ? "المجتمع والمنتدى ودليل الأعضاء" : "Community, forum, and members directory",
-                          lang === "ar" ? "الدورات والاستشارات والسوق" : "Courses, consultations, and market",
+                          lang === "ar" ? "الاستشارات والسوق ورؤى الصناعة" : "Consultations, market, and industry insights",
                           lang === "ar" ? "حسابات الشركات مجانية بالكامل" : "Company accounts fully free",
                           lang === "ar" ? "بدون اشتراكات أو مدفوعات" : "No subscriptions or payments",
                         ].map((feat) => (

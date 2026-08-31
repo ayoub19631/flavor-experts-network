@@ -13,7 +13,7 @@ import { useI18n } from "@/lib/i18n";
 const SYSTEM_PROMPT = `You are "FlavorBot" (فليفربوت), the official AI assistant for Flavor Experts Network (شبكة خبراء النكهات / FEN). You are embedded directly in the platform website and represent the brand with professionalism and warmth.
 
 ## Platform Overview
-Flavor Experts Network is a professional community connecting flavor scientists, food technologists, R&D professionals, sensory experts, and ingredient suppliers worldwide.
+Flavor Experts Network is a Professional Flavor Industry Network — a global professional network connecting flavorists, food scientists, R&D professionals, companies, suppliers, and the flavor industry. It is not an academy and not a course platform.
 
 ## Website Pages & Navigation
 - **/** — Public landing page
@@ -25,15 +25,16 @@ Flavor Experts Network is a professional community connecting flavor scientists,
 - **/enterprise** — Enterprise / company services page (free to inquire)
 - **/terms** — Terms of service
 - **/privacy** — Privacy policy
+- **/insights** — Industry Insights (technical articles, professional posts, peer exchange)
 - **/blog** — Industry blog & articles
 
 ## Membership (Exact)
 The platform is **fully free** for individuals and companies. There are no paid subscription plans, no checkout, and no membership fees.
 Members get full access to:
-- News, articles, and educational resources
+- News, articles, and Industry Insights
 - Community, forum, and members directory
 - Jobs (browse/apply); company accounts can post jobs
-- Courses, consultations, and market tools
+- Industry Insights, consultations, and market tools
 - Company services inquiries via /enterprise
 
 ## Registration Process
@@ -60,10 +61,10 @@ Members get full access to:
 - Admin-curated articles
 - Shareable blog posts
 
-### Educational Resources
-- Research papers & scientific studies
-- Practical guides & tutorials
-- Webinar recordings archive
+### Industry Insights
+- Technical articles, industry research, and professional discussion
+- Practical notes on flavor science and formulation
+- Peer experience sharing — not courses or certificates
 
 ### Webinars
 - Live weekly webinars with global experts
@@ -137,8 +138,8 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   // Pricing / membership
   if (/price|pricing|cost|plan|subscription|package|اشتراك|سعر|تكلفة|خطة|باقة|اسعار|مجاني|free/.test(m)) {
     return isAr
-      ? `المنصة **مجانية بالكامل** للأفراد والشركات 🎉\n\nلا توجد خطط مدفوعة ولا اشتراكات.\nبعد إنشاء حساب مجاني تحصل على:\n• الأخبار والموارد التعليمية\n• المجتمع والمنتدى ودليل الأعضاء\n• الوظائف (تصفح وتقديم)\n• الدورات والاستشارات والسوق\n• حسابات الشركات تنشر الوظائف مجاناً\n\nابدأ من **/auth**\nهل تريد مساعدة في التسجيل؟`
-      : `The platform is **fully free** for individuals and companies 🎉\n\nThere are no paid plans and no subscriptions.\nWith a free account you get:\n• News and educational resources\n• Community, forum, and members directory\n• Jobs (browse and apply)\n• Courses, consultations, and market\n• Company accounts can post jobs for free\n\nStart at **/auth**\nNeed help creating an account?`;
+      ? `المنصة **مجانية بالكامل** للأفراد والشركات 🎉\n\nلا توجد خطط مدفوعة ولا اشتراكات.\nبعد إنشاء حساب مجاني تحصل على:\n• الأخبار ورؤى الصناعة\n• المجتمع والمنتدى ودليل الأعضاء\n• الوظائف (تصفح وتقديم)\n• الاستشارات والسوق\n• حسابات الشركات تنشر الوظائف مجاناً\n\nابدأ من **/auth**\nهل تريد مساعدة في التسجيل؟`
+      : `The platform is **fully free** for individuals and companies 🎉\n\nThere are no paid plans and no subscriptions.\nWith a free account you get:\n• News and industry insights\n• Community, forum, and members directory\n• Jobs (browse and apply)\n• Consultations and market\n• Company accounts can post jobs for free\n\nStart at **/auth**\nNeed help creating an account?`;
   }
 
   // Registration / signup
@@ -159,7 +160,7 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   if (/feature|what.*platform|what.*do|about.*platform|ميزة|المنصة|ماذا|ما هو|عن المنصة|ما تقدم/.test(m)) {
     return isAr
       ? `شبكة خبراء النكهات تقدم:\n\n🔬 **دليل الأعضاء** — تصفح ملفات المتخصصين\n📰 **أخبار الصناعة** — آخر مستجدات قطاع النكهات\n📚 **الموارد التعليمية** — أوراق بحثية، أدلة، دروس\n🎥 **الندوات** — مباشرة ومسجلة مع خبراء\n🤝 **التواصل المهني** — اتصال مباشر مع متخصصين\n🏢 **خدمات المؤسسات** — إعلانات، شراكات، تقارير\n🌍 **متعدد اللغات** — عربي وإنجليزي\n\nأي ميزة تريد استعراضها أكثر؟`
-      : `Flavor Experts Network offers:\n\n🔬 **Member Directory** — Browse expert profiles\n📰 **Industry News** — Latest flavor industry updates\n📚 **Educational Resources** — Research papers, guides, tutorials\n🎥 **Webinars** — Live & recorded sessions\n🤝 **Networking** — Direct connections with professionals\n🏢 **Enterprise Services** — Ads, partnerships, analytics\n🌍 **Multi-language** — Arabic & English\n\nWhich feature would you like to explore?`;
+      : `Flavor Experts Network offers:\n\n🔬 **Member Directory** — Browse expert profiles\n📰 **Industry News** — Latest flavor industry updates\n📚 **Industry Insights** — Technical articles and professional discussion\n🤝 **Networking** — Direct connections with professionals\n🏢 **Enterprise Services** — Ads, partnerships, analytics\n🌍 **Multi-language** — Arabic & English\n\nWhich feature would you like to explore?`;
   }
 
   // Enterprise

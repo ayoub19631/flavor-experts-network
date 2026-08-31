@@ -56,7 +56,7 @@ export default function HeroSection() {
               size="lg"
               className="bg-[hsl(47_23%_85%)] hover:bg-[hsl(47_25%_90%)] text-[hsl(208_100%_14%)] font-semibold shadow-lg shadow-black/25"
             >
-              <Link to="/courses" className="flex items-center gap-2">
+              <Link to="/insights" className="flex items-center gap-2">
                 {t("hero.cta")}
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>

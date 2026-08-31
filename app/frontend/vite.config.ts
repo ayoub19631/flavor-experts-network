@@ -21,12 +21,16 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   const defaultDescription =
-    "A professional community for flavor scientists, food technologists, and industry specialists.";
+    "A global professional network connecting flavorists, food scientists, R&D professionals, companies, suppliers, and the flavor industry.";
   env.VITE_APP_TITLE ??= process.env.OVERVIEW_TITLE ?? 'Flavor Experts Network';
   env.VITE_APP_DESCRIPTION ??=
     process.env.OVERVIEW_DESCRIPTION ?? defaultDescription;
   // Stale Vercel env leftovers from private preview should not ship in public HTML.
-  if (/under development|قيد التطوير/i.test(env.VITE_APP_DESCRIPTION || '')) {
+  if (
+    /under development|قيد التطوير|public testing|linkedin community|educational platform|flavor academy|industry specialists|Professional Flavor Industry Network for flavor scientists/i.test(
+      env.VITE_APP_DESCRIPTION || "",
+    )
+  ) {
     env.VITE_APP_DESCRIPTION = defaultDescription;
   }
   env.VITE_APP_TITLE = escapeHtmlAttr(env.VITE_APP_TITLE);
@@ -55,14 +59,14 @@ export default defineConfig(({ command, mode }) => {
       ...(command === 'build' && !isPlatformPrivate
         ? [
             Sitemap({
-              hostname: env.VITE_SITE_URL || 'https://flavorexpertsnetwork.com',
+              hostname: 'https://flavorexpertsnetwork.com',
               lastmod: getSitemapLastmod(),
               readable: true,
               generateRobotsTxt: false,
               dynamicRoutes: [
                 '/',
                 '/community',
-                '/courses',
+                '/insights',
                 '/members',
                 '/jobs',
                 '/forum',
@@ -101,7 +105,8 @@ export default defineConfig(({ command, mode }) => {
     },
     server: {
       host: '0.0.0.0',
-      port: parseInt(env.VITE_PORT || '3000'),
+      port: Number(env.VITE_PORT || 3000),
+      strictPort: true,
       watch: { usePolling: true, interval: 600 },
     },
     build: {

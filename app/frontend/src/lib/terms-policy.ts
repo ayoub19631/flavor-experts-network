@@ -8,15 +8,15 @@ export type TermsSection = { title: string; body: string };
 const EN: TermsSection[] = [
   {
     title: "1. Acceptance of Terms",
-    body: "Flavor Experts Network is an educational and professional platform for flavor science and food technology. Creating an account or using the site means you have read, understood, and accepted these Terms. If you do not agree, do not use the platform.",
+    body: "Flavor Experts Network is a Professional Flavor Industry Network for flavor science and food technology. Creating an account or using the site means you have read, understood, and accepted these Terms. If you do not agree, do not use the platform.",
   },
   {
-    title: "2. Educational purpose",
-    body: "The platform exists only for professional learning, scientific exchange, industry news related to flavors and food technology, jobs, and company collaboration. It is not a political, entertainment, dating, or adult network.",
+    title: "2. Professional purpose",
+    body: "The platform exists for professional exchange, scientific discussion, industry news related to flavors and food technology, jobs, and company collaboration. It is not a political, entertainment, dating, or adult network.",
   },
   {
     title: "3. Strictly prohibited content — zero tolerance",
-    body: "The following are forbidden in every post, comment, message, job, profile, file, or link. First serious violation may result in immediate permanent suspension: (1) Political news, political campaigning, political debate, or content about governments, parties, elections, or public figures in a political context. (2) Any content involving children — including images, stories, discussions, or links. This is a professional adult-education network. (3) Pornography, sexual content, nudity, or any adult/obscene material. These rules are absolute.",
+    body: "The following are forbidden in every post, comment, message, job, profile, file, or link. First serious violation may result in immediate permanent suspension: (1) Political news, political campaigning, political debate, or content about governments, parties, elections, or public figures in a political context. (2) Any content involving children — including images, stories, discussions, or links. This is a professional adult industry network. (3) Pornography, sexual content, nudity, or any adult/obscene material. These rules are absolute.",
   },
   {
     title: "4. Professional conduct",
@@ -36,7 +36,7 @@ const EN: TermsSection[] = [
   },
   {
     title: "8. Privacy",
-    body: "We collect account data only to operate the educational service. See the Privacy Policy. We do not sell your personal data.",
+    body: "We collect account data only to operate the professional service. See the Privacy Policy. We do not sell your personal data.",
   },
   {
     title: "9. Changes",
@@ -51,15 +51,15 @@ const EN: TermsSection[] = [
 const AR: TermsSection[] = [
   {
     title: "1. قبول الشروط",
-    body: "شبكة خبراء النكهات منصة تعليمية ومهنية لعلوم النكهات وتكنولوجيا الأغذية. إنشاء حساب أو استخدام الموقع يعني أنك قرأت هذه الشروط وفهمتها ووافقت عليها. إذا لم توافق فلا تستخدم المنصة.",
+    body: "شبكة خبراء النكهات هي شبكة مهنية لصناعة النكهات وعلوم الأغذية. إنشاء حساب أو استخدام الموقع يعني أنك قرأت هذه الشروط وفهمتها ووافقت عليها. إذا لم توافق فلا تستخدم المنصة.",
   },
   {
-    title: "2. الغرض التعليمي",
-    body: "المنصة مخصّصة فقط للتعلّم المهني، وتبادل المعرفة العلمية، وأخبار صناعة النكهات والأغذية، والوظائف، وتعاون الشركات. ليست منصة سياسية أو ترفيهية أو للمحتوى الجنسي.",
+    title: "2. الغرض المهني",
+    body: "المنصة مخصّصة للتبادل المهني، وتبادل المعرفة العلمية، وأخبار صناعة النكهات والأغذية، والوظائف، وتعاون الشركات. ليست منصة سياسية أو ترفيهية أو للمحتوى الجنسي.",
   },
   {
     title: "3. محتوى محظور حظراً تاماً — لا تسامح",
-    body: "يُمنع منعاً باتاً في أي منشور أو تعليق أو رسالة أو وظيفة أو ملف شخصي أو رابط: (1) الأخبار السياسية، والدعاية السياسية، والنقاش السياسي، أو أي محتوى عن الحكومات أو الأحزاب أو الانتخابات. (2) أي محتوى يخص الأطفال — بما في ذلك الصور أو القصص أو النقاشات أو الروابط. هذه شبكة تعليم مهني للبالغين. (3) المواد الإباحية أو الجنسية أو العارية أو أي محتوى للبالغين. هذه القواعد مطلقة. المخالفة الجسيمة الأولى قد تؤدي إلى إيقاف الحساب نهائياً فوراً.",
+    body: "يُمنع منعاً باتاً في أي منشور أو تعليق أو رسالة أو وظيفة أو ملف شخصي أو رابط: (1) الأخبار السياسية، والدعاية السياسية، والنقاش السياسي، أو أي محتوى عن الحكومات أو الأحزاب أو الانتخابات. (2) أي محتوى يخص الأطفال — بما في ذلك الصور أو القصص أو النقاشات أو الروابط. هذه شبكة مهنية للبالغين. (3) المواد الإباحية أو الجنسية أو العارية أو أي محتوى للبالغين. هذه القواعد مطلقة. المخالفة الجسيمة الأولى قد تؤدي إلى إيقاف الحساب نهائياً فوراً.",
   },
   {
     title: "4. السلوك المهني",
@@ -79,7 +79,7 @@ const AR: TermsSection[] = [
   },
   {
     title: "8. الخصوصية",
-    body: "نجمع بيانات الحساب لتشغيل الخدمة التعليمية فقط. راجع سياسة الخصوصية. لا نبيع بياناتك.",
+    body: "نجمع بيانات الحساب لتشغيل الخدمة المهنية فقط. راجع سياسة الخصوصية. لا نبيع بياناتك.",
   },
   {
     title: "9. التعديلات",

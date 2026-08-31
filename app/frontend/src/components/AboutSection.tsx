@@ -163,6 +163,12 @@ export default function AboutSection() {
             <p className="text-muted-foreground leading-relaxed text-lg">
               {t("about.vision.desc")}
             </p>
+            <a
+              href="#follow"
+              className="inline-flex mt-6 text-sm font-semibold text-primary hover:underline"
+            >
+              {t("social.follow_title")}
+            </a>
           </div>
         </div>
       </div>

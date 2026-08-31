@@ -1,9 +1,9 @@
-import { SITE } from "@/lib/site-config";
+import { PUBLIC_SITE_ORIGIN } from "@/lib/social-links";
 
 export const PUBLIC_INDEXABLE_PATHS = [
   "/",
   "/community",
-  "/courses",
+  "/insights",
   "/members",
   "/jobs",
   "/forum",
@@ -28,7 +28,7 @@ export const PRIVATE_NOINDEX_PREFIXES = [
 export function canonicalUrl(path = "/"): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   const trimmed = normalized === "/" ? "" : normalized.replace(/\/$/, "");
-  return `${SITE.url}${trimmed}`;
+  return `${PUBLIC_SITE_ORIGIN}${trimmed}`;
 }
 
 export function isPrivatePath(path: string): boolean {

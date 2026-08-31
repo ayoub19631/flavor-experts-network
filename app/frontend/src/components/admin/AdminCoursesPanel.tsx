@@ -158,7 +158,7 @@ export default function AdminCoursesPanel() {
     setBusyId(null);
     if (error) toast.error(error.message);
     else {
-      toast.success("Course deleted");
+      toast.success("Entry deleted");
       load();
     }
   };
@@ -188,10 +188,10 @@ export default function AdminCoursesPanel() {
         <div>
           <h3 className="font-semibold text-foreground flex items-center gap-2">
             <GraduationCap className="w-4 h-4 text-primary" />
-            Courses catalog
+            Internal catalog
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Create draft Academy courses, then open the builder to edit English/Arabic content before publishing.
+            Internal catalog only. Public visitors see Industry Insights; existing rows stay in the database.
           </p>
         </div>
         <div className="flex gap-2">
@@ -199,7 +199,7 @@ export default function AdminCoursesPanel() {
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
           <Button size="sm" className="gap-2" onClick={openAdd}>
-            <Plus className="w-3.5 h-3.5" /> Add course
+            <Plus className="w-3.5 h-3.5" /> Add entry
           </Button>
         </div>
       </div>
@@ -212,7 +212,7 @@ export default function AdminCoursesPanel() {
         <Card className="border-dashed">
           <CardContent className="p-10 text-center space-y-3">
             <BookOpen className="w-10 h-10 mx-auto text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No courses yet</p>
+            <p className="text-sm text-muted-foreground">No catalog rows yet</p>
             <Button size="sm" onClick={openAdd} className="gap-2">
               <Plus className="w-3.5 h-3.5" /> Create first draft
             </Button>
@@ -257,7 +257,7 @@ export default function AdminCoursesPanel() {
       <Dialog open={dialog} onOpenChange={setDialog}>
         <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit course" : "Add course"}</DialogTitle>
+            <DialogTitle>{editing ? "Edit entry" : "Add entry"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">

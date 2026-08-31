@@ -43,7 +43,7 @@ export const ENTERPRISE_SERVICE_OPTIONS = [
   { value: "brand_visibility", label: "Brand visibility" },
   { value: "recruitment", label: "Recruitment" },
   { value: "sponsored_content", label: "Sponsored content" },
-  { value: "training", label: "Academy / training" },
+  { value: "training", label: "Professional training" },
   { value: "market_intelligence", label: "Market intelligence" },
   { value: "partnership", label: "Partnership" },
   { value: "other", label: "Other" },

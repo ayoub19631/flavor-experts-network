@@ -19,7 +19,7 @@ import {
   ShieldCheck,
   ChevronDown,
   Search,
-  GraduationCap,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -45,7 +45,7 @@ export default function Navbar() {
 
   const primaryLinks = [
     { href: "/community", label: t("nav.community") },
-    { href: "/courses", label: t("nav.academy") },
+    { href: "/insights", label: t("nav.insights") },
     { href: "/members", label: t("nav.members") },
     ...(user ? [{ href: "/messages", label: t("nav.messages") }] : []),
     { href: "/jobs", label: t("nav.jobs") },
@@ -57,7 +57,7 @@ export default function Navbar() {
   const exploreLinks = [
     { href: "/#about", label: t("nav.about") },
     { href: "/#news", label: t("nav.news") },
-    { href: "/#resources", label: t("nav.resources") },
+    { href: "/insights", label: t("nav.insights") },
     { href: "/consultations", label: t("nav.consultations") },
     { href: "/enterprise", label: t("nav.enterprise") },
     { href: "/#contact", label: t("nav.contact") },
@@ -169,9 +169,9 @@ export default function Navbar() {
                       <LayoutDashboard className="w-4 h-4 me-2" />
                       {t("nav.dashboard")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/learn")}>
-                      <GraduationCap className="w-4 h-4 me-2" />
-                      {t("nav.learn")}
+                    <DropdownMenuItem onClick={() => navigate("/insights")}>
+                      <FileText className="w-4 h-4 me-2" />
+                      {t("nav.insights")}
                     </DropdownMenuItem>
                     </>
                   ) : (

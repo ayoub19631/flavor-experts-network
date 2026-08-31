@@ -5,7 +5,7 @@ test.describe("phase 1 platform stabilization", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toBeVisible();
     await expect(
-      page.getByText(/Learn Flavor Science|تعلّم علم النكهات|Under Development|قيد التطوير|Flavor Experts|خبراء النكهات/i).first(),
+      page.getByText(/Professional Flavor Industry Network|شبكة صناعة النكهات المهنية|Under Development|قيد التطوير|Flavor Experts|خبراء النكهات/i).first(),
     ).toBeVisible({ timeout: 20_000 });
   });
 
@@ -24,13 +24,31 @@ test.describe("phase 1 platform stabilization", () => {
     await expect(page).toHaveURL(/\/(?:$|\?|#)/);
   });
 
-  test("primary navigation includes academy and community", async ({ page }) => {
+  test("official social profiles are linked from the homepage", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
+    if (await page.getByText(/Under Development|قيد التطوير/i).first().isVisible().catch(() => false)) {
+      return;
+    }
+    const instagram = page.locator('a[href="https://www.instagram.com/flavorexpertsnetwork/"]').first();
+    const linkedInPage = page.locator('a[href="https://www.linkedin.com/company/135148577/"]').first();
+    const linkedInGroup = page.locator('a[href="https://www.linkedin.com/groups/8367742/"]').first();
+    await expect(instagram).toBeVisible({ timeout: 20_000 });
+    await expect(linkedInPage).toBeVisible();
+    await expect(linkedInGroup).toBeVisible();
+    await expect(instagram).toHaveAttribute("target", "_blank");
+    await expect(instagram).toHaveAttribute("rel", /noopener/);
+    await expect(page.locator("footer a[href*='/admin']")).toHaveCount(0);
+  });
+
+  test("primary navigation includes insights and community", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
     const nav = page.locator("nav").first();
     if (await nav.isVisible()) {
       await expect(nav.getByRole("link", { name: /Community|المجتمع/i }).first()).toBeVisible();
-      await expect(nav.getByRole("link", { name: /Academy|الأكاديمية|Courses|الدورات/i }).first()).toBeVisible();
+      await expect(nav.getByRole("link", { name: /Industry Insights|رؤى الصناعة/i }).first()).toBeVisible();
+      await expect(nav.getByRole("link", { name: /Academy|الأكاديمية/i })).toHaveCount(0);
     }
   });
 
@@ -129,7 +147,7 @@ test.describe("phase 1 platform stabilization", () => {
     await expect(page.getByRole("textbox").first()).toBeVisible({ timeout: 20_000 });
   });
 
-  for (const path of ["/members", "/jobs", "/forum", "/market", "/blog", "/consultations", "/enterprise"]) {
+  for (const path of ["/members", "/jobs", "/forum", "/market", "/blog", "/consultations", "/enterprise", "/insights"]) {
     test(`${path} public route still loads`, async ({ page }) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });

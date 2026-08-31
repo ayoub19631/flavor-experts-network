@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { SITE } from "@/lib/site-config";
+import { canonicalUrl } from "@/lib/seo-routes";
 
 interface PageMetaOptions {
   title?: string;
@@ -35,7 +36,7 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
   useEffect(() => {
     const pageTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     const pageDescription = description || SITE.description;
-    const canonical = `${SITE.url}${path.startsWith("/") ? path : `/${path}`}`.replace(/\/$/, "") || SITE.url;
+    const canonical = canonicalUrl(path);
     const ogImage = image || SITE.ogImage;
     const ogLocale = locale === "ar" ? "ar_SA" : "en_US";
 

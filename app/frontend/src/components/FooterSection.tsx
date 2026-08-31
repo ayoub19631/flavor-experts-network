@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Linkedin, Mail, Globe, Loader2, Send } from "lucide-react";
+import { Mail, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import BrandLogo from "@/components/BrandLogo";
 import { SITE } from "@/lib/site-config";
+import SocialMediaLinks from "@/components/SocialMediaLinks";
 import { toast } from "sonner";
 
 export default function FooterSection() {
@@ -156,8 +157,8 @@ export default function FooterSection() {
                 </a>
               </li>
               <li>
-                <a href="/#resources" className="hover:text-[hsl(47_30%_90%)] transition-colors">
-                  {t("nav.resources")}
+                <a href="/insights" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                  {t("nav.insights")}
                 </a>
               </li>
               <li>
@@ -178,11 +179,6 @@ export default function FooterSection() {
               <li>
                 <a href="/forum" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.forum")}
-                </a>
-              </li>
-              <li>
-                <a href="/courses" className="hover:text-[hsl(47_30%_90%)] transition-colors">
-                  {t("nav.courses")}
                 </a>
               </li>
               <li>
@@ -218,17 +214,11 @@ export default function FooterSection() {
                 </a>
               </li>
             </ul>
+            <div className="mt-6">
+              <SocialMediaLinks variant="footer" />
+            </div>
             <h4 className="font-semibold mt-6 mb-3">{t("footer.connect")}</h4>
             <div className="flex items-center gap-3">
-              <a
-                href="https://www.linkedin.com/groups/13155714/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                aria-label={t("contact.linkedin")}
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
               {SITE.supportEmail ? (
               <a
                 href={`mailto:${SITE.supportEmail}`}
@@ -238,13 +228,6 @@ export default function FooterSection() {
                 <Mail className="w-4 h-4" />
               </a>
               ) : null}
-              <a
-                href="https://flavorexpertsnetwork.com"
-                className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                aria-label={SITE.name}
-              >
-                <Globe className="w-4 h-4" />
-              </a>
             </div>
           </div>
         </div>

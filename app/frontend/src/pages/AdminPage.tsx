@@ -631,7 +631,7 @@ export default function AdminPage() {
     tabSettings:        isAR ? "الإعدادات" : "Settings",
     tabBroadcast:       isAR ? "البث" : "Broadcast",
     tabModeration:      isAR ? "الإشراف" : "Moderation",
-    tabCourses:         isAR ? "الدورات" : "Courses",
+    tabCourses:         isAR ? "الفهرس الداخلي" : "Internal catalog",
     tabConsultations:   isAR ? "الاستشارات" : "Consultations",
     tabForum:           isAR ? "أقسام المنتدى" : "Forum",
     analytics:          isAR ? "تحليلات المنصة" : "Platform analytics",

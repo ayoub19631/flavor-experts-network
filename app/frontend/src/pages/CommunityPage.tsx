@@ -526,7 +526,7 @@ export default function CommunityPage() {
   };
 
   const sharePost = async (post: SocialPost) => {
-    const url = `${SITE.url}/community#post-${post.id}`;
+    const url = `${SITE.canonicalOrigin}/community#post-${post.id}`;
     try {
       if (navigator.share) {
         await navigator.share({
@@ -1316,7 +1316,7 @@ export default function CommunityPage() {
                       <Link to="/jobs">{t("nav.jobs")}</Link>
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link to="/courses">{t("nav.courses")}</Link>
+                      <Link to="/insights">{t("nav.insights")}</Link>
                     </Button>
                   </div>
                 </CardContent>

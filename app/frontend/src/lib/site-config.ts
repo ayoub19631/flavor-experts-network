@@ -1,24 +1,25 @@
 ﻿import { PUBLIC_PRIVACY_EMAIL, PUBLIC_SUPPORT_EMAIL } from "@/lib/public-emails";
+import { PUBLIC_SITE_ORIGIN, SOCIAL_LINKS } from "@/lib/social-links";
 
 /** Central branding & contact configuration */
 export const SITE = {
   name: import.meta.env.VITE_APP_TITLE || "Flavor Experts Network",
   tagline: "Flavor Expertise & Science",
   description:
-    import.meta.env.VITE_APP_DESCRIPTION ||
-    "A free professional network for flavor scientists and food technologists — jobs, community, and industry knowledge",
-  url: (import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, ""),
+    "A global professional network connecting flavorists, food scientists, R&D professionals, companies, suppliers, and the flavor industry.",
+  url: (import.meta.env.VITE_SITE_URL || PUBLIC_SITE_ORIGIN).replace(/\/$/, ""),
+  canonicalOrigin: PUBLIC_SITE_ORIGIN,
   domain: "flavorexpertsnetwork.com",
   supportEmail: PUBLIC_SUPPORT_EMAIL,
   privacyEmail: PUBLIC_PRIVACY_EMAIL,
   billingEmail:
     import.meta.env.VITE_BILLING_EMAIL ||
     PUBLIC_SUPPORT_EMAIL,
-  linkedInGroup: "https://www.linkedin.com/groups/13155714/",
+  linkedInGroup: SOCIAL_LINKS.linkedinGroup,
   logo: "/brand/flavor-expertise-science.webp",
   ogImage:
     import.meta.env.VITE_OG_IMAGE ||
-    `${(import.meta.env.VITE_SITE_URL || "https://flavorexpertsnetwork.com").replace(/\/$/, "")}/brand/logo-og.jpg`,
+    `${PUBLIC_SITE_ORIGIN}/brand/logo-og.jpg`,
 } as const;
 
 export const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";

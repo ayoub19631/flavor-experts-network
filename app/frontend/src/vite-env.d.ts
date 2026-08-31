@@ -10,6 +10,11 @@ interface ImportMetaEnv {
   readonly VITE_ADMIN_EMAILS?: string;
   readonly VITE_BILLING_EMAIL?: string;
   readonly VITE_STRIPE_PUBLISHABLE_KEY?: string;
+  readonly VITE_SOCIAL_INSTAGRAM?: string;
+  readonly VITE_SOCIAL_FACEBOOK?: string;
+  readonly VITE_SOCIAL_YOUTUBE?: string;
+  readonly VITE_SOCIAL_LINKEDIN_PAGE?: string;
+  readonly VITE_SOCIAL_LINKEDIN_GROUP?: string;
 }
 
 interface ImportMeta {

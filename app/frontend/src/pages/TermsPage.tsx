@@ -13,8 +13,8 @@ export default function TermsPage() {
     title: t("terms.title"),
     description:
       lang === "ar"
-        ? "شروط وأحكام شبكة خبراء النكهات — منصة تعليمية تمنع السياسة ومحتوى الأطفال والمواد الإباحية"
-        : "Flavor Experts Network terms — educational platform; no politics, child-related, or adult content",
+        ? "شروط وأحكام شبكة خبراء النكهات — شبكة مهنية تمنع السياسة ومحتوى الأطفال والمواد الإباحية"
+        : "Flavor Experts Network terms — professional industry network; no politics, child-related, or adult content",
     path: "/terms",
     noIndex: true,
   });
@@ -40,8 +40,8 @@ export default function TermsPage() {
 
           <div className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm leading-relaxed">
             {lang === "ar"
-              ? "هذه منصة تعليمية مهنية. يُمنع منعاً باتاً نشر أو مشاركة أي أخبار سياسية، أو أي محتوى يخص الأطفال، أو أي مواد إباحية. المخالفة تؤدي إلى إيقاف الحساب."
-              : "This is a professional educational platform. Publishing political news, any child-related content, or pornography is strictly forbidden and can result in an immediate account ban."}
+              ? "هذه شبكة مهنية لصناعة النكهات. يُمنع منعاً باتاً نشر أو مشاركة أي أخبار سياسية، أو أي محتوى يخص الأطفال، أو أي مواد إباحية. المخالفة تؤدي إلى إيقاف الحساب."
+              : "This is a Professional Flavor Industry Network. Publishing political news, any child-related content, or pornography is strictly forbidden and can result in an immediate account ban."}
           </div>
 
           <div className="prose prose-gray max-w-none space-y-6">

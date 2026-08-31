@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Mail,
   MapPin,
-  Linkedin,
   Send,
   CheckCircle,
   Loader2,
@@ -16,6 +15,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useI18n } from "@/lib/i18n";
 import { SITE } from "@/lib/site-config";
+import SocialMediaLinks from "@/components/SocialMediaLinks";
 import { toast } from "sonner";
 
 export default function ContactSection() {
@@ -134,23 +134,8 @@ export default function ContactSection() {
             </Card>
 
             <Card className="border border-border hover:shadow-md transition-shadow">
-              <CardContent className="p-6 flex items-start gap-4">
-                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Linkedin className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-foreground mb-1">
-                    {t("contact.linkedin")}
-                  </h4>
-                  <a
-                    href="https://www.linkedin.com/groups/13155714/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline"
-                  >
-                    Flavor Experts Network
-                  </a>
-                </div>
+              <CardContent className="p-6">
+                <SocialMediaLinks variant="contact" />
               </CardContent>
             </Card>
 

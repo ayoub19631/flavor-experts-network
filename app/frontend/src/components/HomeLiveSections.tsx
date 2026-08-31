@@ -8,8 +8,6 @@ import { supabase } from "@/lib/supabase";
 import { filterPublicMembers } from "@/lib/public-members";
 import { blogPosts, getBlogRoute } from "@/lib/blog";
 
-type PathRow = { id: string; title?: string; name?: string; slug?: string };
-type CourseRow = { id: string; title: string; slug: string; level?: string | null };
 type PostRow = { id: string; body?: string | null; created_at?: string };
 type MemberRow = { id: string; full_name: string; role?: string | null; company?: string | null };
 type JobRow = { id: string; title: string; company?: string | null; location?: string | null };
@@ -17,9 +15,7 @@ type MarketRow = { id: string; title: string };
 type PartnerRow = { id: string; name: string };
 type Stats = {
   public_members?: number;
-  published_courses?: number;
   open_jobs?: number;
-  learning_paths?: number;
 };
 
 function EmptyNote({ text }: { text: string }) {
@@ -72,8 +68,6 @@ function Section({
 export default function HomeLiveSections() {
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
-  const [paths, setPaths] = useState<PathRow[]>([]);
-  const [courses, setCourses] = useState<CourseRow[]>([]);
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [experts, setExperts] = useState<MemberRow[]>([]);
   const [jobs, setJobs] = useState<JobRow[]>([]);
@@ -85,8 +79,6 @@ export default function HomeLiveSections() {
     let cancelled = false;
     async function load() {
       const [
-        pathsRes,
-        coursesRes,
         postsRes,
         membersRes,
         jobsRes,
@@ -94,12 +86,6 @@ export default function HomeLiveSections() {
         partnersRes,
         statsRes,
       ] = await Promise.all([
-        supabase.from("learning_paths").select("id, title, slug").eq("is_published", true).limit(4),
-        supabase
-          .from("courses")
-          .select("id, title, slug, level, is_published, status")
-          .or("is_published.eq.true,status.eq.published")
-          .limit(4),
         supabase
           .from("social_posts")
           .select("id, body, created_at")
@@ -128,8 +114,6 @@ export default function HomeLiveSections() {
         supabase.rpc("platform_public_stats"),
       ]);
       if (cancelled) return;
-      setPaths((pathsRes.data as PathRow[]) || []);
-      setCourses(((coursesRes.data as CourseRow[]) || []).filter((c) => c.slug && c.title));
       setPosts((postsRes.data as PostRow[]) || []);
       setExperts(filterPublicMembers((membersRes.data as MemberRow[]) || []).slice(0, 4));
       setJobs((jobsRes.data as JobRow[]) || []);
@@ -146,33 +130,21 @@ export default function HomeLiveSections() {
 
   const statItems = [
     { key: "members", value: stats?.public_members, label: t("home.stats.members") },
-    { key: "courses", value: stats?.published_courses, label: t("home.stats.courses") },
     { key: "jobs", value: stats?.open_jobs, label: t("home.stats.jobs") },
-    { key: "paths", value: stats?.learning_paths, label: t("home.stats.paths") },
   ].filter((item) => typeof item.value === "number");
 
   return (
     <>
-      <Section id="resources" title={t("home.paths.title")} href="/courses" loading={loading} empty={t("home.paths.empty")} hasItems={paths.length > 0}>
+      <Section id="news" title={t("insights.title")} href="/insights" loading={false} empty={t("home.articles.empty")} hasItems={blogPosts.length > 0}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {paths.map((path) => (
-            <Card key={path.id} className="h-full border-border">
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-foreground">{path.title || path.name}</h3>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </Section>
-
-      <Section id="academy" title={t("home.courses.title")} href="/courses" loading={loading} empty={t("home.courses.empty")} hasItems={courses.length > 0}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {courses.map((course) => (
-            <Link key={course.id} to={`/courses/${course.slug}`} className="block h-full">
+          {blogPosts.slice(0, 4).map((article) => (
+            <Link key={article.slug} to={getBlogRoute(article.slug)} className="block h-full">
               <Card className="h-full border-border hover:border-primary/30 transition-colors">
                 <CardContent className="p-5">
-                  <h3 className="font-semibold text-foreground">{course.title}</h3>
-                  {course.level ? <p className="text-sm text-muted-foreground mt-1">{course.level}</p> : null}
+                  <h3 className="font-semibold text-foreground">{article.title}</h3>
+                  {article.description ? (
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{article.description}</p>
+                  ) : null}
                 </CardContent>
               </Card>
             </Link>
@@ -200,23 +172,6 @@ export default function HomeLiveSections() {
                 <CardContent className="p-5">
                   <h3 className="font-semibold text-foreground">{member.full_name}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{member.role || member.company || ""}</p>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </Section>
-
-      <Section id="news" title={t("home.articles.title")} href="/blog" loading={false} empty={t("home.articles.empty")} hasItems={blogPosts.length > 0}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {blogPosts.slice(0, 4).map((article) => (
-            <Link key={article.slug} to={getBlogRoute(article.slug)} className="block h-full">
-              <Card className="h-full border-border">
-                <CardContent className="p-5">
-                  <h3 className="font-semibold text-foreground">{article.title}</h3>
-                  {article.description ? (
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-3">{article.description}</p>
-                  ) : null}
                 </CardContent>
               </Card>
             </Link>
