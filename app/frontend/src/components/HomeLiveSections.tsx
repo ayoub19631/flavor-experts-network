@@ -6,10 +6,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/lib/supabase";
 import { filterPublicMembers } from "@/lib/public-members";
+import { buildCompanyDirectory } from "@/lib/companies";
+import type { Member } from "@/lib/types";
 import { blogPosts, getBlogRoute } from "@/lib/blog";
 
 type PostRow = { id: string; body?: string | null; created_at?: string };
-type MemberRow = { id: string; full_name: string; role?: string | null; company?: string | null };
 type JobRow = { id: string; title: string; company?: string | null; location?: string | null };
 type MarketRow = { id: string; title: string };
 type PartnerRow = { id: string; name: string };
@@ -69,10 +70,11 @@ export default function HomeLiveSections() {
   const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostRow[]>([]);
-  const [experts, setExperts] = useState<MemberRow[]>([]);
+  const [experts, setExperts] = useState<Member[]>([]);
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [market, setMarket] = useState<MarketRow[]>([]);
   const [partners, setPartners] = useState<PartnerRow[]>([]);
+  const [companiesPreview, setCompaniesPreview] = useState<ReturnType<typeof buildCompanyDirectory>>([]);
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -95,9 +97,9 @@ export default function HomeLiveSections() {
           .limit(4),
         supabase
           .from("member_directory")
-          .select("id, full_name, role, company, is_featured")
+          .select("id, full_name, role, company, is_featured, member_type, location, avatar_url, title, website")
           .order("is_featured", { ascending: false })
-          .limit(8),
+          .limit(80),
         supabase
           .from("job_listings")
           .select("id, title, company, location")
@@ -115,10 +117,12 @@ export default function HomeLiveSections() {
       ]);
       if (cancelled) return;
       setPosts((postsRes.data as PostRow[]) || []);
-      setExperts(filterPublicMembers((membersRes.data as MemberRow[]) || []).slice(0, 4));
+      const publicMembers = filterPublicMembers((membersRes.data as Member[]) || []);
+      setExperts(publicMembers.slice(0, 4));
+      setPartners((partnersRes.data as PartnerRow[]) || []);
+      setCompaniesPreview(buildCompanyDirectory(publicMembers).slice(0, 4));
       setJobs((jobsRes.data as JobRow[]) || []);
       setMarket((marketRes.data as MarketRow[]) || []);
-      setPartners((partnersRes.data as PartnerRow[]) || []);
       setStats((statsRes.data as Stats) || null);
       setLoading(false);
     }
@@ -174,6 +178,21 @@ export default function HomeLiveSections() {
                 <CardContent className="p-5">
                   <h3 className="font-semibold text-foreground">{member.full_name}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{member.role || member.company || ""}</p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="companies" title={t("home.companies.title")} href="/companies" loading={loading} empty={t("home.companies.empty")} hasItems={companiesPreview.length > 0}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {companiesPreview.map((company) => (
+            <Link key={company.slug} to={company.profile_path} className="block h-full">
+              <Card className="h-full border-border">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold text-foreground">{company.name}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{company.location || ""}</p>
                 </CardContent>
               </Card>
             </Link>

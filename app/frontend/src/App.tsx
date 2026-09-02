@@ -33,6 +33,8 @@ const AuthError = lazy(() => import("./pages/AuthError"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const MembersPage = lazy(() => import("./pages/MembersPage"));
 const MemberProfilePage = lazy(() => import("./pages/MemberProfilePage"));
+const CompaniesPage = lazy(() => import("./pages/CompaniesPage"));
+const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
 const ForumPage = lazy(() => import("./pages/ForumPage"));
 const ForumCategoryPage = lazy(() => import("./pages/ForumCategoryPage"));
 const ForumTopicPage = lazy(() => import("./pages/ForumTopicPage"));
@@ -75,7 +77,7 @@ const PublicationPoliciesPage = lazy(() => import("./pages/library/PublicationPo
 const AdminPublicationsPage = lazy(() => import("./pages/admin/AdminPublicationsPage"));
 const PublicationEditorPage = lazy(() => import("./pages/admin/PublicationEditorPage"));
 
-const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations", "/members", "/messages", "/community"];
+const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations", "/members", "/companies", "/messages", "/community"];
 
 const LanguageProfileSync = () => {
   const { profile } = useAuth();
@@ -172,6 +174,8 @@ const AppRoutes = () => (
       <Route path="/policies" element={<PublicationPoliciesPage />} />
       <Route path="/members/:id" element={<MemberProfilePage />} />
       <Route path="/members" element={<MembersPage />} />
+      <Route path="/companies/:slug" element={<CompanyDetailPage />} />
+      <Route path="/companies" element={<CompaniesPage />} />
       <Route path="/forum/c/:slug" element={<ForumCategoryPage />} />
       <Route path="/forum/t/:id" element={<ForumTopicPage />} />
       <Route path="/forum" element={<ForumPage />} />

@@ -48,6 +48,7 @@ export default function Navbar() {
     { href: "/insights", label: t("nav.insights") },
     { href: "/library", label: t("nav.library") },
     { href: "/members", label: t("nav.members") },
+    { href: "/companies", label: t("nav.companies") },
     ...(user ? [{ href: "/messages", label: t("nav.messages") }] : []),
     { href: "/jobs", label: t("nav.jobs") },
     { href: "/forum", label: t("nav.forum") },

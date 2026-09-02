@@ -5,6 +5,7 @@ export const PUBLIC_INDEXABLE_PATHS = [
   "/community",
   "/insights",
   "/members",
+  "/companies",
   "/jobs",
   "/forum",
   "/market",

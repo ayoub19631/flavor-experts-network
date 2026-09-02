@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { getAuthRedirectUrl } from "@/lib/auth-utils";
 import { appAuthCallbackUrl, isNativeApp } from "@/lib/native";
 import { Browser } from "@capacitor/browser";
+import { shouldReplaceAvatar, shouldReplaceFullName } from "@/lib/oauth-profile";
 
 export type OAuthProvider = "google";
 
@@ -95,14 +96,22 @@ export async function syncOAuthUserProfile(userId: string, metadata: Record<stri
     "";
   const linkedinUrl = (metadata.linkedin_url as string) || (metadata.profile as string) || "";
 
+  const { data: existing } = await supabase
+    .from("user_profiles")
+    .select("full_name, avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+
   const updates: Record<string, string> = {
-    full_name: fullName,
     updated_at: new Date().toISOString(),
   };
-  if (avatarUrl) updates.avatar_url = avatarUrl;
+  if (shouldReplaceFullName(existing?.full_name, fullName)) updates.full_name = fullName;
+  if (shouldReplaceAvatar(existing?.avatar_url, avatarUrl)) updates.avatar_url = avatarUrl;
   if (linkedinUrl && linkedinUrl.includes("linkedin.com")) updates.linkedin_url = linkedinUrl;
 
-  await supabase.from("user_profiles").update(updates).eq("id", userId);
+  if (Object.keys(updates).length > 1) {
+    await supabase.from("user_profiles").update(updates).eq("id", userId);
+  }
 }
 
 export function getOAuthProviderLabel(provider: string | undefined): string {

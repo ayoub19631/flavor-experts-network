@@ -29,26 +29,7 @@ import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import { rankBySkillOverlap, tokenizeSkills } from "@/lib/matching";
 import { filterPublicMembers } from "@/lib/public-members";
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
-const AVATAR_COLORS = [
-  "from-blue-500 to-blue-700",
-  "from-emerald-500 to-emerald-700",
-  "from-purple-500 to-purple-700",
-  "from-amber-500 to-amber-700",
-  "from-rose-500 to-rose-700",
-  "from-teal-500 to-teal-700",
-  "from-indigo-500 to-indigo-700",
-  "from-orange-500 to-orange-700",
-];
+import MemberAvatar from "@/components/MemberAvatar";
 
 export default function MembersPage() {
   const { t, lang } = useI18n();
@@ -216,6 +197,11 @@ export default function MembersPage() {
               <p className="text-white/75 max-w-xl">
                 {t("members.desc")}
               </p>
+              <div className="mt-4">
+                <Button asChild variant="secondary" size="sm">
+                  <Link to="/companies">{t("nav.companies")}</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -403,21 +389,7 @@ export default function MembersPage() {
                     >
                       <div className="p-5">
                         <div className="flex items-start gap-3 mb-3">
-                          {member.avatar_url ? (
-                            <img
-                              src={member.avatar_url}
-                              alt={member.full_name}
-                              className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-md"
-                            />
-                          ) : (
-                            <div
-                              className={`w-12 h-12 rounded-xl bg-gradient-to-br ${AVATAR_COLORS[i % AVATAR_COLORS.length]} flex items-center justify-center flex-shrink-0 shadow-md`}
-                            >
-                              <span className="text-sm font-bold text-white">
-                                {getInitials(member.full_name)}
-                              </span>
-                            </div>
-                          )}
+                          <MemberAvatar src={member.avatar_url} name={member.full_name} colorIndex={i} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <h3 className="font-semibold text-foreground text-sm truncate group-hover:text-primary transition-colors">

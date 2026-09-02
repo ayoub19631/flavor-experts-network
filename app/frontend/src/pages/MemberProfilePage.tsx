@@ -57,6 +57,7 @@ import {
 } from "@/lib/network";
 import { toast } from "sonner";
 import CommunitySafetyMenu from "@/components/CommunitySafetyMenu";
+import MemberAvatar from "@/components/MemberAvatar";
 
 function getInitials(name: string) {
   return name
@@ -385,19 +386,11 @@ export default function MemberProfilePage() {
                 <div className="p-6 sm:p-8">
                   <div className="flex flex-col sm:flex-row gap-6 sm:items-end">
                     <div className="relative shrink-0 -mt-16 sm:-mt-20">
-                      {member.avatar_url ? (
-                        <img
-                          src={member.avatar_url}
-                          alt={member.full_name}
-                          className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl object-cover ring-4 ring-card shadow-lg"
-                        />
-                      ) : (
-                        <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl bg-gradient-to-br from-[hsl(208_100%_18%)] to-[hsl(208_70%_28%)] flex items-center justify-center ring-4 ring-card shadow-lg">
-                          <span className="text-3xl font-bold text-[hsl(47_23%_85%)]">
-                            {getInitials(member.full_name)}
-                          </span>
-                        </div>
-                      )}
+                      <MemberAvatar
+                        src={member.avatar_url}
+                        name={member.full_name}
+                        className="w-28 h-28 sm:w-36 sm:h-36 rounded-2xl ring-4 ring-card"
+                      />
                       {member.is_featured && (
                         <span className="absolute -bottom-2 -end-2 inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-1 shadow">
                           <Star className="w-3 h-3 fill-current" />

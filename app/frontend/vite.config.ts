@@ -67,6 +67,7 @@ export default defineConfig(({ command, mode }) => {
                 '/community',
                 '/insights',
                 '/members',
+                '/companies',
                 '/jobs',
                 '/forum',
                 '/market',
