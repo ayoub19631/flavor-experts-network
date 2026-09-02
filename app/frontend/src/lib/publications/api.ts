@@ -12,6 +12,12 @@ import type {
   ReadingProgress,
 } from "./types";
 import { slugifyPublication } from "./slug";
+import { isMissingSchemaError } from "./schema-errors";
+
+function schemaSafeError(message?: string | null): string | null {
+  if (!message || isMissingSchemaError(message)) return null;
+  return message;
+}
 
 const LIST_SELECT = `
   id, type, slug, status, visibility, primary_language, title, subtitle, abstract, description,
@@ -37,7 +43,7 @@ export async function fetchPublicationCategories() {
     .from("publication_categories")
     .select("*")
     .order("sort_order");
-  return { data: (data as PublicationCategory[]) || [], error: error?.message || null };
+  return { data: (data as PublicationCategory[]) || [], error: schemaSafeError(error?.message) };
 }
 
 export async function listPublications(filters: PublicationListFilters = {}) {
@@ -55,7 +61,7 @@ export async function listPublications(filters: PublicationListFilters = {}) {
       p_limit: pageSize,
       p_offset: from,
     });
-    return { data: (data as Publication[]) || [], error: error?.message || null, fromSearch: true };
+    return { data: (data as Publication[]) || [], error: schemaSafeError(error?.message), fromSearch: true };
   }
 
   let query = supabase
@@ -71,7 +77,7 @@ export async function listPublications(filters: PublicationListFilters = {}) {
   if (filters.featured) query = query.eq("is_featured", true);
 
   const { data, error } = await query;
-  return { data: (data as Publication[]) || [], error: error?.message || null, fromSearch: false };
+  return { data: (data as Publication[]) || [], error: schemaSafeError(error?.message), fromSearch: false };
 }
 
 export async function fetchPublicationBySlug(slug: string) {
@@ -88,7 +94,7 @@ export async function fetchPublicationBySlug(slug: string) {
     `)
     .eq("slug", slug)
     .maybeSingle();
-  return { data: (data as Publication | null) || null, error: error?.message || null };
+  return { data: (data as Publication | null) || null, error: schemaSafeError(error?.message) };
 }
 
 export async function fetchChapter(publicationId: string, chapterSlug: string, language: "en" | "ar") {

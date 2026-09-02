@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCompanyDirectory } from "./companies";
+import { buildCompanyDirectory, slugsEqual } from "./companies";
 import type { Member } from "./types";
 
 function member(partial: Partial<Member>): Member {
@@ -17,14 +17,16 @@ function member(partial: Partial<Member>): Member {
 }
 
 describe("company directory", () => {
-  it("groups real company names without inventing extra organizations", () => {
+  it("lists only accounts that registered as a company", () => {
     const rows = buildCompanyDirectory([
       member({ id: "a", full_name: "Amin Morani", member_type: "company", company: "Poonja foods", location: "Pakistan" }),
       member({ id: "t", full_name: "Talal Reyad", member_type: "individual", company: "AL SHAM FOOD FACTORY LLC", location: "United Arab Emirates" }),
       member({ id: "x", full_name: "No Company", member_type: "individual" }),
     ]);
-    expect(rows.map((row) => row.name)).toEqual(["AL SHAM FOOD FACTORY LLC", "Poonja foods"]);
-    expect(rows.find((row) => row.name === "Poonja foods")?.is_company_account).toBe(true);
-    expect(rows.find((row) => row.name === "AL SHAM FOOD FACTORY LLC")?.member_count).toBe(1);
+    expect(rows.map((row) => row.name)).toEqual(["Poonja foods"]);
+    expect(rows[0]?.is_company_account).toBe(true);
+    expect(rows[0]?.member_count).toBe(1);
+    expect(rows[0]?.profile_path).toBe("/companies/poonja%20foods");
+    expect(slugsEqual("poonja foods", "poonja%20foods")).toBe(true);
   });
 });

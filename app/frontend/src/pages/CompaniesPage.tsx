@@ -7,6 +7,13 @@ import MemberAvatar from "@/components/MemberAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase, type Member } from "@/lib/supabase";
@@ -14,10 +21,11 @@ import { filterPublicMembers } from "@/lib/public-members";
 import { buildCompanyDirectory, type CompanyListing } from "@/lib/companies";
 
 export default function CompaniesPage() {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [locationFilter, setLocationFilter] = useState("all");
   usePageMeta({ title: t("companies.title"), description: t("companies.desc"), path: "/companies" });
 
   useEffect(() => {
@@ -33,11 +41,24 @@ export default function CompaniesPage() {
   }, []);
 
   const companies = useMemo(() => buildCompanyDirectory(members), [members]);
+  const locations = useMemo(
+    () => [...new Set(companies.map((company) => company.location).filter(Boolean) as string[])].sort(),
+    [companies],
+  );
   const filtered = companies.filter((company) => {
     const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return [company.name, company.location, company.role].filter(Boolean).some((value) => String(value).toLowerCase().includes(q));
+    if (q && ![company.name, company.location, company.role].filter(Boolean).some((value) => String(value).toLowerCase().includes(q))) {
+      return false;
+    }
+    if (locationFilter !== "all" && company.location !== locationFilter) return false;
+    return true;
   });
+  const hasFilters = Boolean(search.trim()) || locationFilter !== "all";
+
+  const clearFilters = () => {
+    setSearch("");
+    setLocationFilter("all");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,9 +91,27 @@ export default function CompaniesPage() {
 
       <section className="py-6 border-b border-border sticky top-16 bg-background/95 backdrop-blur z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative max-w-md">
-            <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input className="ps-9 h-10" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("companies.search")} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="relative">
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input className="ps-9 h-10" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("companies.search")} />
+            </div>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={t("companies.filter.location")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("members.filter.all")}</SelectItem>
+                {locations.map((location) => (
+                  <SelectItem key={location} value={location}>{location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasFilters && (
+              <Button type="button" variant="ghost" className="h-10" onClick={clearFilters}>
+                {t("members.filter.clear")}
+              </Button>
+            )}
           </div>
         </div>
       </section>
@@ -81,20 +120,27 @@ export default function CompaniesPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
             <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-          ) : filtered.length === 0 ? (
+          ) : companies.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
               <Building2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="font-medium text-foreground">{t("companies.empty")}</p>
               <p className="text-sm mt-1">{t("companies.empty.desc")}</p>
             </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 text-muted-foreground space-y-4">
+              <Building2 className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>{t("companies.none")}{search ? ` "${search}"` : ""}</p>
+              <Button variant="outline" onClick={clearFilters}>{t("members.filter.clear")}</Button>
+            </div>
           ) : (
             <>
               <p className="text-sm text-muted-foreground mb-6">
-                {lang === "ar" ? `عرض ${filtered.length} شركات` : `Showing ${filtered.length} companies`}
+                {t("companies.showing")} {filtered.length}{" "}
+                {filtered.length === 1 ? t("companies.company") : t("companies.companies")}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {filtered.map((company, index) => (
-                  <CompanyCard key={company.slug} company={company} colorIndex={index} memberLabel={t("companies.members")} />
+                  <CompanyCard key={company.slug} company={company} colorIndex={index} t={t} />
                 ))}
               </div>
             </>
@@ -106,7 +152,15 @@ export default function CompaniesPage() {
   );
 }
 
-function CompanyCard({ company, colorIndex, memberLabel }: { company: CompanyListing; colorIndex: number; memberLabel: string }) {
+function CompanyCard({
+  company,
+  colorIndex,
+  t,
+}: {
+  company: CompanyListing;
+  colorIndex: number;
+  t: (key: string) => string;
+}) {
   return (
     <Link to={company.profile_path} className="group rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all duration-200 overflow-hidden block">
       <div className="p-5">
@@ -115,18 +169,24 @@ function CompanyCard({ company, colorIndex, memberLabel }: { company: CompanyLis
           <div className="min-w-0">
             <h3 className="font-semibold text-foreground text-sm truncate group-hover:text-primary">{company.name}</h3>
             {company.role && <p className="text-xs text-muted-foreground truncate">{company.role}</p>}
+            {company.is_company_account && (
+              <Badge variant="secondary" className="mt-1 text-[10px] font-normal">{t("profile.type.company")}</Badge>
+            )}
           </div>
         </div>
-        {company.location && (
-          <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5" />
-            {company.location}
-          </p>
-        )}
-        <p className="text-xs text-muted-foreground mt-3 inline-flex items-center gap-1.5">
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {company.location && (
+            <Badge variant="outline" className="text-xs font-normal text-muted-foreground gap-1">
+              <MapPin className="w-3 h-3" />
+              {company.location}
+            </Badge>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
           <Users className="w-3.5 h-3.5" />
-          {company.member_count} {memberLabel}
+          {company.member_count} {t("companies.members")}
         </p>
+        <p className="text-xs font-medium text-primary mt-3 group-hover:underline">{t("companies.view_profile")}</p>
       </div>
     </Link>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Building2, Loader2, MapPin } from "lucide-react";
+import { ArrowLeft, Building2, ExternalLink, Loader2, MapPin } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import MemberAvatar from "@/components/MemberAvatar";
@@ -9,7 +9,8 @@ import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase, type Member } from "@/lib/supabase";
 import { filterPublicMembers } from "@/lib/public-members";
-import { buildCompanyDirectory } from "@/lib/companies";
+import { buildCompanyDirectory, employerName, slugsEqual } from "@/lib/companies";
+import { safeHttpUrl } from "@/lib/url";
 
 export default function CompanyDetailPage() {
   const { slug } = useParams();
@@ -29,16 +30,15 @@ export default function CompanyDetailPage() {
   }, []);
 
   const listing = useMemo(
-    () => buildCompanyDirectory(members).find((company) => company.slug === slug),
+    () => buildCompanyDirectory(members).find((company) => slugsEqual(company.slug, slug)),
     [members, slug],
   );
   const people = useMemo(() => {
     if (!listing) return [];
-    return members.filter((member) => {
-      const employer = (member.member_type === "company" ? (member.company || member.full_name) : member.company)?.trim().toLowerCase();
-      return employer === listing.name.toLowerCase();
-    });
+    return members.filter((member) => employerName(member)?.toLowerCase() === listing.name.toLowerCase());
   }, [members, listing]);
+
+  const websiteHref = safeHttpUrl(listing?.website);
 
   usePageMeta({
     title: listing?.name || t("companies.title"),
@@ -68,6 +68,12 @@ export default function CompanyDetailPage() {
                   {listing.is_company_account && <Badge variant="secondary">{t("profile.type.company")}</Badge>}
                 </div>
                 {listing.location && <p className="text-sm text-muted-foreground mt-1 inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{listing.location}</p>}
+                {websiteHref && (
+                  <a href={websiteHref} target="_blank" rel="noopener noreferrer" className="text-sm text-primary mt-2 inline-flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    {t("companies.website")}
+                  </a>
+                )}
               </div>
             </div>
             <section>

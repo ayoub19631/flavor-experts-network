@@ -10,7 +10,6 @@ import {
 import {
   Menu,
   X,
-  User,
   LogOut,
   LayoutDashboard,
   Sun,
@@ -28,6 +27,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import NotificationBell from "@/components/NotificationBell";
 import InboxButton from "@/components/InboxButton";
 import TestingModeBanner from "@/components/TestingModeBanner";
+import MemberAvatar from "@/components/MemberAvatar";
 import { SITE } from "@/lib/site-config";
 
 export default function Navbar() {
@@ -159,9 +159,11 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
-                    </div>
+                    <MemberAvatar
+                      src={profile?.avatar_url}
+                      name={profile?.full_name || user.email?.split("@")[0]}
+                      className="w-7 h-7 rounded-full"
+                    />
                     <span className="hidden sm:inline text-sm font-medium max-w-[100px] truncate">
                       {profile?.full_name || user.email?.split("@")[0]}
                     </span>

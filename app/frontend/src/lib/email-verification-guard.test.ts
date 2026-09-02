@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAllowedPath } from "@/components/EmailVerificationGuard";
+import { isAllowedPath } from "@/lib/email-verification-paths";
 
 describe("unverified session public paths", () => {
   it("keeps public network pages readable", () => {
@@ -8,6 +8,9 @@ describe("unverified session public paths", () => {
     expect(isAllowedPath("/community")).toBe(true);
     expect(isAllowedPath("/market")).toBe(true);
     expect(isAllowedPath("/members/abc")).toBe(true);
+    expect(isAllowedPath("/companies")).toBe(true);
+    expect(isAllowedPath("/companies/al%20sham%20food%20factory%20llc")).toBe(true);
+    expect(isAllowedPath("/events")).toBe(true);
     expect(isAllowedPath("/forum/c/flavor-science")).toBe(true);
     expect(isAllowedPath("/forum/t/12")).toBe(true);
     expect(isAllowedPath("/blog/natural-vs-artificial-flavors")).toBe(true);
