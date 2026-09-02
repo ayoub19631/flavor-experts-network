@@ -31,7 +31,7 @@ const infoItems = [
 ] as const;
 
 export default function ConsultationsPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user, profile } = useAuth();
   usePageMeta({
     title: t("consultations.title"),
@@ -124,6 +124,9 @@ export default function ConsultationsPage() {
             {t("consultations.title")}
           </h1>
           <p className="text-muted-foreground max-w-2xl">{t("consultations.desc")}</p>
+          <Link to="/consultations/experts" className="inline-block mt-4 text-sm text-primary hover:underline">
+            {lang === "ar" ? "تصفح خبراء الاستشارة" : "Browse consultation experts"}
+          </Link>
         </div>
       </section>
 

@@ -580,7 +580,11 @@ export default function JobsPage() {
                           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                             <div className="space-y-2 min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-lg font-semibold text-foreground">{job.title}</h3>
+                                <h3 className="text-lg font-semibold text-foreground">
+                                  <Link to={`/jobs/${job.id}`} className="hover:text-primary" onClick={(event) => event.stopPropagation()}>
+                                    {job.title}
+                                  </Link>
+                                </h3>
                                 <Badge variant="secondary">{empLabel(job.employment_type)}</Badge>
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">

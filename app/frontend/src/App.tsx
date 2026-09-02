@@ -40,8 +40,23 @@ const InsightsPage = lazy(() => import("./pages/InsightsPage"));
 const CoursesPage = lazy(() => import("./pages/CoursesPage"));
 const AcademyBuilderPage = lazy(() => import("./pages/admin/AcademyBuilderPage"));
 const ConsultationsPage = lazy(() => import("./pages/ConsultationsPage"));
+const ConsultationExpertsPage = lazy(() => import("./pages/consultations/ConsultationExpertsPage"));
+const ConsultationExpertPage = lazy(() => import("./pages/consultations/ConsultationExpertPage"));
 const MarketPage = lazy(() => import("./pages/MarketPage"));
 const JobsPage = lazy(() => import("./pages/JobsPage"));
+const JobDetailPage = lazy(() => import("./pages/jobs/JobDetailPage"));
+const EventsPage = lazy(() => import("./pages/events/EventsPage"));
+const EventDetailPage = lazy(() => import("./pages/events/EventDetailPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const NotificationPreferencesPage = lazy(() => import("./pages/NotificationPreferencesPage"));
+const AdminOpsPage = lazy(() => import("./pages/admin/AdminOpsPage"));
+const CompanyDashboardPage = lazy(() => import("./pages/company/CompanyDashboardPage"));
+const SavedJobsPage = lazy(() => import("./pages/dashboard/SavedJobsPage"));
+const MyApplicationsPage = lazy(() => import("./pages/dashboard/MyApplicationsPage"));
+const AccountControlsPage = lazy(() => import("./pages/dashboard/AccountControlsPage"));
+const BlockedUsersPage = lazy(() => import("./pages/dashboard/BlockedUsersPage"));
+const ConnectionsInboxPage = lazy(() => import("./pages/dashboard/ConnectionsInboxPage"));
+const VerificationRequestPage = lazy(() => import("./pages/VerificationRequestPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
@@ -120,6 +135,21 @@ const AppRoutes = () => (
       <Route path="/pricing" element={<Navigate to="/" replace />} />
       <Route path="/enterprise" element={<EnterpriseServicesPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/dashboard/jobs" element={<Navigate to="/jobs" replace />} />
+      <Route path="/dashboard/consultations" element={<Navigate to="/consultations" replace />} />
+      <Route path="/dashboard/events" element={<Navigate to="/events" replace />} />
+      <Route path="/expert/consultations" element={<ProtectedRoute><ConsultationExpertsPage /></ProtectedRoute>} />
+      <Route path="/company/jobs/:id/applications" element={<Navigate to="/jobs" replace />} />
+      <Route path="/admin/events" element={<AdminRoute><AdminOpsPage /></AdminRoute>} />
+      <Route path="/dashboard/saved-jobs" element={<SavedJobsPage />} />
+      <Route path="/dashboard/applications" element={<MyApplicationsPage />} />
+      <Route path="/dashboard/privacy" element={<AccountControlsPage />} />
+      <Route path="/dashboard/blocked" element={<BlockedUsersPage />} />
+      <Route path="/dashboard/connections" element={<ConnectionsInboxPage />} />
+      <Route path="/company/dashboard" element={<CompanyDashboardPage />} />
+      <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
+      <Route path="/verification" element={<VerificationRequestPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
@@ -127,6 +157,7 @@ const AppRoutes = () => (
       <Route path="/admin/academy/:courseId" element={<AdminRoute><AcademyBuilderPage /></AdminRoute>} />
       <Route path="/admin/publications/:id" element={<AdminRoute><PublicationEditorPage /></AdminRoute>} />
       <Route path="/admin/publications" element={<AdminRoute><AdminPublicationsPage /></AdminRoute>} />
+      <Route path="/admin/ops" element={<AdminRoute><AdminOpsPage /></AdminRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/library" element={<LibraryPage />} />
       <Route path="/books/:slug/chapters/:chapterSlug" element={<BookReaderPage />} />
@@ -151,9 +182,14 @@ const AppRoutes = () => (
       <Route path="/learn" element={<Navigate to="/insights" replace />} />
       <Route path="/certificates/*" element={<Navigate to="/insights" replace />} />
       <Route path="/certificates" element={<Navigate to="/insights" replace />} />
+      <Route path="/consultations/experts/:id" element={<ConsultationExpertPage />} />
+      <Route path="/consultations/experts" element={<ConsultationExpertsPage />} />
       <Route path="/consultations" element={<ConsultationsPage />} />
       <Route path="/market" element={<MarketPage />} />
+      <Route path="/jobs/:slug" element={<JobDetailPage />} />
       <Route path="/jobs" element={<JobsPage />} />
+      <Route path="/events/:slug" element={<EventDetailPage />} />
+      <Route path="/events" element={<EventsPage />} />
       <Route path="/community" element={<CommunityPage />} />
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
       <Route path="/search" element={<SearchPage />} />
