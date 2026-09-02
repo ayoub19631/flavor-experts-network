@@ -3,6 +3,7 @@ import { type Language, isLanguage, languageMeta } from "@/lib/languages";
 import { extraTranslations } from "@/lib/locales/extra";
 import { academyTranslations } from "@/lib/academy-i18n";
 import { platformTranslations } from "@/lib/platform-i18n";
+import { publicationsTranslations } from "@/lib/publications-i18n";
 
 export type { Language };
 
@@ -727,6 +728,7 @@ const translations: Record<"en" | "ar", Record<string, string>> = {
     "newsletter.error.invalid": "Please enter a valid email address.",
     "newsletter.error.submit": "Subscription failed. Please try again.",
     ...platformTranslations.en,
+    ...publicationsTranslations.en,
   },
   ar: {
     ...academyTranslations.ar,
@@ -1441,6 +1443,7 @@ const translations: Record<"en" | "ar", Record<string, string>> = {
     "newsletter.error.invalid": "يرجى إدخال بريد إلكتروني صحيح.",
     "newsletter.error.submit": "فشل الاشتراك. حاول مرة أخرى.",
     ...platformTranslations.ar,
+    ...publicationsTranslations.ar,
   },
 };
 

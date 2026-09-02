@@ -48,6 +48,17 @@ const SearchPage = lazy(() => import("./pages/SearchPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
+const LibraryPage = lazy(() => import("./pages/library/LibraryPage"));
+const BooksPage = lazy(() => import("./pages/library/BooksPage"));
+const BookDetailPage = lazy(() => import("./pages/library/BookDetailPage"));
+const BookReaderPage = lazy(() => import("./pages/library/BookReaderPage"));
+const ResearchPage = lazy(() => import("./pages/library/ResearchPage"));
+const ResearchDetailPage = lazy(() => import("./pages/library/ResearchDetailPage"));
+const MyLibraryPage = lazy(() => import("./pages/library/MyLibraryPage"));
+const SubmitPublicationPage = lazy(() => import("./pages/library/SubmitPublicationPage"));
+const PublicationPoliciesPage = lazy(() => import("./pages/library/PublicationPoliciesPage"));
+const AdminPublicationsPage = lazy(() => import("./pages/admin/AdminPublicationsPage"));
+const PublicationEditorPage = lazy(() => import("./pages/admin/PublicationEditorPage"));
 
 const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations", "/members", "/messages", "/community"];
 
@@ -114,7 +125,20 @@ const AppRoutes = () => (
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/auth/error" element={<AuthError />} />
       <Route path="/admin/academy/:courseId" element={<AdminRoute><AcademyBuilderPage /></AdminRoute>} />
+      <Route path="/admin/publications/:id" element={<AdminRoute><PublicationEditorPage /></AdminRoute>} />
+      <Route path="/admin/publications" element={<AdminRoute><AdminPublicationsPage /></AdminRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      <Route path="/library" element={<LibraryPage />} />
+      <Route path="/books/:slug/chapters/:chapterSlug" element={<BookReaderPage />} />
+      <Route path="/books/:slug" element={<BookDetailPage />} />
+      <Route path="/books" element={<BooksPage />} />
+      <Route path="/research/:slug" element={<ResearchDetailPage />} />
+      <Route path="/research" element={<ResearchPage />} />
+      <Route path="/my-library/:id" element={<ProtectedRoute><PublicationEditorPage /></ProtectedRoute>} />
+      <Route path="/my-library" element={<MyLibraryPage />} />
+      <Route path="/submit-publication" element={<SubmitPublicationPage />} />
+      <Route path="/policies/:slug" element={<PublicationPoliciesPage />} />
+      <Route path="/policies" element={<PublicationPoliciesPage />} />
       <Route path="/members/:id" element={<MemberProfilePage />} />
       <Route path="/members" element={<MembersPage />} />
       <Route path="/forum/c/:slug" element={<ForumCategoryPage />} />

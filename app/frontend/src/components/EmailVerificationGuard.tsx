@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { rememberPendingVerificationEmail } from "@/lib/auth-utils";
 
-/** Paths accessible while logged-in but email is not yet verified */
+/** Exact public/auth paths accessible while logged-in but email is not yet verified */
 const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/",
   "/welcome",
@@ -25,14 +25,36 @@ const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/insights",
   "/courses",
   "/consultations",
+  "/blog",
+  "/library",
+  "/books",
+  "/research",
+  "/policies",
 ]);
 
-function isAllowedPath(pathname: string): boolean {
+/** Nested public or legacy-redirect prefixes that must stay readable while verifying */
+const ALLOWED_PREFIXES = [
+  "/blog/",
+  "/insights/",
+  "/courses/",
+  "/members/",
+  "/forum/",
+  "/jobs/",
+  "/market/",
+  "/learn",
+  "/certificates",
+  "/auth/",
+  "/library/",
+  "/books/",
+  "/research/",
+  "/policies/",
+];
+
+export function isAllowedPath(pathname: string): boolean {
   if (ALLOWED_WHILE_UNVERIFIED.has(pathname)) return true;
-  if (pathname.startsWith("/blog")) return true;
-  if (pathname.startsWith("/insights")) return true;
-  if (pathname.startsWith("/courses")) return true;
-  return false;
+  return ALLOWED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix),
+  );
 }
 
 export default function EmailVerificationGuard({ children }: { children: React.ReactNode }) {

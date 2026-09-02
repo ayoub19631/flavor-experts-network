@@ -110,20 +110,27 @@ Open listings for guests; apply and company posting after login. Skill-match hin
 
 Categories, topics, replies. Admin can manage categories. Login required to participate.
 
-### 4.7 Flavor Experts Academy (`/courses`, `/learn`)
+### 4.7 Internal catalog / legacy Academy (`/admin/academy`)
 
-Bilingual LMS. Public visitors see **published** summaries only. Draft content is staff-only.
+Public `/courses`, `/learn`, and `/certificates` routes redirect to Industry Insights.  
+The LMS tables and `/admin/academy/:id` builder remain **internal only**. Do not present Academy as the public product.
+
+### 4.7b Professional library (`/library`, `/books`, `/research`)
+
+Books, technical studies, and research publications. Public visitors see `published` + `public` records only. Members can see `members` visibility. Authors can draft; only admins can publish.
 
 | Path | Role |
 |---|---|
-| `/courses` | Catalog with live path counts, search, filters |
-| `/courses/:slug` | Course detail + enroll |
-| `/learn` | Student dashboard |
-| `/learn/:slug/:lessonId` | Lesson player |
-| `/certificates/:code` | Public certificate verification |
-| `/admin/academy/:id` | Admin builder (EN/AR, publish, versions, stats) |
+| `/library` | Unified catalog, filters, featured + latest |
+| `/books`, `/books/:slug`, `/books/:slug/chapters/:chapterSlug` | Books and reader |
+| `/research`, `/research/:slug` | Research and technical studies |
+| `/my-library`, `/submit-publication` | Author drafts (signed-in) |
+| `/policies`, `/policies/:slug` | Publication ethics and safety notices |
+| `/admin/publications`, `/admin/publications/:id` | Admin workflow |
 
-First course: *Introduction to Flavor Science and Formulation* — 10 modules, seeded as **draft**.
+Do not describe this as a scientific journal until an editorial board and peer-review process are formally appointed.
+
+See `docs/PUBLICATIONS.md` for schema, RLS, and migration steps.
 
 **Academy rollback:** drop RPCs and new tables in reverse FK order (`lesson_comments`, `course_certificates`, `capstone_submissions`, `lab_submissions`, `lab_assignments`, `quiz_attempts`, `lesson_progress`, `quiz_answers`, `quiz_questions`, `quizzes`, `lesson_resources`, `lesson_translations`, `lessons`, `module_translations`, `course_modules`, `course_versions`, `course_translations`, `course_instructors`), drop added course columns, restore `member_directory` view, drop `academy` storage bucket.
 

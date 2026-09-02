@@ -12,5 +12,9 @@ Disallow: /messages
 Disallow: /messages/
 Disallow: /verify-email
 Disallow: /email-verified
+Disallow: /my-library
+Disallow: /my-library/
+Disallow: /submit-publication
+Disallow: /submit-publication/
 
 Sitemap: https://flavorexpertsnetwork.com/sitemap.xml

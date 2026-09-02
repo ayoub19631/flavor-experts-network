@@ -302,15 +302,22 @@ const ALLOWED_UPLOAD_TYPES = new Set([
 ]);
 
 export async function uploadAcademyFile(path: string, file: File) {
-  if (file.size > 20 * 1024 * 1024) return { url: null, error: "File must be under 20MB" };
+  if (file.size > 20 * 1024 * 1024) {
+    return { url: null, path: null, bucket: null, error: "File must be under 20MB" };
+  }
   if (file.type && !ALLOWED_UPLOAD_TYPES.has(file.type)) {
-    return { url: null, error: "File type is not allowed" };
+    return { url: null, path: null, bucket: null, error: "File type is not allowed" };
   }
   const { error } = await supabase.storage.from("academy").upload(path, file, {
     contentType: file.type || "application/octet-stream",
     upsert: true,
   });
-  if (error) return { url: null, error: error.message };
-  const { data, error: signedError } = await supabase.storage.from("academy").createSignedUrl(path, 60 * 60 * 24 * 7);
-  return { url: data?.signedUrl || null, error: signedError?.message || null };
+  if (error) return { url: null, path: null, bucket: null, error: error.message };
+  const { data, error: signedError } = await supabase.storage.from("academy").createSignedUrl(path, 60 * 15);
+  return {
+    url: data?.signedUrl || null,
+    path,
+    bucket: "academy",
+    error: signedError?.message || null,
+  };
 }

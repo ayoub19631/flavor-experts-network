@@ -291,7 +291,7 @@ export default function JobsPage() {
         </div>
       </section>
 
-      <main className="pb-16">
+      <div className="pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Sign-in gate (platform is fully free) */}
@@ -702,7 +702,7 @@ export default function JobsPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
       <FooterSection />
     </div>
   );

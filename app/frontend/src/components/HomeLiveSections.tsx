@@ -155,11 +155,13 @@ export default function HomeLiveSections() {
       <Section id="posts" title={t("home.posts.title")} href="/community" loading={loading} empty={t("home.posts.empty")} hasItems={posts.length > 0}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {posts.map((post) => (
-            <Card key={post.id} className="border-border">
-              <CardContent className="p-5">
-                <p className="text-sm text-foreground line-clamp-4">{post.body || ""}</p>
-              </CardContent>
-            </Card>
+            <Link key={post.id} to={`/community#post-${post.id}`} className="block h-full">
+              <Card className="h-full border-border hover:border-primary/30 transition-colors">
+                <CardContent className="p-5">
+                  <p className="text-sm text-foreground line-clamp-4">{post.body || ""}</p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       </Section>

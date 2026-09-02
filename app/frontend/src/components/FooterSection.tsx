@@ -147,11 +147,6 @@ export default function FooterSection() {
                 </a>
               </li>
               <li>
-                <a href="/#news" className="hover:text-[hsl(47_30%_90%)] transition-colors">
-                  {t("nav.news")}
-                </a>
-              </li>
-              <li>
                 <a href="/market" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.market")}
                 </a>
@@ -159,6 +154,11 @@ export default function FooterSection() {
               <li>
                 <a href="/insights" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.insights")}
+                </a>
+              </li>
+              <li>
+                <a href="/library" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                  {t("nav.library")}
                 </a>
               </li>
               <li>
@@ -211,6 +211,11 @@ export default function FooterSection() {
               <li>
                 <a href="/privacy" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("footer.privacy")}
+                </a>
+              </li>
+              <li>
+                <a href="/policies" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                  {t("policies.title")}
                 </a>
               </li>
             </ul>

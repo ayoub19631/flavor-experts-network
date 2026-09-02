@@ -118,7 +118,7 @@ function ResourceUploader({
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
     const path = `resources/${courseId}/${kind}-${Date.now()}-${safeName}`;
     const uploaded = await uploadAcademyFile(path, file);
-    if (uploaded.error || !uploaded.url) {
+    if (uploaded.error || !uploaded.path) {
       setBusy(false);
       toast.error(uploaded.error || "Upload failed");
       return;
@@ -128,7 +128,9 @@ function ResourceUploader({
       lesson_id: lessonId || null,
       kind,
       title: title.trim(),
-      file_url: uploaded.url,
+      storage_path: uploaded.path,
+      bucket_name: uploaded.bucket,
+      file_url: null,
     });
     if (kind === "worksheet" && lessonId) {
       const lesson = lessons.find((item) => item.id === lessonId);

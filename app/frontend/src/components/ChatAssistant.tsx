@@ -159,7 +159,7 @@ function getSmartFallback(input: string, preferredLang: "ar" | "en" = "en"): str
   // Features / what is the platform
   if (/feature|what.*platform|what.*do|about.*platform|ميزة|المنصة|ماذا|ما هو|عن المنصة|ما تقدم/.test(m)) {
     return isAr
-      ? `شبكة خبراء النكهات تقدم:\n\n🔬 **دليل الأعضاء** — تصفح ملفات المتخصصين\n📰 **أخبار الصناعة** — آخر مستجدات قطاع النكهات\n📚 **الموارد التعليمية** — أوراق بحثية، أدلة، دروس\n🎥 **الندوات** — مباشرة ومسجلة مع خبراء\n🤝 **التواصل المهني** — اتصال مباشر مع متخصصين\n🏢 **خدمات المؤسسات** — إعلانات، شراكات، تقارير\n🌍 **متعدد اللغات** — عربي وإنجليزي\n\nأي ميزة تريد استعراضها أكثر؟`
+      ? `شبكة خبراء النكهات تقدم:\n\n🔬 **دليل الأعضاء** — تصفح ملفات المتخصصين\n📰 **أخبار الصناعة** — آخر مستجدات قطاع النكهات\n📚 **رؤى الصناعة** — مقالات تقنية ونقاش مهني\n🤝 **التواصل المهني** — اتصال مباشر مع متخصصين\n🏢 **خدمات المؤسسات** — إعلانات، شراكات، تقارير\n🌍 **متعدد اللغات** — عربي وإنجليزي\n\nأي ميزة تريد استعراضها أكثر؟`
       : `Flavor Experts Network offers:\n\n🔬 **Member Directory** — Browse expert profiles\n📰 **Industry News** — Latest flavor industry updates\n📚 **Industry Insights** — Technical articles and professional discussion\n🤝 **Networking** — Direct connections with professionals\n🏢 **Enterprise Services** — Ads, partnerships, analytics\n🌍 **Multi-language** — Arabic & English\n\nWhich feature would you like to explore?`;
   }
 
@@ -558,7 +558,7 @@ export default function ChatAssistant({
                         <button
                           onClick={() => copyMsg(msg.id, msg.content)}
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
-                          title="نسخ"
+                          title={lang === "ar" ? "نسخ" : "Copy"}
                         >
                           {copied === msg.id
                             ? <Check className="w-3 h-3 text-emerald-500" />

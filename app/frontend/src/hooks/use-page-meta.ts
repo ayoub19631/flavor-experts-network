@@ -9,7 +9,8 @@ interface PageMetaOptions {
   image?: string;
   noIndex?: boolean;
   locale?: string;
-  type?: "website" | "article";
+  type?: "website" | "article" | "book";
+  hreflang?: boolean;
 }
 
 function upsertMeta(name: string, content: string, attr: "name" | "property" = "name") {
@@ -32,7 +33,7 @@ function upsertLink(rel: string, href: string) {
   el.href = href;
 }
 
-export function usePageMeta({ title, description, path = "", image, noIndex = false, locale, type = "website" }: PageMetaOptions) {
+export function usePageMeta({ title, description, path = "", image, noIndex = false, locale, type = "website", hreflang = false }: PageMetaOptions) {
   useEffect(() => {
     const pageTitle = title ? `${title} | ${SITE.name}` : SITE.name;
     const pageDescription = description || SITE.description;
@@ -54,16 +55,19 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
     upsertMeta("twitter:image", ogImage);
     upsertLink("canonical", canonical);
     document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
-    for (const [hreflang, href] of [
-      ["en", canonical],
-      ["ar", canonical],
-      ["x-default", canonical],
-    ] as const) {
-      const link = document.createElement("link");
-      link.rel = "alternate";
-      link.hreflang = hreflang;
-      link.href = href;
-      document.head.appendChild(link);
+    const defaultLang = document.createElement("link");
+    defaultLang.rel = "alternate";
+    defaultLang.hreflang = "x-default";
+    defaultLang.href = canonical;
+    document.head.appendChild(defaultLang);
+    if (hreflang) {
+      for (const code of ["en", "ar"] as const) {
+        const alt = document.createElement("link");
+        alt.rel = "alternate";
+        alt.hreflang = code;
+        alt.href = `${canonical}${canonical.includes("?") ? "&" : "?"}hl=${code}`;
+        document.head.appendChild(alt);
+      }
     }
 
     if (noIndex) {
@@ -72,5 +76,5 @@ export function usePageMeta({ title, description, path = "", image, noIndex = fa
       const robots = document.querySelector('meta[name="robots"]');
       robots?.remove();
     }
-  }, [title, description, path, image, noIndex, locale, type]);
+  }, [title, description, path, image, noIndex, locale, type, hreflang]);
 }

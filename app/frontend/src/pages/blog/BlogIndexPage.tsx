@@ -29,7 +29,7 @@ const BlogIndexPage = () => {
         ]}
       />
       <Navbar />
-      <main className="pt-24 pb-16">
+      <div className="pt-24 pb-16">
         <section className="mx-auto max-w-5xl px-6 py-8 sm:py-12">
           <div className="max-w-3xl space-y-5">
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
@@ -87,7 +87,7 @@ const BlogIndexPage = () => {
             )}
           </div>
         </section>
-      </main>
+      </div>
       <FooterSection />
     </div>
   );

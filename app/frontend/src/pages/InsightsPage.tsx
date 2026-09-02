@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase";
 type PostRow = { id: string; body?: string | null; created_at?: string };
 
 export default function InsightsPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [posts, setPosts] = useState<PostRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,6 +22,7 @@ export default function InsightsPage() {
     title: t("insights.title"),
     description: t("insights.desc"),
     path: "/insights",
+    locale: lang,
   });
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function InsightsPage() {
         ])}
       />
       <Navbar />
-      <main className="pt-24 pb-16">
+      <div className="pt-24 pb-16">
         <section className="mx-auto max-w-6xl px-4 sm:px-6">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
             {t("insights.tag")}
@@ -132,7 +133,7 @@ export default function InsightsPage() {
           ) : posts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {posts.map((post) => (
-                <Link key={post.id} to="/community" className="block h-full">
+                <Link key={post.id} to={`/community#post-${post.id}`} className="block h-full">
                   <Card className="h-full border-border hover:border-primary/30 transition-colors">
                     <CardContent className="p-5">
                       <p className="text-sm text-foreground line-clamp-5">{post.body || ""}</p>
@@ -160,7 +161,7 @@ export default function InsightsPage() {
             </Button>
           </div>
         </section>
-      </main>
+      </div>
       <FooterSection />
     </div>
   );

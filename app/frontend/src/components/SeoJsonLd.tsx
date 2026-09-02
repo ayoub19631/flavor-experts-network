@@ -67,6 +67,7 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
 }
 
 export default function SeoJsonLd({ data }: JsonLdProps) {
+  const serialized = JSON.stringify(data);
   useEffect(() => {
     const scriptId = "fen-jsonld";
     let el = document.getElementById(scriptId) as HTMLScriptElement | null;
@@ -76,10 +77,10 @@ export default function SeoJsonLd({ data }: JsonLdProps) {
       el.type = "application/ld+json";
       document.head.appendChild(el);
     }
-    el.textContent = JSON.stringify(data);
+    el.textContent = serialized;
     return () => {
       el?.remove();
     };
-  }, [data]);
+  }, [serialized]);
   return null;
 }

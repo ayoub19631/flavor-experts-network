@@ -15,7 +15,7 @@ import {
   Bell, Award, BarChart2, ExternalLink, Mail, Lock,
   ChevronRight, Zap, Users, FileText, Briefcase, Sparkles,
   FlaskConical, Video, Download, BarChart, Rocket, Gift,
-  CreditCard, RefreshCw, ArrowUpCircle, PlayCircle, BookMarked,
+  CreditCard, RefreshCw, ArrowUpCircle, BookMarked,
   LineChart, PieChart, Target, Layers, Newspaper, MessageSquareText, Send, Heart,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -172,13 +172,6 @@ export default function DashboardPage() {
   const [connectionNames, setConnectionNames] = useState<Record<string, string>>({});
   const [memberIdsByProfile, setMemberIdsByProfile] = useState<Record<string, string>>({});
   const [connectionBusy, setConnectionBusy] = useState<string | null>(null);
-  const [enrollments, setEnrollments] = useState<Array<{
-    course_id: string;
-    progress_pct: number;
-    status: string;
-    title?: string;
-  }>>([]);
-
   useEffect(() => {
     async function loadNetworkLearning() {
       if (!user?.id) return;
@@ -194,37 +187,9 @@ export default function DashboardPage() {
       ];
       setConnectionNames(await fetchProfileNames(ids));
       setMemberIdsByProfile(await fetchMemberIdsByProfileIds(ids));
-
-      const { data: enrollData } = await supabase
-        .from("course_enrollments")
-        .select("course_id, progress_pct, status")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
-        .limit(6);
-      const rows = (enrollData || []) as Array<{ course_id: string; progress_pct: number; status: string }>;
-      if (rows.length === 0) {
-        setEnrollments([]);
-        return;
-      }
-      const { data: courseData } = await supabase
-        .from("courses")
-        .select("id, title, title_ar")
-        .in("id", rows.map((r) => r.course_id));
-      const titleMap = new Map(
-        ((courseData || []) as Array<{ id: string; title: string; title_ar?: string | null }>).map((c) => [
-          c.id,
-          lang === "ar" && c.title_ar ? c.title_ar : c.title,
-        ]),
-      );
-      setEnrollments(
-        rows.map((r) => ({
-          ...r,
-          title: titleMap.get(r.course_id) || (lang === "ar" ? "محتوى مهني" : "Professional content"),
-        })),
-      );
     }
     loadNetworkLearning();
-  }, [user?.id, lang]);
+  }, [user?.id]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -850,24 +815,12 @@ export default function DashboardPage() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-2 space-y-3">
-                        {enrollments.length === 0 ? (
-                          <div className="text-sm text-muted-foreground space-y-3">
-                            <p>{lang === "ar" ? "اطلع على المقالات التقنية والمنشورات المهنية." : "Browse technical articles and professional posts."}</p>
-                            <Button asChild size="sm" variant="outline">
-                              <Link to="/insights">{lang === "ar" ? "استكشف رؤى الصناعة" : "Explore industry insights"}</Link>
-                            </Button>
-                          </div>
-                        ) : (
-                          enrollments.map((e) => (
-                            <div key={e.course_id} className="space-y-1.5">
-                              <div className="flex items-center justify-between gap-2 text-sm">
-                                <span className="truncate font-medium">{e.title}</span>
-                                <span className="text-xs text-muted-foreground shrink-0">{e.progress_pct}%</span>
-                              </div>
-                              <Progress value={e.progress_pct} className="h-1.5" />
-                            </div>
-                          ))
-                        )}
+                        <div className="text-sm text-muted-foreground space-y-3">
+                          <p>{lang === "ar" ? "اطلع على المقالات التقنية والمنشورات المهنية." : "Browse technical articles and professional posts."}</p>
+                          <Button asChild size="sm" variant="outline">
+                            <Link to="/insights">{lang === "ar" ? "استكشف رؤى الصناعة" : "Explore industry insights"}</Link>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
@@ -1054,15 +1007,14 @@ export default function DashboardPage() {
                         ) : premiumResources.map((res) => (
                           <div key={res.id} className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-muted/30 transition-all cursor-pointer group">
                             <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                              {res.type === "course" ? <PlayCircle className="w-4 h-4 text-primary" /> :
-                               res.type === "report" ? <PieChart className="w-4 h-4 text-primary" /> :
+                              {res.type === "report" ? <PieChart className="w-4 h-4 text-primary" /> :
                                <FileText className="w-4 h-4 text-primary" />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-foreground text-sm truncate">{res.title}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <Badge variant="outline" className="text-xs px-1.5 py-0">{res.category}</Badge>
-                                <span className="text-xs text-muted-foreground capitalize">{res.type}</span>
+                                <span className="text-xs text-muted-foreground capitalize">{res.type === "course" ? (lang === "ar" ? "مورد" : "Resource") : res.type}</span>
                                 {res.description && <span className="text-xs text-muted-foreground truncate max-w-[120px]">{res.description}</span>}
                               </div>
                             </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -193,6 +194,11 @@ export default function AdminCoursesPanel() {
           <p className="text-sm text-muted-foreground mt-1">
             Internal catalog only. Public visitors see Industry Insights; existing rows stay in the database.
           </p>
+        </div>
+        <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+          Public books and research now live under{" "}
+          <Link to="/admin/publications" className="text-primary font-medium">Publications</Link>
+          . This catalog remains an internal Academy tool and is not the public library.
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="gap-2" onClick={load}>

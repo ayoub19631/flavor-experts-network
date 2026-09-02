@@ -131,6 +131,11 @@ test.describe("phase 1 platform stabilization", () => {
     if (sitemap.ok()) {
       const sitemapText = await sitemap.text();
       expect(sitemapText).toMatch(/flavorexpertsnetwork.com|localhost|127\.0\.0\.1/);
+      expect(sitemapText).toMatch(/\/insights/);
+      expect(sitemapText).toMatch(/\/library/);
+      expect(sitemapText).not.toMatch(/\/courses/);
+      expect(sitemapText).not.toMatch(/\/admin/);
+      expect(sitemapText).not.toMatch(/flavor-creation-fundamentals-volume-1/);
     }
   });
 
@@ -148,7 +153,7 @@ test.describe("phase 1 platform stabilization", () => {
     await expect(page.getByRole("textbox").first()).toBeVisible({ timeout: 20_000 });
   });
 
-  for (const path of ["/members", "/jobs", "/forum", "/market", "/blog", "/consultations", "/enterprise", "/insights"]) {
+  for (const path of ["/members", "/jobs", "/forum", "/market", "/blog", "/consultations", "/enterprise", "/insights", "/library", "/books", "/research", "/policies"]) {
     test(`${path} public route still loads`, async ({ page }) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });

@@ -64,7 +64,6 @@ export default defineConfig(({ command, mode }) => {
               readable: true,
               generateRobotsTxt: false,
               dynamicRoutes: [
-                '/',
                 '/community',
                 '/insights',
                 '/members',
@@ -72,6 +71,10 @@ export default defineConfig(({ command, mode }) => {
                 '/forum',
                 '/market',
                 '/blog',
+                '/library',
+                '/books',
+                '/research',
+                '/policies',
                 '/consultations',
                 '/enterprise',
                 '/terms',
@@ -86,6 +89,8 @@ export default defineConfig(({ command, mode }) => {
                 '/messages',
                 '/verify-email',
                 '/email-verified',
+                '/my-library',
+                '/submit-publication',
               ],
             }),
           ]

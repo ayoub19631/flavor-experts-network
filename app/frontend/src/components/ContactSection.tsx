@@ -239,7 +239,7 @@ export default function ContactSection() {
                     />
                   </div>
                   {error && (
-                    <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/40 p-3 rounded-lg">
                       <AlertCircle className="w-4 h-4 flex-shrink-0" />
                       {error}
                     </div>

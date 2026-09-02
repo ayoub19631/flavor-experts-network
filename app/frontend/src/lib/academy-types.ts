@@ -172,7 +172,9 @@ export type AcademyResource = {
   kind: "summary" | "worksheet" | "reading" | "other";
   title: string;
   title_ar?: string | null;
-  file_url: string;
+  file_url?: string | null;
+  storage_path?: string | null;
+  bucket_name?: string | null;
 };
 
 export type AcademyLab = {

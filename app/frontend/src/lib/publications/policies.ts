@@ -1,0 +1,196 @@
+export type PolicySlug =
+  | "publication-ethics"
+  | "peer-review"
+  | "authorship"
+  | "conflict-of-interest"
+  | "corrections-retractions"
+  | "plagiarism"
+  | "ai-generated-content"
+  | "copyright-licensing"
+  | "data-availability"
+  | "formula-lab-safety"
+  | "regulatory-disclaimer";
+
+export type PolicyPage = {
+  slug: PolicySlug;
+  title_en: string;
+  title_ar: string;
+  summary_en: string;
+  summary_ar: string;
+  body_en: string[];
+  body_ar: string[];
+};
+
+export const PUBLICATION_POLICIES: PolicyPage[] = [
+  {
+    slug: "publication-ethics",
+    title_en: "Publication Ethics",
+    title_ar: "أخلاقيات النشر",
+    summary_en: "Integrity, attribution, and professional responsibility for technical publications.",
+    summary_ar: "النزاهة والإسناد والمسؤولية المهنية للمنشورات التقنية.",
+    body_en: [
+      "Flavor Experts Network publishes professional knowledge for the flavor and food industry. This is not a scientific journal and does not claim journal-level peer review until an editorial board is formally appointed.",
+      "Authors must submit only original work they are entitled to share, cite prior art, and avoid fabricated data or undisclosed conflicts.",
+    ],
+    body_ar: [
+      "تنشر شبكة خبراء النكهات معرفة مهنية لصناعة النكهات والأغذية. هذه ليست مجلة علمية ولا تدّعي مراجعة نظراء على مستوى المجلات إلى أن تُعيَّن هيئة تحرير رسميًا.",
+      "يجب أن يقدم المؤلفون عملًا أصليًا يحق لهم مشاركته، مع توثيق المراجع وتجنب البيانات المختلقة أو تضارب المصالح غير المعلن.",
+    ],
+  },
+  {
+    slug: "peer-review",
+    title_en: "Peer Review Policy",
+    title_ar: "سياسة مراجعة الأقران",
+    summary_en: "Editorial screening is used now; assigned reviewer workflows can be added later.",
+    summary_ar: "يُستخدم الفحص التحريري حاليًا، ويمكن إضافة مسار المراجعين لاحقًا.",
+    body_en: [
+      "Current workflow: draft → submit → editorial check → review or revision → accept → scheduled or published.",
+      "Assigned reviewers may later access only the records they are assigned. Final publication remains an admin action.",
+    ],
+    body_ar: [
+      "المسار الحالي: مسودة → تقديم → فحص تحريري → مراجعة أو تعديل → قبول → جدولة أو نشر.",
+      "يمكن للمراجعين المعيّنين لاحقًا الوصول فقط إلى السجلات المسندة إليهم. النشر النهائي يبقى صلاحية إدارية.",
+    ],
+  },
+  {
+    slug: "authorship",
+    title_en: "Authorship Policy",
+    title_ar: "سياسة التأليف",
+    summary_en: "Named authors must have a substantial intellectual contribution.",
+    summary_ar: "يجب أن يكون للمؤلفين المذكورين إسهام فكري جوهري.",
+    body_en: [
+      "List authors in contribution order. Mark one corresponding author. Guest or gift authorship is not allowed.",
+      "External authors without a platform profile may be listed with affiliation and optional ORCID. Emails are stored privately and are not shown on public pages.",
+    ],
+    body_ar: [
+      "رتّب المؤلفين حسب الإسهام. حدّد مؤلفًا مراسلًا واحدًا. لا يُسمح بالتأليف الشرفي.",
+      "يمكن إدراج مؤلفين خارجيين بالجهة وORCID اختياري. تُحفظ رسائل البريد بشكل خاص ولا تظهر في الصفحات العامة.",
+    ],
+  },
+  {
+    slug: "conflict-of-interest",
+    title_en: "Conflict of Interest Policy",
+    title_ar: "سياسة تضارب المصالح",
+    summary_en: "Financial, employment, and supplier relationships must be disclosed.",
+    summary_ar: "يجب الإفصاح عن العلاقات المالية والتوظيفية وعلاقات الموردين.",
+    body_en: [
+      "Authors should disclose employment, consulting, equity, or supplier relationships that could influence interpretation.",
+      "A missing statement is not proof that no conflict exists. Readers should treat commercial examples as illustrative.",
+    ],
+    body_ar: [
+      "ينبغي الإفصاح عن التوظيف أو الاستشارة أو الملكية أو علاقات الموردين التي قد تؤثر على التفسير.",
+      "غياب البيان لا يثبت عدم وجود تضارب. يجب التعامل مع الأمثلة التجارية باعتبارها توضيحية.",
+    ],
+  },
+  {
+    slug: "corrections-retractions",
+    title_en: "Corrections and Retractions Policy",
+    title_ar: "سياسة التصحيح والسحب",
+    summary_en: "Published versions are not silently rewritten.",
+    summary_ar: "لا تُعاد كتابة النسخ المنشورة بصمت.",
+    body_en: [
+      "Substantive changes after publication require a new version or a visible correction notice.",
+      "Serious errors, ethical breaches, or unsafe instructions may lead to retraction with a public notice.",
+    ],
+    body_ar: [
+      "التغييرات الجوهرية بعد النشر تتطلب إصدارًا جديدًا أو إشعار تصحيح ظاهر.",
+      "قد تؤدي الأخطاء الجسيمة أو المخالفات الأخلاقية أو التعليمات غير الآمنة إلى سحب مع إشعار عام.",
+    ],
+  },
+  {
+    slug: "plagiarism",
+    title_en: "Plagiarism Policy",
+    title_ar: "سياسة الانتحال",
+    summary_en: "Copied text, figures, or data without attribution are not accepted.",
+    summary_ar: "لا يُقبل نسخ النص أو الأشكال أو البيانات دون إسناد.",
+    body_en: [
+      "Submissions must be the authors’ work or clearly licensed and cited. Duplicate publication should be disclosed.",
+    ],
+    body_ar: [
+      "يجب أن يكون المحتوى من عمل المؤلفين أو مرخّصًا ومذكور المصدر بوضوح. يجب الإفصاح عن النشر المكرر.",
+    ],
+  },
+  {
+    slug: "ai-generated-content",
+    title_en: "AI-Generated Content Policy",
+    title_ar: "سياسة المحتوى المولَّد بالذكاء الاصطناعي",
+    summary_en: "AI assistance must be disclosed; authors remain responsible.",
+    summary_ar: "يجب الإفصاح عن مساعدة الذكاء الاصطناعي، ويبقى المؤلف مسؤولًا.",
+    body_en: [
+      "Authors may use AI tools for language editing or literature scanning if they verify every technical claim.",
+      "Do not invent citations, DOI values, analytical results, or regulatory approvals with generative tools.",
+    ],
+    body_ar: [
+      "يجوز استخدام أدوات الذكاء الاصطناعي لتحرير اللغة أو مسح الأدبيات بشرط التحقق من كل ادعاء تقني.",
+      "لا تختلق مراجع أو قيم DOI أو نتائج تحليلية أو موافقات تنظيمية باستخدام أدوات توليدية.",
+    ],
+  },
+  {
+    slug: "copyright-licensing",
+    title_en: "Copyright and Licensing Policy",
+    title_ar: "سياسة حقوق النشر والترخيص",
+    summary_en: "Authors keep rights they already own and grant the network a publication license.",
+    summary_ar: "يحتفظ المؤلفون بحقوقهم ويمنحون الشبكة ترخيص نشر.",
+    body_en: [
+      "Unless a specific license is recorded on the publication, content is shared for professional learning on this network.",
+      "Do not upload supplier-confidential formulas, customer briefs, or files you cannot license.",
+    ],
+    body_ar: [
+      "ما لم يُسجَّل ترخيص محدد على المنشور، تُشارك المحتويات للتعلم المهني على هذه الشبكة.",
+      "لا ترفع صيغًا سرية للموردين أو ملفات عملاء أو ملفات لا تملك ترخيصها.",
+    ],
+  },
+  {
+    slug: "data-availability",
+    title_en: "Data Availability Policy",
+    title_ar: "سياسة إتاحة البيانات",
+    summary_en: "State what data can be shared and what must stay restricted.",
+    summary_ar: "وضّح البيانات القابلة للمشاركة وما يجب أن يبقى مقيدًا.",
+    body_en: [
+      "Where possible, describe datasets, sensory panels, and methods so a qualified professional can evaluate the work.",
+      "Proprietary blends and customer identities may be withheld if that limitation is stated.",
+    ],
+    body_ar: [
+      "حيثما أمكن، صف مجموعات البيانات ولجان التقييم الحسي والطرق بحيث يستطيع مختص مؤهل تقييم العمل.",
+      "يمكن حجب الخلطات المملوكة وهويات العملاء إذا ذُكر هذا القيد.",
+    ],
+  },
+  {
+    slug: "formula-lab-safety",
+    title_en: "Formula and Laboratory Safety Disclaimer",
+    title_ar: "إخلاء مسؤولية الصيغ وسلامة المختبر",
+    summary_en: "Educational formulas are laboratory models, not commercial approvals.",
+    summary_ar: "الصيغ التعليمية نماذج مختبرية وليست موافقة تجارية.",
+    body_en: [
+      "Example formulas and worksheets are laboratory models for evaluation under qualified supervision.",
+      "They are not automatic commercial approval, finished-product specifications, or permission to manufacture at scale.",
+      "Confirm food-grade status, supplier specifications, allergen controls, and occupational safety before any trial.",
+      "Always test the formula in the intended final application.",
+    ],
+    body_ar: [
+      "الصيغ وأوراق العمل نماذج مختبرية للتقييم تحت إشراف متخصص مؤهل.",
+      "ليست موافقة تجارية تلقائية أو مواصفات منتج نهائي أو إذنًا للتصنيع على نطاق واسع.",
+      "تحقق من حالة Food-Grade ومواصفات المورد ومسببات الحساسية والسلامة المهنية قبل أي تجربة.",
+      "يجب اختبار الصيغة في التطبيق النهائي المقصود.",
+    ],
+  },
+  {
+    slug: "regulatory-disclaimer",
+    title_en: "Regulatory Disclaimer",
+    title_ar: "إخلاء المسؤولية التنظيمية",
+    summary_en: "Readers must review EU, US, and India requirements for their market.",
+    summary_ar: "يجب مراجعة متطلبات الاتحاد الأوروبي والولايات المتحدة والهند حسب السوق.",
+    body_en: [
+      "Flavor use, labeling, and additive status differ by market. Review applicable European Union, United States, and India requirements, plus any other destination market.",
+      "Nothing on this network is legal advice, a safety assessment, or a substitute for competent regulatory review.",
+    ],
+    body_ar: [
+      "تختلف استخدامات النكهات والوسم ووضع المواد المضافة حسب السوق. راجع متطلبات الاتحاد الأوروبي والولايات المتحدة والهند وأي سوق مستهدف آخر.",
+      "لا يُعد أي محتوى هنا استشارة قانونية أو تقييم سلامة أو بديلًا لمراجعة تنظيمية مختصة.",
+    ],
+  },
+];
+
+export function getPolicy(slug: string): PolicyPage | undefined {
+  return PUBLICATION_POLICIES.find((item) => item.slug === slug);
+}

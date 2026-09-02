@@ -147,7 +147,7 @@ export default function MarketPage() {
           </div>
         </div>
       </section>
-      <main className="pb-16">
+      <div className="pb-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {loading ? (
@@ -292,7 +292,7 @@ export default function MarketPage() {
             </div>
           )}
         </div>
-      </main>
+      </div>
       <FooterSection />
     </div>
   );
