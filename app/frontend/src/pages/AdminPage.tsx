@@ -418,7 +418,14 @@ export default function AdminPage() {
   };
 
   const toggleUserAdmin = async (u: UserProfileAdmin) => {
-    const { error } = await supabase.from("user_profiles").update({ is_admin: !u.is_admin }).eq("id", u.id);
+    const reason = window.prompt("Reason required for this role change");
+    if (!reason) return;
+    const rpc = u.is_admin ? "revoke_platform_role" : "grant_platform_role";
+    const { error } = await supabase.rpc(rpc, {
+      p_user_id: u.id,
+      p_role: "platform_admin",
+      p_reason: reason,
+    });
     if (error) notify("error", error.message); else notify("success", u.is_admin ? "Admin role removed" : "Admin role granted");
     fetchAll();
   };
@@ -799,6 +806,11 @@ export default function AdminPage() {
                 <Shield className="w-3.5 h-3.5" /> QA
               </TabsTrigger>
             </TabsList>
+            <div className="mb-4">
+              <Link to="/admin/ops" className="text-sm text-primary hover:underline">
+                {isAR ? "طابور الإشراف وسجل التدقيق والمهملات" : "Moderation queue, audit log, and trash"}
+              </Link>
+            </div>
 
             {/* ══ OVERVIEW ══════════════════════════════════════════════════ */}
             <TabsContent value="overview">

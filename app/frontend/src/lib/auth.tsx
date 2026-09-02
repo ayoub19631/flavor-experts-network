@@ -14,6 +14,7 @@ import { resolvePlatformAccess } from "./platform-access";
 import { PLATFORM_ALWAYS_FREE } from "./site-config";
 import { type Language } from "./languages";
 import { TERMS_VERSION } from "./terms-policy";
+import { hasCapability, type PlatformRole } from "./phase4/roles";
 
 
 export { EMAIL_NOT_CONFIRMED_CODE };
@@ -51,6 +52,8 @@ interface AuthContextType {
   isPremium: boolean;
   isEnterprise: boolean;
   isAdmin: boolean;
+  platformRoles: PlatformRole[];
+  canModerateCommunity: boolean;
   isEmailVerified: boolean;
   hasPlatformAccess: boolean;
 }
@@ -61,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [platformRoles, setPlatformRoles] = useState<PlatformRole[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -82,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           loadProfile(s.user);
         } else {
           setProfile(null);
+          setPlatformRoles([]);
           setLoading(false);
         }
       }
@@ -100,6 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!error && data) {
         setProfile(data as UserProfile);
+        const roles = await supabase.from("platform_roles").select("role").eq("user_id", u.id);
+        setPlatformRoles(((roles.data || []).map((row) => row.role) as PlatformRole[]) || []);
       } else {
         // Profile missing (race with handle_new_user) — upsert only safe identity fields.
         // Never set is_admin / subscription / preview flags from the client.
@@ -264,7 +271,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isEnterprise = PLATFORM_ALWAYS_FREE
     ? !!user && profile?.account_type === "company"
     : active && tier === "enterprise";
-  const isAdmin = profile?.is_admin === true;
+  const isAdmin = profile?.is_admin === true || hasCapability(platformRoles, "admin");
+  const canModerateCommunity = hasCapability(platformRoles, "moderate_community", profile?.is_admin === true);
 
   const isEmailVerified = checkEmailVerified(user);
   const hasPlatformAccess = resolvePlatformAccess(user, profile);
@@ -273,7 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user, session, profile, loading, signIn, signUp, acceptPlatformTerms, claimCompanyAccount, signOut, updateProfile,
-        isPremium, isEnterprise, isAdmin, isEmailVerified, hasPlatformAccess,
+        isPremium, isEnterprise, isAdmin, platformRoles, canModerateCommunity, isEmailVerified, hasPlatformAccess,
       }}
     >
       {children}
@@ -295,6 +303,8 @@ const defaultAuth: AuthContextType = {
   isPremium: false,
   isEnterprise: false,
   isAdmin: false,
+  platformRoles: [],
+  canModerateCommunity: false,
   isEmailVerified: false,
   hasPlatformAccess: true,
 };

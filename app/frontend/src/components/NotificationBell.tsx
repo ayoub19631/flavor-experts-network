@@ -124,6 +124,10 @@ export default function NotificationBell() {
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/notifications" className="text-xs text-primary">{lang === "ar" ? "فتح مركز الإشعارات" : "Open notification center"}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         {items.length === 0 ? (
           <div className="px-3 py-6 text-center text-sm text-muted-foreground">
             {lang === "ar" ? "لا إشعارات بعد" : "No notifications yet"}

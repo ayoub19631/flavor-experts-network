@@ -31,6 +31,8 @@ import {
   Pencil,
   X,
 } from "lucide-react";
+import CommunitySafetyMenu from "@/components/CommunitySafetyMenu";
+import { fetchMyMutes, softDeleteEntity } from "@/lib/phase4/moderation";
 import Navbar from "@/components/Navbar";
 import SeoJsonLd, { breadcrumbJsonLd } from "@/components/SeoJsonLd";
 import FooterSection from "@/components/FooterSection";
@@ -194,13 +196,26 @@ export default function CommunityPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const firstQuery = supabase
       .from("social_posts")
       .select("*")
       .eq("is_published", true)
       .eq("is_hidden", false)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(40);
+    let { data, error } = await firstQuery;
+    if (error) {
+      const fallback = await supabase
+        .from("social_posts")
+        .select("*")
+        .eq("is_published", true)
+        .eq("is_hidden", false)
+        .order("created_at", { ascending: false })
+        .limit(40);
+      data = fallback.data;
+      error = fallback.error;
+    }
 
     if (error || !data) {
       setPosts([]);
@@ -210,6 +225,8 @@ export default function CommunityPage() {
 
     let enriched = await enrichSocialPosts(data as SocialPost[]);
     if (user) {
+      const muted = await fetchMyMutes();
+      enriched = enriched.filter((post) => !muted.has(post.author_id));
       const [reactions, saved, network] = await Promise.all([
         fetchMyReactions(user.id, enriched.map((p) => p.id)),
         fetchSavedPostIds(user.id),
@@ -507,7 +524,10 @@ export default function CommunityPage() {
 
   const removeComment = async (postId: string, commentId: string) => {
     if (!window.confirm(t("community.confirm_delete_comment"))) return;
-    const { error } = await supabase.from("social_post_comments").delete().eq("id", commentId);
+    const soft = await softDeleteEntity("social_post_comments", commentId, "author_delete");
+    const { error } = soft.error
+      ? await supabase.from("social_post_comments").delete().eq("id", commentId)
+      : { error: null };
     if (error) {
       toast.error(error.message);
       return;
@@ -546,7 +566,10 @@ export default function CommunityPage() {
   const removePost = async (post: SocialPost) => {
     if (!user || post.author_id !== user.id) return;
     if (!window.confirm(t("community.confirm_delete"))) return;
-    const { error } = await supabase.from("social_posts").delete().eq("id", post.id).eq("author_id", user.id);
+    const soft = await softDeleteEntity("social_posts", post.id, "author_delete");
+    const { error } = soft.error
+      ? await supabase.from("social_posts").delete().eq("id", post.id).eq("author_id", user.id)
+      : { error: null };
     if (error) {
       toast.error(error.message);
       return;
@@ -559,7 +582,7 @@ export default function CommunityPage() {
     if (!isAdmin) return;
     const { error } = await supabase
       .from("social_posts")
-      .update({ is_hidden: true })
+      .update({ is_hidden: true, deleted_at: new Date().toISOString(), deleted_by: user?.id || null, deletion_reason: "moderator_hide" })
       .eq("id", post.id);
     if (error) {
       toast.error(error.message);
@@ -936,6 +959,9 @@ export default function CommunityPage() {
                               </p>
                             </div>
                             <div className="flex items-center gap-1">
+                              {user && user.id !== post.author_id && (
+                                <CommunitySafetyMenu entityType="post" entityId={post.id} memberId={post.author_id} />
+                              )}
                               {isAdmin && (
                                 <Button
                                   variant="ghost"
