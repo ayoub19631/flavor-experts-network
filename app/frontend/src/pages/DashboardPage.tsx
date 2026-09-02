@@ -638,6 +638,25 @@ export default function DashboardPage() {
                     </button>
                   ))}
                   <Separator className="my-2" />
+                  {[
+                    { href: "/notifications", label: lang === "ar" ? "الإشعارات" : "Notifications" },
+                    { href: "/dashboard/connections", label: lang === "ar" ? "الاتصالات" : "Connections" },
+                    { href: "/messages", label: lang === "ar" ? "الرسائل" : "Messages" },
+                    { href: "/dashboard/saved-jobs", label: lang === "ar" ? "وظائف محفوظة" : "Saved jobs" },
+                    { href: "/dashboard/applications", label: lang === "ar" ? "طلباتي" : "My applications" },
+                    { href: "/consultations", label: lang === "ar" ? "الاستشارات" : "Consultations" },
+                    { href: "/events", label: lang === "ar" ? "الفعاليات" : "Events" },
+                    { href: "/my-library", label: lang === "ar" ? "مكتبتي" : "My library" },
+                    { href: "/verification", label: lang === "ar" ? "التوثيق" : "Verification" },
+                    { href: "/dashboard/blocked", label: lang === "ar" ? "المحظورون" : "Blocked users" },
+                    { href: "/dashboard/privacy", label: lang === "ar" ? "الخصوصية والأمان" : "Privacy & security" },
+                    ...(isCompany ? [{ href: "/company/dashboard", label: lang === "ar" ? "لوحة الشركة" : "Company dashboard" }] : []),
+                  ].map((item) => (
+                    <Link key={item.href} to={item.href} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted">
+                      {item.label}
+                    </Link>
+                  ))}
+                  <Separator className="my-2" />
                   {isAdmin && (
                     <Link to="/admin" className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-primary hover:bg-secondary dark:hover:bg-primary/20">
                       <ShieldCheck className="w-4 h-4" /> Admin Panel

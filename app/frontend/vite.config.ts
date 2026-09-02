@@ -21,7 +21,7 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   const defaultDescription =
-    "A global professional network connecting flavorists, food scientists, R&D professionals, companies, suppliers, and the flavor industry.";
+    "A global professional network connecting flavorists, food scientists, R&D professionals, manufacturers, suppliers, companies, and professionals across the flavor industry.";
   env.VITE_APP_TITLE ??= process.env.OVERVIEW_TITLE ?? 'Flavor Experts Network';
   env.VITE_APP_DESCRIPTION ??=
     process.env.OVERVIEW_DESCRIPTION ?? defaultDescription;
@@ -76,6 +76,7 @@ export default defineConfig(({ command, mode }) => {
                 '/research',
                 '/policies',
                 '/consultations',
+                '/events',
                 '/enterprise',
                 '/terms',
                 '/privacy',
@@ -87,6 +88,9 @@ export default defineConfig(({ command, mode }) => {
                 '/auth',
                 '/learn',
                 '/messages',
+                '/notifications',
+                '/company',
+                '/verification',
                 '/verify-email',
                 '/email-verified',
                 '/my-library',

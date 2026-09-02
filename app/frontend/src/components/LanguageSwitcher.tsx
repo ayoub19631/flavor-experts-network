@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LANGUAGES, type Language } from "@/lib/languages";
+import { LANGUAGES, PUBLIC_LANGUAGES, type Language } from "@/lib/languages";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -41,7 +41,7 @@ export default function LanguageSwitcher({ compact = false }: { compact?: boolea
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        {LANGUAGES.map((item) => (
+        {PUBLIC_LANGUAGES.map((item) => (
           <DropdownMenuItem
             key={item.code}
             onSelect={() => persistLang(item.code)}

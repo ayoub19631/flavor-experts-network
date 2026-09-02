@@ -134,8 +134,8 @@ export default function MarketPage() {
               </h1>
               <p className="text-white/75 mt-2 max-w-2xl">
                 {isAR
-                  ? "متابعة يومية لاتجاهات الزيوت العطرية والفانيليا والمنثول والمواد الأولية — يُحدَّث كل 24 ساعة."
-                  : "Daily tracking of citrus oils, vanilla, menthol, and aroma feedstock trends — refreshed every 24 hours."}
+                  ? "إحاطات السوق تُعرض فقط عند وجود مصدر منشور. لا تُعرض أسعار تجريبية."
+                  : "Market briefings appear only when a sourced briefing is published. No sample prices are shown as live data."}
               </p>
             </div>
             {isAdmin && (

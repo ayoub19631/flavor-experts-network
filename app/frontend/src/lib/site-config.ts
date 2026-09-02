@@ -6,7 +6,7 @@ export const SITE = {
   name: import.meta.env.VITE_APP_TITLE || "Flavor Experts Network",
   tagline: "Flavor Expertise & Science",
   description:
-    "A global professional network connecting flavorists, food scientists, R&D professionals, companies, suppliers, and the flavor industry.",
+    "A global professional network connecting flavorists, food scientists, R&D professionals, manufacturers, suppliers, companies, and professionals across the flavor industry.",
   url: (import.meta.env.VITE_SITE_URL || PUBLIC_SITE_ORIGIN).replace(/\/$/, ""),
   canonicalOrigin: PUBLIC_SITE_ORIGIN,
   domain: "flavorexpertsnetwork.com",

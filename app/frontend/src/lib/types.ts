@@ -291,7 +291,9 @@ export interface JobListing {
   apply_url?: string | null;
   skills?: string[] | null;
   is_published: boolean;
-  status: "open" | "closed" | "draft";
+  status: "open" | "closed" | "draft" | "pending_review" | "published" | "paused" | "expired" | "rejected";
+  slug?: string | null;
+  workplace_type?: "on_site" | "hybrid" | "remote" | null;
   created_at: string;
   updated_at?: string;
   expires_at?: string | null;
@@ -303,7 +305,9 @@ export interface JobApplication {
   applicant_id: string;
   cover_letter?: string | null;
   resume_url?: string | null;
-  status: "submitted" | "reviewed" | "rejected" | "accepted";
+  status: "submitted" | "reviewed" | "rejected" | "accepted" | "reviewing" | "shortlisted" | "interview" | "offered" | "hired" | "withdrawn";
+  resume_path?: string | null;
+  resume_bucket?: string | null;
   created_at: string;
 }
 

@@ -62,6 +62,7 @@ export default function Navbar() {
     { href: "/books", label: t("nav.books") },
     { href: "/research", label: t("nav.research") },
     { href: "/consultations", label: t("nav.consultations") },
+    { href: "/events", label: t("nav.events") },
     { href: "/enterprise", label: t("nav.enterprise") },
     { href: "/#contact", label: t("nav.contact") },
   ];

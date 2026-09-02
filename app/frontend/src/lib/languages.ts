@@ -8,6 +8,8 @@ export const LANGUAGES = [
   { code: "zh", name: "Chinese", native: "中文", dir: "ltr" },
 ] as const;
 
+export const PUBLIC_LANGUAGES = LANGUAGES.filter((item) => item.code === "en" || item.code === "ar");
+
 export type Language = (typeof LANGUAGES)[number]["code"];
 
 export function isLanguage(value: string | null | undefined): value is Language {

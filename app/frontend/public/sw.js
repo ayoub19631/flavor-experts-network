@@ -1,6 +1,6 @@
 /* Flavor Experts Network — static asset cache only.
    Never cache authenticated HTML, Supabase APIs, or user data. */
-const CACHE = "fen-static-v1";
+const CACHE = "fen-static-v2";
 const STATIC_EXT = /\.(?:js|css|woff2?|png|jpe?g|webp|svg|ico)$/i;
 
 self.addEventListener("install", (event) => {
@@ -22,6 +22,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.protocol !== "http:" && url.protocol !== "https:") return;
   if (url.hostname.includes("supabase.co") || url.pathname.startsWith("/auth")) return;
+  if (/^\/(dashboard|admin|messages|notifications|company|verification|my-library)\b/.test(url.pathname)) return;
   if (request.headers.get("accept")?.includes("text/html")) return;
   if (!STATIC_EXT.test(url.pathname)) return;
 
