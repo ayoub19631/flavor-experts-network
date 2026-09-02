@@ -11,6 +11,7 @@ import { filterPublicMembers } from "@/lib/public-members";
 import { blogPosts, getBlogRoute } from "@/lib/blog";
 import { publicHref } from "@/lib/publications/api";
 import type { Publication } from "@/lib/publications/types";
+import { rememberSearch, unifiedSearch, type UnifiedHit } from "@/lib/phase4/search";
 
 export default function SearchPage() {
   const { t } = useI18n();
@@ -25,6 +26,7 @@ export default function SearchPage() {
   const [research, setResearch] = useState<Publication[]>([]);
   const [articles, setArticles] = useState<Array<{ slug: string; title: string }>>([]);
   const [companies, setCompanies] = useState<Member[]>([]);
+  const [ranked, setRanked] = useState<UnifiedHit[]>([]);
   usePageMeta({ title: t("search.title"), description: t("search.desc"), path: "/search" });
 
   const query = q.trim();
@@ -40,9 +42,13 @@ export default function SearchPage() {
         setResearch([]);
         setArticles([]);
         setCompanies([]);
+        setRanked([]);
         return;
       }
       setLoading(true);
+      const server = await unifiedSearch(query);
+      setRanked(server.data);
+      if (server.data.length > 0) void rememberSearch(query);
       const like = `%${query}%`;
       const needle = query.toLowerCase();
       const [m, p, j, pub] = await Promise.all([
@@ -108,8 +114,8 @@ export default function SearchPage() {
   }, [query]);
 
   const empty = useMemo(
-    () => query.length >= 2 && !loading && members.length + posts.length + jobs.length + books.length + research.length + articles.length === 0,
-    [query, loading, members.length, posts.length, jobs.length, books.length, research.length, articles.length],
+    () => query.length >= 2 && !loading && ranked.length + members.length + posts.length + jobs.length + books.length + research.length + articles.length === 0,
+    [query, loading, ranked.length, members.length, posts.length, jobs.length, books.length, research.length, articles.length],
   );
 
   return (
@@ -133,7 +139,20 @@ export default function SearchPage() {
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         )}
-        {empty && <p className="text-sm text-muted-foreground">{t("search.empty")}</p>}
+        {empty && ranked.length === 0 && <p className="text-sm text-muted-foreground">{t("search.empty")}</p>}
+        {ranked.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-sm font-semibold mb-3">{t("search.title")}</h2>
+            <div className="space-y-2">
+              {ranked.map((hit) => (
+                <Link key={`${hit.entity_type}-${hit.entity_id}`} to={hit.href} className="block rounded-xl border border-border p-3 hover:border-primary/30">
+                  <p className="text-[11px] uppercase text-muted-foreground">{hit.entity_type}</p>
+                  <p className="font-medium">{hit.title}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
         {members.length > 0 && (
           <section className="mb-8">
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2"><Users className="w-4 h-4" />{t("nav.members")}</h2>
@@ -201,7 +220,7 @@ export default function SearchPage() {
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2"><Briefcase className="w-4 h-4" />{t("nav.jobs")}</h2>
             <div className="space-y-2">
               {jobs.map((job) => (
-                <Link key={job.id} to="/jobs" className="block rounded-xl border border-border p-3 hover:border-primary/30">
+                <Link key={job.id} to={`/jobs/${job.id}`} className="block rounded-xl border border-border p-3 hover:border-primary/30">
                   <p className="font-medium">{job.title}</p>
                   <p className="text-xs text-muted-foreground">{[job.company_name, job.location].filter(Boolean).join(" · ")}</p>
                 </Link>

@@ -23,6 +23,7 @@ import type { ForumCategory, ForumReply, ForumTopic } from "@/lib/types";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import { toast } from "sonner";
+import CommunitySafetyMenu from "@/components/CommunitySafetyMenu";
 
 function getInitials(name: string) {
   return name
@@ -298,7 +299,10 @@ export default function ForumTopicPage() {
                       </div>
                     )}
                   </div>
-                  <h1 className="text-2xl font-bold text-foreground mb-4">{topic.title}</h1>
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <h1 className="text-2xl font-bold text-foreground">{topic.title}</h1>
+                    <CommunitySafetyMenu entityType="forum_topic" entityId={topic.id} />
+                  </div>
                   <AuthorBlock
                     name={topic.author?.full_name || t("forum.anonymous")}
                     avatarUrl={topic.author?.avatar_url}

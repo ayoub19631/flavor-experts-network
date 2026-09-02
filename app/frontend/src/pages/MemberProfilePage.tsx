@@ -56,6 +56,7 @@ import {
   toggleFollow,
 } from "@/lib/network";
 import { toast } from "sonner";
+import CommunitySafetyMenu from "@/components/CommunitySafetyMenu";
 
 function getInitials(name: string) {
   return name
@@ -90,6 +91,7 @@ export default function MemberProfilePage() {
   const [recs, setRecs] = useState<Array<{ id: string; author_id: string; relationship: string; body: string }>>([]);
   const [recDraft, setRecDraft] = useState("");
   const [recBusy, setRecBusy] = useState(false);
+  const [publications, setPublications] = useState<Array<{ id: string; title: string; slug: string; type: string }>>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -194,7 +196,17 @@ export default function MemberProfilePage() {
         fetchAcceptedRecommendations(targetUserId),
         user?.id === targetUserId ? fetchProfileViewCount(targetUserId) : Promise.resolve(0),
       ]);
+      const { data: pubRows } = await supabase
+        .from("publication_authors")
+        .select("publication_id, publications(id, title, slug, type, status)")
+        .eq("user_id", targetUserId);
       if (cancelled) return;
+      setPublications(
+        ((pubRows || []) as Array<{ publications?: { id: string; title: string; slug: string; type: string; status: string } | { id: string; title: string; slug: string; type: string; status: string }[] }>)
+          .map((row) => (Array.isArray(row.publications) ? row.publications[0] : row.publications))
+          .filter((item): item is { id: string; title: string; slug: string; type: string; status: string } => !!item && item.status === "published")
+          .map(({ id: pubId, title, slug, type }) => ({ id: pubId, title, slug, type })),
+      );
       setFollowing(follows);
       setFollowers(count);
       setActivity((posts.data as SocialPost[]) || []);
@@ -475,6 +487,9 @@ export default function MemberProfilePage() {
                                 : t("profile.connect")}
                       </Button>
                     )}
+                    {!isOwnProfile && user && targetUserId && (
+                      <CommunitySafetyMenu entityType="member" entityId={targetUserId} memberId={targetUserId} />
+                    )}
                     {!isOwnProfile && user && (
                       <Button size="sm" variant="outline" className="gap-1.5" onClick={handleFollow}>
                         <UserCheck className="w-4 h-4" />
@@ -530,7 +545,7 @@ export default function MemberProfilePage() {
                       {companyJobs.map((job) => (
                         <Link
                           key={job.id}
-                          to="/jobs"
+                          to={`/jobs/${job.id}`}
                           className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 hover:border-primary/40 transition-colors"
                         >
                           <div className="min-w-0">
@@ -547,6 +562,21 @@ export default function MemberProfilePage() {
                 </section>
               )}
 
+              {publications.length > 0 && (
+                <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+                    {lang === "ar" ? "المنشورات" : "Publications"}
+                  </h2>
+                  <div className="space-y-2">
+                    {publications.map((item) => (
+                      <Link key={item.id} to={item.type === "book" ? `/books/${item.slug}` : `/research/${item.slug}`} className="block rounded-xl border p-3 hover:border-primary/40">
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.type === "book" ? (lang === "ar" ? "كتاب" : "Book") : (lang === "ar" ? "بحث" : "Research")}</p>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
               {similar.length > 0 && (
                 <section className="rounded-2xl border border-border bg-card p-6 sm:p-7">
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">

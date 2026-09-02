@@ -81,14 +81,16 @@ export async function listConversations(userId: string): Promise<ConversationPre
   });
 }
 
-export async function listMessages(conversationId: string): Promise<ChatMessage[]> {
-  const { data } = await supabase
+export async function listMessages(conversationId: string, before?: string): Promise<ChatMessage[]> {
+  let query = supabase
     .from("conversation_messages")
     .select("id, conversation_id, sender_id, body, created_at")
     .eq("conversation_id", conversationId)
-    .order("created_at", { ascending: true })
-    .limit(120);
-  return (data as ChatMessage[]) || [];
+    .order("created_at", { ascending: false })
+    .limit(40);
+  if (before) query = query.lt("created_at", before);
+  const { data } = await query;
+  return ((data as ChatMessage[]) || []).slice().reverse();
 }
 
 export async function sendMessage(conversationId: string, senderId: string, body: string) {
