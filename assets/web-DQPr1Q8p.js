@@ -1,0 +1,1 @@
+import{Y as n}from"./blog-routes-D3oApnCB.js";import"./ui-vendor-D6uffsGF.js";import"./router-vendor-BI1POE-w.js";import"./utils-vendor-D_ZPfjQy.js";class p extends n{async show(e){}async hide(e){}}export{p as SplashScreenWeb};

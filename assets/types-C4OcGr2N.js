@@ -1,0 +1,1 @@
+const e=["book","original_research","review_article","technical_note","industrial_case_study","formulation_study","sensory_study","regulatory_update","white_paper","method_protocol"],t=["public","members","private"],a=["introductory","intermediate","advanced","specialist"];export{a as A,e as P,t as a};

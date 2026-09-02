@@ -1,0 +1,1 @@
+const i=/(\+companyqa|ayobe895\+|qaautomation|\btest account\b|\bqa user\b|companyqa\d+)/i;function o(t){if(t.is_test_account||t.is_active===!1)return!0;const n=[t.full_name,t.company,t.bio,t.website].filter(Boolean).join(" ");return i.test(n)}function e(t){return t.filter(n=>{var a;return!o(n)&&!!((a=n.full_name)!=null&&a.trim())})}export{e as f};

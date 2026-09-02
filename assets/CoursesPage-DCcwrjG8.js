@@ -1,0 +1,1 @@
+import{j as t}from"./ui-vendor-D6uffsGF.js";import{N as r}from"./router-vendor-BI1POE-w.js";function o(){return t.jsx(r,{to:"/insights",replace:!0})}export{o as default};
