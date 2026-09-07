@@ -15,6 +15,8 @@ describe("unverified session public paths", () => {
     expect(isAllowedPath("/forum/t/12")).toBe(true);
     expect(isAllowedPath("/blog/natural-vs-artificial-flavors")).toBe(true);
     expect(isAllowedPath("/library")).toBe(true);
+    expect(isAllowedPath("/search")).toBe(true);
+    expect(isAllowedPath("/discover")).toBe(true);
     expect(isAllowedPath("/publications")).toBe(true);
     expect(isAllowedPath("/publications/sample")).toBe(true);
     expect(isAllowedPath("/books/sample")).toBe(true);
