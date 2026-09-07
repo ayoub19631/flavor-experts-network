@@ -112,6 +112,16 @@ export default function JobDetailPage() {
               toast[error ? "error" : "success"](error?.message || (lang === "ar" ? "تم الحفظ" : "Saved"));
             }}>{lang === "ar" ? "حفظ الوظيفة" : "Save job"}</Button>
           )}
+          {user && (
+            <Button onClick={async () => {
+              const { error } = await supabase.from("job_applications").insert({
+                job_id: job.id,
+                applicant_id: user.id,
+                status: "submitted",
+              });
+              toast[error ? "error" : "success"](error?.message || (lang === "ar" ? "تم إرسال الطلب" : "Application sent"));
+            }}>{lang === "ar" ? "تقديم" : "Apply"}</Button>
+          )}
           {job.apply_url && <Button asChild variant="outline"><a href={job.apply_url} target="_blank" rel="noreferrer">{lang === "ar" ? "تقديم خارجي" : "Apply externally"}</a></Button>}
           {user && <CommunitySafetyMenu entityType="job" entityId={job.id} />}
         </div>
