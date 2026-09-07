@@ -1,19 +1,8 @@
-# Publications library (Phase 3)
+# Publications library (Phase 3 / Phase 6)
 
 Professional books and technical research for Flavor Experts Network. This is not an academy and not a scientific journal.
 
-## Apply locally (do not run on production yet)
-
-```bash
-# From the repo root, against a local or staging database only
-npx supabase db push --local
-# or
-npx supabase migration up --local
-```
-
-Production apply requires an explicit owner approval after this report.
-
-Migration file: `supabase/migrations/20260902120000_publications_library.sql`
+Release order, the safe library file, history repair, and empty-database bootstrap are documented in `docs/PHASE_6_MIGRATION_RELEASE.md`. Do not run historical migrations by hand on Production.
 
 ## Environment
 

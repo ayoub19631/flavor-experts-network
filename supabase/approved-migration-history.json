@@ -1,0 +1,597 @@
+{
+  "production_ref": "imucfofvdwfyexdwrsfe",
+  "updated_at": "2026-09-07T22:00:00Z",
+  "repair_policy": "migration repair --status applied is history-only. Use it only when Production already has the equivalent schema effect.",
+  "files": [
+    {
+      "version": "20260724120000",
+      "filename": "20260724120000_security_hardening.sql",
+      "sha256": "faee986b5a41b58c13ff96669a962c04b8fb0813605970e9871f764423cc074f",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724105315",
+      "repair_reason": "Dashboard apply of security_hardening under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260724120100",
+      "filename": "20260724120100_premium_resource_links.sql",
+      "sha256": "5461177429080bc70715bf86e6d480564f3c9ccb9e2ea9460be9f49c522001aa",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724105336",
+      "repair_reason": "Dashboard apply of premium_resource_links under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260724120200",
+      "filename": "20260724120200_drop_permissive_inserts.sql",
+      "sha256": "a393dc46fdd1f4360276b4b51a8ffc546697dc8a7e5f7ac181604aeb929c8c84",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724110724",
+      "repair_reason": "Dashboard apply of drop_permissive_public_inserts under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260724120300",
+      "filename": "20260724120300_email_notify_triggers.sql",
+      "sha256": "f0cee8e9dbf4ffe60fa48f938e35c43de838c923a7917271f3ae1d3f9eb32c1a",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724112008",
+      "repair_reason": "Dashboard apply of email_notify_triggers under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260724120400",
+      "filename": "20260724120400_revoke_email_trigger_rpc.sql",
+      "sha256": "3c691b79ffce793c3629c1cec04916cea32c73cba146138435d088f9e16d1a1d",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724113933",
+      "repair_reason": "Dashboard apply of revoke_trigger_fn_execute under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260724180000",
+      "filename": "20260724180000_harden_rpc_grants.sql",
+      "sha256": "109b479799a047124dc61ad85eb480720f409fdb1b359cf1050d0d9941e81977",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724113957",
+      "repair_reason": "Equivalent harden_rpc / enterprise grant already recorded remotely.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260724200000",
+      "filename": "20260724200000_platform_preview_access.sql",
+      "sha256": "1aa90b24d28ba947615a96cc80c2b7642b6f47c7e38fcdfddb54b9e11267e78c",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260724162040",
+      "repair_reason": "Dashboard apply of platform_preview_access under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260727180000",
+      "filename": "20260727180000_platform_completion.sql",
+      "sha256": "23f9c1b1dca02b4341cdeb4e14e2410dc2939969b48e4e2c070e43d40302e6ca",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260727141947",
+      "repair_reason": "Dashboard apply of platform_completion under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260727180100",
+      "filename": "20260727180100_revoke_trigger_rpc_grants.sql",
+      "sha256": "3ac5c2e1f391453084db7a24bbf8ca84238c472efa7e2901820f02ffae4e405f",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260727144624",
+      "repair_reason": "Dashboard apply of revoke_trigger_rpc_grants under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260727180200",
+      "filename": "20260727180200_email_from_vault_and_forum_notify.sql",
+      "sha256": "0271667e6985006694f8f9c4dc455653a9b1a05c274617bb5c03e05b101cc814",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260727144745",
+      "repair_reason": "Dashboard apply of email_from_vault_and_forum_notify under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260728020000",
+      "filename": "20260728020000_industry_wire_cron.sql",
+      "sha256": "58fed0d785001b8722dfdf67fbd323762e3664e72a82d161b59f2aef9e83cb5c",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260727214710",
+      "repair_reason": "Dashboard apply of industry_wire_cron under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260729010000",
+      "filename": "20260729010000_jobs_and_social_posts.sql",
+      "sha256": "5682f5214fcc15056b1505f4d42e7c5d8c0e2d78865be9b9704edfca40f1f2c1",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260728214919",
+      "repair_reason": "Dashboard apply of jobs_and_social_posts under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260729030000",
+      "filename": "20260729030000_harden_and_sync_members.sql",
+      "sha256": "45b405310cbca5a860036aa1004b67e7621f231aa17e1c40325213ecdf7e91e1",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260728222256",
+      "repair_reason": "Dashboard apply of harden_and_sync_members under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260729031000",
+      "filename": "20260729031000_revoke_sync_member_rpc.sql",
+      "sha256": "d51b1ee515d957d622f8ff42a9ffcb962cf5218fabcef64844de363d8e3ccf58",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260728222507",
+      "repair_reason": "Dashboard apply of revoke_sync_member_rpc under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260731010000",
+      "filename": "20260731010000_fix_account_completion.sql",
+      "sha256": "9f2979a4639149e8861791c6f0ca79f5f23b878773a02a9a39022b6aca60896f",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260730212059",
+      "repair_reason": "Dashboard apply of fix_account_completion under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260731020000",
+      "filename": "20260731020000_full_platform_hardening.sql",
+      "sha256": "73e71bf2d2eb5160c8fe894a0cf0009fbfb3bcc96225cb3fcf2c1632698e71d4",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260730230805",
+      "repair_reason": "Dashboard apply of full_platform_hardening under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260803120000",
+      "filename": "20260803120000_welcome_email_platform_policy.sql",
+      "sha256": "4f08aa0d08fa34f74053fcd5074efc3b2ebcc0078970123d9c6424905847a653",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829204336",
+      "repair_reason": "Welcome-email policy already applied under later dashboard timestamps.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260804140000",
+      "filename": "20260804140000_platform_fully_free.sql",
+      "sha256": "6d5168398f05a65173cf8ef72134e7082776265d0685c8337d83ea5a19e03108",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "has_active_subscription and free-access behavior already exist on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260804140100",
+      "filename": "20260804140100_welcome_email_fully_free.sql",
+      "sha256": "5d401139e75e04cd244dd9eeeb17a864152273688969648d6e243f67ecad496d",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829204913",
+      "repair_reason": "Welcome-email function already applied; later copy supersedes this file.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260804150000",
+      "filename": "20260804150000_professional_member_profile.sql",
+      "sha256": "e10b8f66f3fae2af6b4dab18b3282f04df197ba19697fb98ee4cadc232cb933d",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "user_profiles.cover_url / specialty columns already exist on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260805120000",
+      "filename": "20260805120000_public_author_profiles.sql",
+      "sha256": "1e3e4449ebc97e3aacd49ed0c2cef6b58810fb8276266c87ebd207ee378460ed",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "public_author_profiles view (or author_profiles equivalent) already exists.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260805140000",
+      "filename": "20260805140000_phase2_network_learning.sql",
+      "sha256": "7e6b54d52270c170702b43e9a88b91d3d1f1e24ebf4997ae342d1f7f9ecb40ea",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "member_connections / learning_paths / course_enrollments already exist.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260806160000",
+      "filename": "20260806160000_community_comments_and_media.sql",
+      "sha256": "ed59f496f60d1762d31d08f5f77d14ea8ccd2f8cda829e29e1dea239176ef4fc",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "social_post_comments already exists on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260809160000",
+      "filename": "20260809160000_database_hardening_complete.sql",
+      "sha256": "dc448fa3276a992c75589813b01298fa9fd3816dee11e0aba02e5aba0df90df9",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "Hardening objects from this file are already present on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260809170000",
+      "filename": "20260809170000_email_delivery_reliability.sql",
+      "sha256": "d26ec1122a0f8d2ffa052f69e72286ead283be5dcb15186dc96e6e2823c96647",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "Email delivery reliability objects already present on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260809180000",
+      "filename": "20260809180000_fix_security_definer_views.sql",
+      "sha256": "d0deeb7216e213802fc39b4cb25c628becc1e64729a4e088e8ff1ae5ed445b1b",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "Security definer view fixes already present on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260809190000",
+      "filename": "20260809190000_members_admin_policies.sql",
+      "sha256": "b518b06b2ebb14e8fb8ffeed175052c19524861672e0e7c5227116ef59ceb89c",
+      "production_status": "repaired_applied",
+      "equivalent_remote": null,
+      "repair_reason": "Members admin policies already present on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260829220000",
+      "filename": "20260829220000_company_signup_and_free_access.sql",
+      "sha256": "7713fa4738f177c0a10bedd8cc478c976c4aeb5c418bf277687d79ed6234091f",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829190817",
+      "repair_reason": "Dashboard apply of company_signup_and_free_access under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260829223000",
+      "filename": "20260829223000_sanitize_company_website_on_signup.sql",
+      "sha256": "72c5c4dbf8d13f3d4f1b00406c1b41e1cb47c93412daca899495b195dd01d3b7",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829191821",
+      "repair_reason": "Dashboard apply of sanitize_company_website_on_signup under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260830001000",
+      "filename": "20260830001000_grant_claim_company_service_role.sql",
+      "sha256": "2d97bb983eef39bd946216a1057abc02924befd49db4047a10cb7868d2110b55",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829201312",
+      "repair_reason": "Dashboard apply of grant_claim_company_service_role under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260830020000",
+      "filename": "20260830020000_terms_acceptance_and_welcome_policy.sql",
+      "sha256": "8ee7f82d5f4d1768b9c3c6e1c5b36befcc95cfb19aa1802caae1b749179bc2e2",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829204139",
+      "repair_reason": "Dashboard apply of terms_acceptance_and_welcome_policy under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260830030000",
+      "filename": "20260830030000_welcome_email_full_terms_copy.sql",
+      "sha256": "0312b1eca3fbb61d43609199626d2b1069fc3bfef5be59e5db0b5c6e6793df24",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260829204913",
+      "repair_reason": "Dashboard apply of welcome_email_full_terms_copy under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260831010000",
+      "filename": "20260831010000_linkedin_network_suite.sql",
+      "sha256": "52ba664d2251054d62cb08e696dc6a202423121018cad17dc28e4fd9dc8f9e01",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260830220959",
+      "repair_reason": "Dashboard apply of linkedin_network_suite under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260831120000",
+      "filename": "20260831120000_flavor_experts_academy.sql",
+      "sha256": "f534274c69b47d490845d2df90b5f3101f45b7e3b8d24372a17d24934cacafed",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260830225554",
+      "repair_reason": "Dashboard apply of flavor_experts_academy under different timestamps.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260831120100",
+      "filename": "20260831120100_academy_first_course_draft.sql",
+      "sha256": "990e78f679e0a5fdd5e974407faf9a5cf25a2fa32c31746af4cbc0f219841915",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260830230527",
+      "repair_reason": "Academy first-course draft already applied as academy_first_course_draft_*.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260831140000",
+      "filename": "20260831140000_platform_stabilization.sql",
+      "sha256": "cfebf85039b054bcbc5817ec3b5a26354094223b076cf922eac538e644313a4b",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260830235718",
+      "repair_reason": "Dashboard apply of platform_stabilization under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260831150000",
+      "filename": "20260831150000_fix_public_member_directory.sql",
+      "sha256": "01c99ee1a734bae246c9aca47b76b40cfd817a1df165382f7502339125708999",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260831001404",
+      "repair_reason": "Dashboard apply of fix_public_member_directory under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260831160000",
+      "filename": "20260831160000_post_controls_and_directory_hide.sql",
+      "sha256": "bec3c98fa0cc738472611771d763971f65ec89e86263bc0ba58769a87c2ddb01",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260831005617",
+      "repair_reason": "Dashboard apply of post_controls_and_directory_hide under a different timestamp.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260902120000",
+      "filename": "20260902120000_publications_library.sql",
+      "sha256": "8223eb1b15e6900c0aaf1d828cc5a3c0dadf4dabe107dcb25204fe0d9eb18dcb",
+      "production_status": "repaired_applied",
+      "equivalent_remote": "20260907201000",
+      "repair_reason": "Never executed. Production already received the equivalent immutable library as 20260907201000 (plain tsvector + triggers). Repair records history only so db push cannot run the old pending file.",
+      "immutable": true,
+      "documented_edit": "Replaced never-applied GENERATED to_tsvector file with the Production-equivalent trigger-based library."
+    },
+    {
+      "version": "20260902200000",
+      "filename": "20260902200000_phase4a_security_moderation.sql",
+      "sha256": "9287953096f4751aee9289ed5bd1364b149d77bee9cd60e1dd2ea2cdce73e0ac",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260902210000",
+      "filename": "20260902210000_phase4b_network.sql",
+      "sha256": "3d94227d4e7ab2dc6349d12ebbff973c3a1f61b930bbf5a811791c0a14240ad5",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260902220000",
+      "filename": "20260902220000_phase4c_professional.sql",
+      "sha256": "d83a16cbadf995dbc81564b6abb419b4367aaa8cb6beafbb1c114ef3bc04290e",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260902300000",
+      "filename": "20260902300000_phase4d_readiness.sql",
+      "sha256": "6292b42071064f700cfce10e6ae2b1747e5253ce00e8a2155daa625dfa76c1cf",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907100000",
+      "filename": "20260907100000_phase5a_event_notifications.sql",
+      "sha256": "651c6d8f8861d8d91831aba52ec10122514dfab3972406ca62b6596e08df2f5a",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907110000",
+      "filename": "20260907110000_phase5b_verification_workflow.sql",
+      "sha256": "fdd5b733b92423b9b21e51292df4c93f9b505796f41e114460c41df46e10bcbd",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907120000",
+      "filename": "20260907120000_phase5c_moderation_ops.sql",
+      "sha256": "2cfb4c14e30e192efe032fc6c929ab18c453fccb4f0143cd18263d137739ec51",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907130000",
+      "filename": "20260907130000_phase5d_mentions.sql",
+      "sha256": "b110ecd595841247aa094182442f045abbe1378e39411b304a2f28740e0133f4",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907140000",
+      "filename": "20260907140000_phase5e_forum_mentions.sql",
+      "sha256": "9da7eddf79d87ad43caf2ede919558f7f5b281942277ddf1fc74ae62389d5fe5",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907150000",
+      "filename": "20260907150000_phase5f_hardening.sql",
+      "sha256": "01c7b10a1bf37706ac9a001867c8ee174f46c325fd0a2da370e94d0e6aa34f7f",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907160000",
+      "filename": "20260907160000_phase5g_production_apply_guards.sql",
+      "sha256": "56fdfafc4eee6ecd59ee87020284ead60477d6b7b868ff05e69cb3578bb67004",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907170000",
+      "filename": "20260907170000_phase5h_verification_bucket_limits.sql",
+      "sha256": "d9c93aabe8e00c69c377247220150c6d4d573e0d2227952704ada98b6e7a1ec1",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907180000",
+      "filename": "20260907180000_phase5i_revoke_anon_rpc.sql",
+      "sha256": "cf4035e827786d6df7b30cb50f7a6b16ec51c790f714a3086e32c389a64364c4",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907200000",
+      "filename": "20260907200000_phase6a_publication_domain.sql",
+      "sha256": "64490d50b0df822dbf86a20db209b13c5ac837a4e63ce202dedc6ab4527c64f6",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907201000",
+      "filename": "20260907201000_publications_library_immutable.sql",
+      "sha256": "6eff526af944226ef7ced9fed187d16e6ac17adbd01099cbd9d4fc4cc4ebe4fc",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907210000",
+      "filename": "20260907210000_phase6b_review_workflow.sql",
+      "sha256": "08e46e356bc0231e0ff8042e64b8a42a75eec05a7b69170ca4a35d17dfb50294",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907220000",
+      "filename": "20260907220000_phase6d_publication_storage.sql",
+      "sha256": "ba47dd9929c9867f371b08b382f2f5c57d1c8b36fbc00eb71d83db1361240b2b",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907230000",
+      "filename": "20260907230000_phase6e_citations_versions.sql",
+      "sha256": "e32beedbc885912d0af0d4c3f084503aaed251447925de76a523d8c3535e862e",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907240000",
+      "filename": "20260907240000_phase6f_publication_notifications.sql",
+      "sha256": "5e01cd9c1be99e7a0f5cab114ae8ad8fbd75b40c91eb97668800b073324b181c",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260907250000",
+      "filename": "20260907250000_phase6g_migration_hardening.sql",
+      "sha256": "1624b10dd6ab068a3ac778e7221fba175c8fc8cac6586c77624941f48fdf8b48",
+      "production_status": "applied",
+      "equivalent_remote": null,
+      "repair_reason": "Phase 6G corrective migration applied on Production.",
+      "immutable": true,
+      "documented_edit": null
+    }
+  ]
+}

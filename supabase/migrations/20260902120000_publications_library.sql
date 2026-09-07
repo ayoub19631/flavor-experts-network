@@ -1,6 +1,10 @@
--- Phase 3 — Professional publications library (books + research)
--- Local / staging only until the product owner approves production apply.
--- Does not drop Academy tables, courses, users, posts, or catalog data.
+-- Phase 6G canonical publications library (books + research).
+-- Replaces the never-applied Phase 3 file that used a non-immutable
+-- GENERATED ALWAYS AS (to_tsvector(...)) expression (PostgreSQL 42P17).
+-- Search uses a plain tsvector column plus BEFORE INSERT OR UPDATE triggers.
+-- Production already received this equivalent SQL as 20260907201000; do not
+-- re-execute this file there. New empty databases apply this file first.
+-- Additive. Does not drop Academy tables, courses, users, posts, or catalog data.
 
 -- ── Academy file locator compatibility (keep file_url) ───────────────────────
 ALTER TABLE public.lesson_resources
@@ -133,15 +137,7 @@ CREATE TABLE IF NOT EXISTS public.publications (
   updated_at timestamptz NOT NULL DEFAULT now(),
   published_at timestamptz,
   scheduled_at timestamptz,
-  search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(subtitle, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(abstract, '')), 'B') ||
-    setweight(to_tsvector('simple', coalesce(description, '')), 'C') ||
-    setweight(to_tsvector('simple', coalesce(array_to_string(keywords, ' '), '')), 'B') ||
-    setweight(to_tsvector('simple', coalesce(application_area, '')), 'C') ||
-    setweight(to_tsvector('simple', coalesce(regulatory_scope, '')), 'C')
-  ) STORED,
+  search_vector tsvector,
   CONSTRAINT publications_slug_unique UNIQUE (slug)
 );
 
@@ -162,12 +158,7 @@ CREATE TABLE IF NOT EXISTS public.publication_translations (
   data_availability text,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
-  search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(abstract, '')), 'B') ||
-    setweight(to_tsvector('simple', coalesce(description, '')), 'C') ||
-    setweight(to_tsvector('simple', coalesce(body, '')), 'D')
-  ) STORED,
+  search_vector tsvector,
   UNIQUE (publication_id, language)
 );
 
@@ -353,6 +344,49 @@ CREATE INDEX IF NOT EXISTS idx_publication_events_pub
   ON public.publication_events (publication_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_publication_events_user
   ON public.publication_events (user_id, created_at DESC);
+
+CREATE OR REPLACE FUNCTION public.publications_refresh_search_vector()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('simple', coalesce(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(NEW.subtitle, '')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(NEW.abstract, '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(NEW.description, '')), 'C') ||
+    setweight(to_tsvector('simple', coalesce(array_to_string(NEW.keywords, ' '), '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(NEW.application_area, '')), 'C') ||
+    setweight(to_tsvector('simple', coalesce(NEW.regulatory_scope, '')), 'C');
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.publication_translations_refresh_search_vector()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('simple', coalesce(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(NEW.abstract, '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(NEW.description, '')), 'C') ||
+    setweight(to_tsvector('simple', coalesce(NEW.body, '')), 'D');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_publications_search_vector ON public.publications;
+CREATE TRIGGER trg_publications_search_vector
+  BEFORE INSERT OR UPDATE ON public.publications
+  FOR EACH ROW EXECUTE FUNCTION public.publications_refresh_search_vector();
+
+DROP TRIGGER IF EXISTS trg_publication_translations_search_vector ON public.publication_translations;
+CREATE TRIGGER trg_publication_translations_search_vector
+  BEFORE INSERT OR UPDATE ON public.publication_translations
+  FOR EACH ROW EXECUTE FUNCTION public.publication_translations_refresh_search_vector();
 
 -- ── Audit + workflow guards ──────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.publications_set_audit()
