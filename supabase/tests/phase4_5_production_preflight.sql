@@ -128,7 +128,7 @@ FROM (
   SELECT
     'name_collision_' || r.relname,
     'WARNING',
-    'Relation public.' || r.relname || ' already exists as ' || r.relkind || '; CREATE IF NOT EXISTS will no-op',
+    'Relation public.' || r.relname::text || ' already exists as ' || r.relkind::text || '; CREATE IF NOT EXISTS will no-op',
     false
   FROM pg_class r
   JOIN pg_namespace n ON n.oid = r.relnamespace
@@ -183,8 +183,8 @@ FROM (
       WHEN COUNT(*) OVER (PARTITION BY c.relname, t.tgname) > 1 THEN 'FAIL'
       ELSE 'PASS'
     END,
-    'Trigger ' || t.tgname || ' on public.' || c.relname
-      || ' enabled=' || t.tgenabled
+    'Trigger ' || t.tgname::text || ' on public.' || c.relname::text
+      || ' enabled=' || t.tgenabled::text
       || CASE WHEN t.tgname ILIKE '%email%' THEN '; legacy email trigger may send real mail' ELSE '' END,
     false
   FROM pg_trigger t
