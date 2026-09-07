@@ -39,6 +39,8 @@ export function hasCapability(roles: PlatformRole[], capability: string, isAdmin
       return effective.includes("super_admin");
     case "review_verification":
       return hasCapability(effective, "admin");
+    case "review_publications":
+      return hasCapability(effective, "admin") || effective.includes("research_editor") || effective.includes("content_editor");
     default:
       return false;
   }

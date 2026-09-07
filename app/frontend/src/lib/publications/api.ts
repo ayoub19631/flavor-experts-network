@@ -21,9 +21,10 @@ function schemaSafeError(message?: string | null): string | null {
 
 const LIST_SELECT = `
   id, type, slug, status, visibility, primary_language, title, subtitle, abstract, description,
-  cover_image_path, license, doi, isbn, version_number, audience_level, application_area,
-  regulatory_scope, keywords, is_featured, retraction_notice, correction_notice,
-  created_by, published_at, updated_at, created_at,
+  cover_image_path, license, doi, doi_url, isbn, publisher, institution, edition, page_count,
+  reading_minutes, publication_date, view_count, download_count, version_number, audience_level,
+  application_area, regulatory_scope, keywords, is_featured, retraction_notice, correction_notice,
+  created_by, published_at, updated_at, created_at, scheduled_at,
   publication_authors(id, publication_id, full_name, affiliation, country, orcid, author_order, is_corresponding, contribution)
 `;
 
@@ -34,6 +35,7 @@ export type PublicationListFilters = {
   level?: string;
   query?: string;
   featured?: boolean;
+  sort?: "newest" | "most_read";
   page?: number;
   pageSize?: number;
 };
@@ -60,15 +62,24 @@ export async function listPublications(filters: PublicationListFilters = {}) {
       p_category: filters.category || null,
       p_limit: pageSize,
       p_offset: from,
+      p_sort: filters.sort || "newest",
     });
-    return { data: (data as Publication[]) || [], error: schemaSafeError(error?.message), fromSearch: true };
+    const hits = (data as Array<{ id: string }> | null) || [];
+    if (!hits.length) return { data: [] as Publication[], error: schemaSafeError(error?.message), fromSearch: true, count: 0 };
+    const { data: rows, error: loadError } = await supabase
+      .from("publications")
+      .select(LIST_SELECT)
+      .in("id", hits.map((item) => item.id));
+    const order = new Map(hits.map((item, index) => [item.id, index]));
+    const sorted = ((rows as Publication[]) || []).sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+    return { data: sorted, error: schemaSafeError(error?.message || loadError?.message), fromSearch: true, count: sorted.length };
   }
 
   let query = supabase
     .from("publications")
-    .select(LIST_SELECT)
+    .select(LIST_SELECT, { count: "exact" })
     .in("status", ["published", "corrected", "retracted"])
-    .order("published_at", { ascending: false })
+    .order(filters.sort === "most_read" ? "view_count" : "published_at", { ascending: false })
     .range(from, to);
 
   if (filters.type) query = query.eq("type", filters.type);
@@ -76,8 +87,8 @@ export async function listPublications(filters: PublicationListFilters = {}) {
   if (filters.level) query = query.eq("audience_level", filters.level);
   if (filters.featured) query = query.eq("is_featured", true);
 
-  const { data, error } = await query;
-  return { data: (data as Publication[]) || [], error: schemaSafeError(error?.message), fromSearch: false };
+  const { data, error, count } = await query;
+  return { data: (data as Publication[]) || [], error: schemaSafeError(error?.message), fromSearch: false, count: count || 0 };
 }
 
 export async function fetchPublicationBySlug(slug: string) {
@@ -336,6 +347,93 @@ export function firstAuthorName(publication: Publication): string {
   return authors[0]?.full_name || "";
 }
 
-export function publicHref(publication: Pick<Publication, "type" | "slug">): string {
-  return publication.type === "book" ? `/books/${publication.slug}` : `/research/${publication.slug}`;
+export function publicHref(publication: Pick<Publication, "slug">): string {
+  return `/publications/${publication.slug}`;
+}
+
+export async function reviewPublication(
+  id: string,
+  action: "start_review" | "approve" | "request_revision" | "reject" | "schedule" | "archive" | "restore",
+  reason?: string,
+  scheduledAt?: string,
+) {
+  const { data, error } = await supabase.rpc("review_publication", {
+    p_id: id,
+    p_action: action,
+    p_reason: reason || null,
+    p_scheduled_at: scheduledAt || null,
+  });
+  return { data: (data as Publication | null) || null, error: error?.message || null };
+}
+
+export async function listReviewQueue(filters: {
+  status?: string;
+  type?: string;
+  language?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+} = {}) {
+  const page = Math.max(filters.page || 0, 0);
+  const pageSize = Math.min(Math.max(filters.pageSize || 20, 1), 50);
+  const { data, error } = await supabase.rpc("list_publication_review_queue", {
+    p_status: filters.status || null,
+    p_type: filters.type || null,
+    p_language: filters.language || null,
+    p_from: filters.from || null,
+    p_to: filters.to || null,
+    p_limit: pageSize,
+    p_offset: page * pageSize,
+  });
+  return { data: (data as Publication[]) || [], error: error?.message || null };
+}
+
+export async function archiveOwnPublication(id: string) {
+  const { data, error } = await supabase.rpc("archive_own_publication", { p_id: id });
+  return { data: (data as Publication | null) || null, error: error?.message || null };
+}
+
+export async function createPublicationRevision(id: string, notes?: string) {
+  const { data, error } = await supabase.rpc("create_publication_revision", { p_id: id, p_notes: notes || null });
+  return { data: (data as Publication | null) || null, error: error?.message || null };
+}
+
+export async function fetchRelatedPublications(id: string) {
+  const { data, error } = await supabase.rpc("list_related_publications", { p_id: id, p_limit: 6 });
+  return { data: (data as Publication[]) || [], error: schemaSafeError(error?.message) };
+}
+
+export async function fetchReviewActions(publicationId: string) {
+  const { data, error } = await supabase
+    .from("publication_review_actions")
+    .select("id, action, reason, created_at, actor_id")
+    .eq("publication_id", publicationId)
+    .order("created_at", { ascending: false });
+  return { data: data || [], error: error?.message || null };
+}
+
+export async function togglePublicationBookmark(publicationId: string) {
+  const { data: existing } = await supabase
+    .from("publication_bookmarks")
+    .select("id")
+    .eq("publication_id", publicationId)
+    .is("chapter_id", null)
+    .maybeSingle();
+  if (existing?.id) {
+    const { error } = await supabase.from("publication_bookmarks").delete().eq("id", existing.id);
+    return { saved: false, error: error?.message || null };
+  }
+  const { error } = await supabase.from("publication_bookmarks").insert({ publication_id: publicationId });
+  return { saved: true, error: error?.message || null };
+}
+
+export async function fetchPublicationById(id: string) {
+  const { data, error } = await supabase
+    .from("publications")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data?.slug) return { data: null as Publication | null, error: error?.message || "This draft is not available." };
+  return fetchPublicationBySlug(data.slug);
 }

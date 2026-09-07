@@ -18,4 +18,10 @@ describe("platform roles", () => {
     expect(hasCapability(["member"], "moderate_community")).toBe(false);
     expect(hasCapability(["community_moderator"], "moderate_community")).toBe(true);
   });
+
+  it("does not let ordinary members review publications", () => {
+    expect(hasCapability(["member"], "review_publications")).toBe(false);
+    expect(hasCapability(["research_editor"], "review_publications")).toBe(true);
+    expect(hasCapability([], "review_publications", true)).toBe(true);
+  });
 });
