@@ -89,9 +89,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder
           VITE_SITE_URL: http://127.0.0.1:3001
           VITE_PORT: "3001"
-          VITE_PLATFORM_PRIVATE: "true"
-          VITE_PLATFORM_ACCESS_ALLOWLIST: ci@example.com
-          VITE_ADMIN_EMAIL: ci@example.com
+          VITE_PLATFORM_PRIVATE: "false"
           VITE_APP_TITLE: Flavor Experts Network
-          VITE_APP_DESCRIPTION: Under development
+          VITE_APP_DESCRIPTION: Professional community for flavor scientists and food technologists
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:3001
