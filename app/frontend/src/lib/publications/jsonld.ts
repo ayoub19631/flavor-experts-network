@@ -32,10 +32,11 @@ export function publicationJsonLd(publication: Publication, language: "en" | "ar
     version: String(publication.version_number),
     ...(publication.doi ? { identifier: publication.doi } : {}),
     ...(publication.isbn ? { isbn: publication.isbn } : {}),
+    ...(publication.page_count ? { numberOfPages: publication.page_count } : {}),
     author: authors.length ? authors : personJsonLd(firstAuthorName(publication) || SITE.name),
     publisher: {
       "@type": "Organization",
-      name: SITE.name,
+      name: publication.publisher || publication.institution || SITE.name,
       url: PUBLIC_SITE_ORIGIN,
     },
   };
