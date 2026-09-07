@@ -1,27 +1,12 @@
-import { supabase } from "@/lib/supabase";
+import { searchAdapter, type SearchHit } from "@/lib/search";
 
-export type UnifiedHit = {
-  entity_type: string;
-  entity_id: string;
-  title: string;
-  href: string;
-  rank: number;
-};
+export type UnifiedHit = Pick<SearchHit, "entity_type" | "entity_id" | "title" | "href" | "rank">;
 
 export async function unifiedSearch(query: string) {
-  const { data, error } = await supabase.rpc("unified_search", {
-    p_query: query,
-    p_limit: 8,
-  });
-  return { data: (data as UnifiedHit[]) || [], error: error?.message || null };
+  const result = await searchAdapter.search(query, undefined, null, 8);
+  return { data: result.hits, error: result.error };
 }
 
 export async function rememberSearch(query: string) {
-  const { data: session } = await supabase.auth.getUser();
-  if (!session.user) return;
-  await supabase.from("search_recents").upsert({
-    user_id: session.user.id,
-    query,
-    created_at: new Date().toISOString(),
-  });
+  await searchAdapter.remember(query);
 }
