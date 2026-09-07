@@ -1,6 +1,6 @@
 {
   "production_ref": "imucfofvdwfyexdwrsfe",
-  "updated_at": "2026-09-07T22:48:59.050Z",
+  "updated_at": "2026-09-07T23:22:50.175Z",
   "files": [
     {
       "version": "20260724120000",
@@ -596,8 +596,8 @@
       "version": "20260908120000",
       "filename": "20260908120000_phase7a_search_schema.sql",
       "sha256": "0a33411757c8882e97054da0f95b7406925010f7ce6ae689335cc8975778f9a0",
-      "production_status": "local",
-      "equivalent_remote": null,
+      "production_status": "applied",
+      "equivalent_remote": "20260907231100",
       "repair_reason": null,
       "immutable": true,
       "documented_edit": null
@@ -606,8 +606,8 @@
       "version": "20260908130000",
       "filename": "20260908130000_phase7b_search_engine.sql",
       "sha256": "013dda1437154213f93f78dc9e33479993723f4a4f88f7795c7136e17db26b53",
-      "production_status": "local",
-      "equivalent_remote": null,
+      "production_status": "applied",
+      "equivalent_remote": "20260907231125",
       "repair_reason": null,
       "immutable": true,
       "documented_edit": null
@@ -616,8 +616,8 @@
       "version": "20260908140000",
       "filename": "20260908140000_phase7d_discover.sql",
       "sha256": "556d03ecf1d87b511599c13cfe2fee36f48f04c66bdd192275d06283b8d8dfc1",
-      "production_status": "local",
-      "equivalent_remote": null,
+      "production_status": "applied",
+      "equivalent_remote": "20260907231239",
       "repair_reason": null,
       "immutable": true,
       "documented_edit": null
@@ -626,9 +626,39 @@
       "version": "20260908150000",
       "filename": "20260908150000_phase7e_search_security.sql",
       "sha256": "2f8e85966da70e33937398eb939c50c2a93c29cb515bcb875fa8c4fbeefcf904",
-      "production_status": "local",
-      "equivalent_remote": null,
+      "production_status": "applied",
+      "equivalent_remote": "20260907231255",
       "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908160000",
+      "filename": "20260908160000_phase7f_search_rank_grants.sql",
+      "sha256": "7a89ea07f36e4f68a7625b877d1da91d681b6304e06c7a54f64eb551eeef4ad8",
+      "production_status": "applied",
+      "equivalent_remote": "20260907231556",
+      "repair_reason": "Corrective: widen search_rank numeric types, pin helper search_path, revoke leftover anon grants.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908170000",
+      "filename": "20260908170000_phase7g_anon_subscription_execute.sql",
+      "sha256": "89f5fef0eaee4ff40e6902c1a98da6587528ed2e8bc0a605a434276d5af6b666",
+      "production_status": "applied",
+      "equivalent_remote": "20260907231807",
+      "repair_reason": "Corrective: allow guest RLS to evaluate has_active_subscription() as false instead of erroring.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908180000",
+      "filename": "20260908180000_phase7h_search_match_guard.sql",
+      "sha256": "e6f3223ef44cb16313e18eaf43594415b82ddcc6443cad7a5694c3aff1ebf78b",
+      "production_status": "applied",
+      "equivalent_remote": "20260907232234",
+      "repair_reason": "Corrective: gate loose trigram to short queries and honor block/mute on publications and events.",
       "immutable": true,
       "documented_edit": null
     }

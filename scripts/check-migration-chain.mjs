@@ -57,6 +57,9 @@ const PHASE6_REQUIRES = {
   "20260908130000": ["search_analytics"],
   "20260908140000": ["job_listings", "forum_topics"],
   "20260908150000": ["search_analytics"],
+  "20260908160000": ["search_analytics"],
+  "20260908170000": ["search_analytics"],
+  "20260908180000": ["publications", "events"],
 };
 
 const errors = [];

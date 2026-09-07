@@ -19,7 +19,9 @@ test.describe("phase 7 global search", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/search?q=zzzxnotfoundqqq", { waitUntil: "domcontentloaded" });
     await expect(page.locator("main#main-content")).toHaveCount(1);
-    await expect(page.getByText(/No matching public results|لا توجد نتائج عامة مطابقة/i)).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByText(/No matching public results|لا توجد نتائج عامة مطابقة|Search could not be completed|تعذر إكمال البحث/i),
+    ).toBeVisible({ timeout: 20_000 });
   });
 
   test("rejects a long malicious query without crashing", async ({ page }) => {

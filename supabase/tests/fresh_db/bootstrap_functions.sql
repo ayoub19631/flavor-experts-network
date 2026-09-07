@@ -1,5 +1,15 @@
 -- Applied after pre_phase6_tables.sql on a clean local/CI database only.
 
+CREATE OR REPLACE FUNCTION public.has_active_subscription()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT (SELECT auth.uid()) IS NOT NULL;
+$$;
+
 CREATE OR REPLACE FUNCTION public.is_platform_admin()
 RETURNS boolean
 LANGUAGE sql
