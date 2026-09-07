@@ -4,6 +4,7 @@ import { extraTranslations } from "@/lib/locales/extra";
 import { academyTranslations } from "@/lib/academy-i18n";
 import { platformTranslations } from "@/lib/platform-i18n";
 import { publicationsTranslations } from "@/lib/publications-i18n";
+import { phase5Translations } from "@/lib/phase5-i18n";
 
 export type { Language };
 
@@ -745,6 +746,7 @@ const translations: Record<"en" | "ar", Record<string, string>> = {
     "newsletter.error.submit": "Subscription failed. Please try again.",
     ...platformTranslations.en,
     ...publicationsTranslations.en,
+    ...phase5Translations.en,
   },
   ar: {
     ...academyTranslations.ar,
@@ -1476,6 +1478,7 @@ const translations: Record<"en" | "ar", Record<string, string>> = {
     "newsletter.error.submit": "فشل الاشتراك. حاول مرة أخرى.",
     ...platformTranslations.ar,
     ...publicationsTranslations.ar,
+    ...phase5Translations.ar,
   },
 };
 

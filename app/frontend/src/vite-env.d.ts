@@ -15,6 +15,7 @@ interface ImportMetaEnv {
   readonly VITE_SOCIAL_YOUTUBE?: string;
   readonly VITE_SOCIAL_LINKEDIN_PAGE?: string;
   readonly VITE_SOCIAL_LINKEDIN_GROUP?: string;
+  readonly VITE_FEATURE_PHASE5_WORKFLOWS?: string;
 }
 
 interface ImportMeta {

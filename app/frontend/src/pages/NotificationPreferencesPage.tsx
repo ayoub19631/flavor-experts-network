@@ -10,34 +10,37 @@ import { toast } from "sonner";
 
 function Inner() {
   const { user } = useAuth();
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const [email, setEmail] = useState(false);
   const [digest, setDigest] = useState("off");
-  usePageMeta({ title: "Notification preferences", path: "/notifications/preferences", noIndex: true });
+  usePageMeta({ title: t("notif.prefs.title"), path: "/notifications/preferences", noIndex: true });
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <form
-        className="pt-24 pb-16 mx-auto max-w-lg px-4 space-y-4"
+        className="mx-auto max-w-lg space-y-4 px-4 pb-16 pt-24"
         onSubmit={async (event) => {
           event.preventDefault();
           if (!user) return;
           const result = await upsertNotificationPreferences(user.id, { in_app: true, email, digest });
-          toast[result.error ? "error" : "success"](result.error || (lang === "ar" ? "تم الحفظ" : "Saved"));
+          toast[result.error ? "error" : "success"](result.error || t("notif.prefs.saved"));
         }}
       >
-        <h1 className="text-2xl font-bold">{lang === "ar" ? "تفضيلات الإشعارات" : "Notification preferences"}</h1>
+        <h1 className="text-2xl font-bold">{t("notif.prefs.title")}</h1>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={email} onChange={(event) => setEmail(event.target.checked)} />
-          {lang === "ar" ? "بريد اختياري" : "Optional email alerts"}
+          {t("notif.prefs.email")}
         </label>
-        <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={digest} onChange={(event) => setDigest(event.target.value)}>
-          <option value="off">{lang === "ar" ? "بدون ملخص" : "No digest"}</option>
-          <option value="daily">{lang === "ar" ? "يومي" : "Daily"}</option>
-          <option value="weekly">{lang === "ar" ? "أسبوعي" : "Weekly"}</option>
-        </select>
-        <Button type="submit">{lang === "ar" ? "حفظ" : "Save"}</Button>
+        <label className="block text-sm">
+          <span className="sr-only">{t("notif.prefs.digest.off")}</span>
+          <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={digest} onChange={(event) => setDigest(event.target.value)}>
+            <option value="off">{t("notif.prefs.digest.off")}</option>
+            <option value="daily">{t("notif.prefs.digest.daily")}</option>
+            <option value="weekly">{t("notif.prefs.digest.weekly")}</option>
+          </select>
+        </label>
+        <Button type="submit">{t("notif.prefs.save")}</Button>
       </form>
     </div>
   );
