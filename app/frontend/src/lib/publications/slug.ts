@@ -13,12 +13,19 @@ export function isSafeStorageSegment(value: string): boolean {
   return /^[a-zA-Z0-9._-]+$/.test(value) && !value.includes("..");
 }
 
-export function buildPublicationStoragePath(publicationId: string, fileId: string, filename: string): string {
+export function buildPublicationStoragePath(
+  ownerId: string,
+  publicationId: string,
+  filename: string,
+): string {
+  if (!isSafeStorageSegment(ownerId) || !isSafeStorageSegment(publicationId) || filename.includes("..") || /[\\/]/.test(filename)) {
+    throw new Error("Unsafe storage path.");
+  }
   const ext = filename.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
   const random = typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return `${publicationId}/${fileId}/${random}.${ext}`;
+    ? crypto.randomUUID().replace(/-/g, "")
+    : `${Date.now()}${Math.random().toString(36).slice(2)}`;
+  return `${ownerId}/${publicationId}/${random}.${ext}`;
 }
 
 export function extensionFromName(filename: string): string {
