@@ -23,6 +23,36 @@
 -- 19. review_verification_request writes audit_logs
 -- 20. Duplicate idempotency keys do not create a second notification
 
-SELECT 'Prepare with two members, one moderator, one admin on Staging, then execute the cases above via supabase test db or authenticated RPC calls.' AS note;
-
+-- Schema gate used by CI/local before the authenticated cases below.
 SELECT public.phase5_workflows_ready() AS phase5_ready;
+
+DO $$
+BEGIN
+  IF to_regclass('public.forum_topic_mentions') IS NULL
+     OR to_regclass('public.forum_reply_mentions') IS NULL THEN
+    RAISE EXCEPTION 'Phase 5E forum mention tables are missing';
+  END IF;
+END
+$$;
+
+-- Prepare with synthetic Staging accounts only, then execute the 20 cases via
+-- authenticated RPC/REST (never against production):
+-- 1-2 notifications recipient-only / no forged insert
+-- 3 emit_event_notification skips actor = recipient
+-- 4 blocked pairs do not emit
+-- 5-6 verification object path + isolation
+-- 7 unauthorized staff cannot review
+-- 8 approval grants role
+-- 9 user cannot self-grant
+-- 10 audit_logs immutable
+-- 11 company application isolation
+-- 12 reporter sees own reports
+-- 13 ordinary members cannot call list_moderation_queue
+-- 14 soft-deleted posts hidden
+-- 15 restore capability-gated
+-- 16 applicant withdraw
+-- 17 mutes add no capability
+-- 18 can_access_verification_object owner/reviewer
+-- 19 review writes audit_logs
+-- 20 duplicate idempotency keys do not create a second notification
+
