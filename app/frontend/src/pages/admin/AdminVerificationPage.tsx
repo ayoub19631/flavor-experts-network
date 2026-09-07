@@ -68,7 +68,7 @@ export default function AdminVerificationPage() {
           <label className="text-sm">
             {t("ops.filters.status")}
             <select className="mt-1 h-10 w-full rounded-md border bg-background px-3" value={status} onChange={(event) => setStatus(event.target.value)}>
-              <option value="">All</option>
+              <option value="">{t("ops.filters.all")}</option>
               <option value="submitted">submitted</option>
               <option value="under_review">under_review</option>
               <option value="needs_more_information">needs_more_information</option>
@@ -79,7 +79,7 @@ export default function AdminVerificationPage() {
           <label className="text-sm">
             {t("verify.kind")}
             <select className="mt-1 h-10 w-full rounded-md border bg-background px-3" value={kind} onChange={(event) => setKind(event.target.value)}>
-              <option value="">All</option>
+              <option value="">{t("ops.filters.all")}</option>
               <option value="professional">professional</option>
               <option value="company">company</option>
             </select>
@@ -90,7 +90,12 @@ export default function AdminVerificationPage() {
           </label>
         </div>
         {loading && <p className="text-sm text-muted-foreground">{t("verify.loading")}</p>}
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && (
+          <div className="text-sm text-destructive">
+            <p>{error}</p>
+            <Button className="mt-2" size="sm" variant="outline" onClick={() => load()}>{t("notif.retry")}</Button>
+          </div>
+        )}
         {!loading && !error && rows.length === 0 && <p className="text-sm text-muted-foreground">{t("admin.verify.empty")}</p>}
         <ul className="space-y-4">
           {rows.map((row) => (

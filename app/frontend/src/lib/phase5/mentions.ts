@@ -13,13 +13,13 @@ export type MentionToken = {
 export const MENTION_ENTITY_TYPES = ["post", "comment", "forum_topic", "forum_reply"] as const;
 export type MentionEntityType = (typeof MENTION_ENTITY_TYPES)[number];
 
-const MENTION_TOKEN = /@\[([^\]]+)\]\(([0-9a-f-]{36})\)/gi;
+const MENTION_TOKEN = /@\[([^\]]+)\]\(([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\)/gi;
 const AT_QUERY = /(^|[\s([{])@([^\s@[]{0,40})$/;
 
 export function extractMentionIds(text: string): string[] {
   const ids = new Set<string>();
   for (const match of text.matchAll(new RegExp(MENTION_TOKEN.source, "gi"))) {
-    if (match[2]) ids.add(match[2]);
+    if (match[2]) ids.add(match[2].toLowerCase());
   }
   return [...ids];
 }

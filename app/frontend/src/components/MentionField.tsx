@@ -87,6 +87,8 @@ export default function MentionField({
         aria-autocomplete="list"
         aria-controls={open ? listId : undefined}
         aria-expanded={open}
+        aria-activedescendant={open && items[active] ? `${listId}-${items[active].profile_id}` : undefined}
+        autoComplete="off"
         onChange={(event) => {
           const next = event.target.value;
           onChange(maxLength ? next.slice(0, maxLength) : next);
@@ -115,17 +117,17 @@ export default function MentionField({
           id={listId}
           role="listbox"
           aria-label={t("mention.label")}
-          className="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-md border bg-popover p-1 text-sm shadow-md"
+          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover p-1 text-sm shadow-md"
         >
           {loading && <li className="px-2 py-1.5 text-muted-foreground">{t("mention.searching")}</li>}
           {!loading && items.length === 0 && (
             <li className="px-2 py-1.5 text-muted-foreground">{t("mention.empty")}</li>
           )}
           {items.map((item, index) => (
-            <li key={item.profile_id} role="option" aria-selected={index === active}>
+            <li key={item.profile_id} id={`${listId}-${item.profile_id}`} role="option" aria-selected={index === active}>
               <button
                 type="button"
-                className={`flex w-full flex-col rounded px-2 py-1.5 text-start ${index === active ? "bg-primary/10" : ""}`}
+                className={`flex min-h-11 w-full flex-col rounded px-2 py-2 text-start ${index === active ? "bg-primary/10" : ""}`}
                 onMouseDown={(event) => {
                   event.preventDefault();
                   applyMention(item);

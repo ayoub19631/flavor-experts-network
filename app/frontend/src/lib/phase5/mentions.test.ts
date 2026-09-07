@@ -20,6 +20,11 @@ describe("mentions", () => {
     expect(extractMentionIds('<a href="javascript:alert(1)">@x</a>')).toEqual([]);
   });
 
+  it("rejects invalid profile ids in mention tokens", () => {
+    expect(extractMentionIds("Hello @[Ada](not-a-uuid)")).toEqual([]);
+    expect(extractMentionIds("Hello @[Ada](11111111-1111-1111-1111-11111111111)")).toEqual([]);
+  });
+
   it("finds an @ query at the caret", () => {
     expect(mentionCaretQuery("Hi @ada", 7)).toEqual({ query: "ada", start: 3 });
   });

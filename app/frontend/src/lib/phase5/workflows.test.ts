@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { canGrantRole, canSelfAssign, hasCapability } from "@/lib/phase4/roles";
 import { isMissingRelation, isPhase5WorkflowsEnabled } from "./flags";
+import { mentionIdempotencyKey } from "./mentions";
+import { clampPageSize, shouldSkipSelfNotify } from "./security";
 
 describe("phase 5 permission contracts", () => {
   it("1-2. notifications stay recipient-owned in the client contract", () => {
@@ -44,5 +46,12 @@ describe("phase 5 permission contracts", () => {
   it("feature flag is not a security boundary", () => {
     expect(typeof isPhase5WorkflowsEnabled()).toBe("boolean");
     expect(hasCapability(["member"], "admin", false)).toBe(false);
+  });
+
+  it("encodes mention idempotency and skips self notify", () => {
+    const actor = "11111111-1111-1111-1111-111111111111";
+    expect(shouldSkipSelfNotify(actor, actor)).toBe(true);
+    expect(mentionIdempotencyKey("forum_reply", "r1", actor)).toBe(`mention:forum_reply:r1:${actor}`);
+    expect(clampPageSize(20)).toBe(20);
   });
 });

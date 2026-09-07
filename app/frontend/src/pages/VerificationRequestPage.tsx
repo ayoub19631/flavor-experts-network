@@ -183,6 +183,7 @@ function Inner() {
           />
           {progress > 0 && <Progress value={progress} aria-label={t("verify.progress")} />}
           <ul className="space-y-2">
+            {docs.length === 0 && <li className="text-sm text-muted-foreground">{t("verify.docs.empty")}</li>}
             {docs.map((doc) => (
               <li key={doc.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
                 <span>{doc.original_name || doc.storage_path.split("/").pop()}</span>

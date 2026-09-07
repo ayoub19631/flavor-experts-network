@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { isMissingRelation, isPhase5WorkflowsEnabled } from "./flags";
+import { clampPageSize } from "./security";
 import type { AppNotification } from "@/lib/phase4/notifications";
 import {
   deleteNotification as deleteLegacy,
@@ -11,9 +12,10 @@ import {
 export type { AppNotification };
 
 export async function listMyNotifications(limit = 20, before?: string) {
-  if (!isPhase5WorkflowsEnabled()) return listLegacy(limit);
+  const safeLimit = clampPageSize(limit);
+  if (!isPhase5WorkflowsEnabled()) return listLegacy(safeLimit);
   const { data, error } = await supabase.rpc("list_my_notifications", {
-    p_limit: limit,
+    p_limit: safeLimit,
     p_before: before || null,
   });
   if (error) {

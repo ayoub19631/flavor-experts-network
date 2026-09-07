@@ -15,10 +15,11 @@ import { useAuth } from "@/lib/auth";
 import type { Notification } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
 import { listMyNotifications, markAllMyNotificationsRead, markMyNotificationRead, unreadNotificationCount } from "@/lib/phase5/notifications";
+import { safeAppPath } from "@/lib/phase5/security";
 
 export default function NotificationBell() {
   const { user } = useAuth();
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const [items, setItems] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
 
@@ -55,6 +56,7 @@ export default function NotificationBell() {
         (payload) => {
           const row = payload.new as Notification;
           setItems((prev) => [row, ...prev].slice(0, 20));
+          if (!row.is_read) setUnread((count) => count + 1);
         },
       )
       .on(
@@ -125,7 +127,7 @@ export default function NotificationBell() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/notifications" className="text-xs text-primary">{lang === "ar" ? "فتح مركز الإشعارات" : "Open notification center"}</Link>
+          <Link to="/notifications" className="text-xs text-primary">{t("notif.open_center")}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
@@ -140,7 +142,7 @@ export default function NotificationBell() {
               onClick={() => markRead(n.id)}
             >
               {n.link ? (
-                <Link to={n.link} className="w-full">
+                <Link to={safeAppPath(n.link)} className="w-full">
                   <p className="text-sm font-medium text-foreground">{n.title}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2">{n.body}</p>
                 </Link>

@@ -108,7 +108,12 @@ export default function AdminOpsPage() {
               <Input type="date" aria-label={t("ops.filters.date")} value={from} onChange={(event) => setFrom(event.target.value)} />
             </div>
             {loading && <p className="text-sm text-muted-foreground" role="status">{t("ops.loading")}</p>}
-            {error && <p className="text-sm text-destructive">{t("ops.error")}</p>}
+            {error && (
+              <div className="text-sm text-destructive">
+                <p>{t("ops.error")}</p>
+                <Button className="mt-2" size="sm" variant="outline" onClick={() => loadReports(0)}>{t("notif.retry")}</Button>
+              </div>
+            )}
             {!loading && reports.length === 0 && <p className="text-sm text-muted-foreground">{t("ops.empty")}</p>}
             <ul className="space-y-3">
               {reports.map((report) => (
@@ -132,6 +137,7 @@ export default function AdminOpsPage() {
         )}
         {tab === "audit" && (
           <ul className="space-y-2 text-sm">
+            {audit.length === 0 && <li className="text-muted-foreground">{t("ops.audit.empty")}</li>}
             {audit.map((row) => (
               <li key={row.id} className="rounded-lg border p-3">{row.created_at} · {row.action} · {row.entity_type} · {row.reason}</li>
             ))}

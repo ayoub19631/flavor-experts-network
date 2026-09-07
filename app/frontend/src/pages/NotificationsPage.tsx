@@ -13,6 +13,7 @@ import {
   removeMyNotification,
   type AppNotification,
 } from "@/lib/phase5/notifications";
+import { safeAppPath } from "@/lib/phase5/security";
 
 function Inner() {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ function Inner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   usePageMeta({ title: t("notif.title"), path: "/notifications", noIndex: true });
 
   const load = async (before?: string) => {
@@ -34,6 +36,7 @@ function Inner() {
       return;
     }
     setError(null);
+    setHasMore(result.data.length === 20);
     setItems((prev) => (before ? [...prev, ...result.data] : result.data));
   };
 
@@ -69,7 +72,7 @@ function Inner() {
           {items.map((item) => (
             <li key={item.id} className={`rounded-xl border p-4 ${item.is_read ? "" : "bg-primary/5"}`}>
               <Link
-                to={item.link || "/"}
+                to={safeAppPath(item.link)}
                 onClick={() => markMyNotificationRead(item.id)}
                 className="font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
@@ -89,7 +92,7 @@ function Inner() {
             </li>
           ))}
         </ul>
-        {items.length >= 20 && (
+        {hasMore && (
           <Button className="mt-4" variant="outline" disabled={loadingMore} onClick={() => load(items[items.length - 1]?.created_at)}>
             {t("notif.load_more")}
           </Button>
