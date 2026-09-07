@@ -64,6 +64,7 @@ const AdminVerificationPage = lazy(() => import("./pages/admin/AdminVerification
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
+const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
@@ -207,6 +208,7 @@ const AppRoutes = () => (
       <Route path="/community" element={<CommunityPage />} />
       <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
       <Route path="/search" element={<SearchPage />} />
+      <Route path="/discover" element={<DiscoverPage />} />
       <Route path="/blog/*" element={<BlogRoutes />} />
       <Route path="*" element={<NotFoundPage />} />
       </Routes>
