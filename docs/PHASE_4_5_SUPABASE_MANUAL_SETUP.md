@@ -3,7 +3,9 @@
 Target: existing **Flavor Experts Network** Production project.  
 Project ref: `imucfofvdwfyexdwrsfe`
 
-This repository does not connect to Supabase and does not apply SQL. You paste files in the SQL Editor.
+Production apply for 4A→5G completed on 2026-09-07 against `imucfofvdwfyexdwrsfe`.
+Corrective files: `20260907170000_phase5h_verification_bucket_limits.sql`, `20260907180000_phase5i_revoke_anon_rpc.sql`.
+Production RLS: `supabase/tests/phase5_rls_production_safe.sql` (rollback-only, no email).
 
 `supabase/tests/phase4_5_production_preflight.sql` and `supabase/tests/phase5_rls.sql` are **tests**, not migrations.
 

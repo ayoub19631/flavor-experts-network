@@ -1,6 +1,6 @@
 -- Phase 5 RLS / RPC contracts.
--- Run only against a documented Staging database. Do not run on production.
--- These assertions expect Phase 5 migrations to be applied.
+-- Schema gate only. For Production use supabase/tests/phase5_rls_production_safe.sql
+-- Do not run the commented authenticated cases below against production.
 
 -- 1. User cannot read another user's notifications
 -- 2. User cannot create a forged notification for someone else
