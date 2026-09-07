@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import MentionField from "@/components/MentionField";
 import {
   ArrowLeft,
   Loader2,
@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { enrichTopicsWithAuthors } from "@/lib/forum";
+import { saveContentMentions } from "@/lib/phase5/mention-save";
 import type { ForumCategory, ForumTopic } from "@/lib/types";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
@@ -137,6 +138,7 @@ export default function ForumCategoryPage() {
         return;
       }
 
+      await saveContentMentions("forum_topic", data.id, `${trimmedTitle}\n${trimmedBody}`);
       toast.success(t("forum.topic_created"));
       navigate(`/forum/t/${data.id}`);
     } catch {
@@ -268,14 +270,13 @@ export default function ForumCategoryPage() {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="topic-body">{t("forum.topic_body")}</Label>
-                        <Textarea
+                        <MentionField
                           id="topic-body"
                           value={body}
-                          onChange={(e) => setBody(e.target.value)}
+                          onChange={setBody}
                           placeholder={t("forum.topic_body_placeholder")}
                           rows={5}
                           disabled={submitting}
-                          required
                         />
                       </div>
                       {error && (

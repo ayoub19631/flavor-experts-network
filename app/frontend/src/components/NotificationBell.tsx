@@ -14,12 +14,14 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import type { Notification } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
+import { listMyNotifications, markAllMyNotificationsRead, markMyNotificationRead, unreadNotificationCount } from "@/lib/phase5/notifications";
+import { safeAppPath } from "@/lib/phase5/security";
 
 export default function NotificationBell() {
   const { user } = useAuth();
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const [items, setItems] = useState<Notification[]>([]);
-  const unread = items.filter((n) => !n.is_read).length;
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -29,13 +31,14 @@ export default function NotificationBell() {
     let cancelled = false;
 
     const load = async () => {
-      const { data } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (!cancelled) setItems((data as Notification[]) ?? []);
+      const [list, count] = await Promise.all([
+        listMyNotifications(20),
+        unreadNotificationCount(),
+      ]);
+      if (!cancelled) {
+        setItems((list.data as Notification[]) ?? []);
+        setUnread(count.count);
+      }
     };
 
     load();
@@ -53,6 +56,7 @@ export default function NotificationBell() {
         (payload) => {
           const row = payload.new as Notification;
           setItems((prev) => [row, ...prev].slice(0, 20));
+          if (!row.is_read) setUnread((count) => count + 1);
         },
       )
       .on(
@@ -80,18 +84,16 @@ export default function NotificationBell() {
   }, [user]);
 
   const markRead = async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    await markMyNotificationRead(id);
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    setUnread((count) => Math.max(0, count - 1));
   };
 
   const markAll = async () => {
     if (!user || unread === 0) return;
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
+    await markAllMyNotificationsRead(user.id);
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnread(0);
   };
 
   if (!user) return null;
@@ -125,7 +127,7 @@ export default function NotificationBell() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link to="/notifications" className="text-xs text-primary">{lang === "ar" ? "فتح مركز الإشعارات" : "Open notification center"}</Link>
+          <Link to="/notifications" className="text-xs text-primary">{t("notif.open_center")}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         {items.length === 0 ? (
@@ -140,7 +142,7 @@ export default function NotificationBell() {
               onClick={() => markRead(n.id)}
             >
               {n.link ? (
-                <Link to={n.link} className="w-full">
+                <Link to={safeAppPath(n.link)} className="w-full">
                   <p className="text-sm font-medium text-foreground">{n.title}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2">{n.body}</p>
                 </Link>

@@ -646,7 +646,7 @@ export default function DashboardPage() {
                     { href: "/dashboard/applications", label: lang === "ar" ? "طلباتي" : "My applications" },
                     { href: "/consultations", label: lang === "ar" ? "الاستشارات" : "Consultations" },
                     { href: "/events", label: lang === "ar" ? "الفعاليات" : "Events" },
-                    { href: "/my-library", label: lang === "ar" ? "مكتبتي" : "My library" },
+                    { href: "/dashboard/publications", label: lang === "ar" ? "مكتبتي" : "My library" },
                     { href: "/verification", label: lang === "ar" ? "التوثيق" : "Verification" },
                     { href: "/dashboard/blocked", label: lang === "ar" ? "المحظورون" : "Blocked users" },
                     { href: "/dashboard/privacy", label: lang === "ar" ? "الخصوصية والأمان" : "Privacy & security" },

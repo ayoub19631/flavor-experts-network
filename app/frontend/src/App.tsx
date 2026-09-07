@@ -10,6 +10,7 @@ import { lazy, Suspense, useEffect } from "react";
 import BrandLogo from "./components/BrandLogo";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import PublicationsStaffRoute from "./components/PublicationsStaffRoute";
 import { ElectronTitleBar } from "./components/ElectronTitleBar";
 import BlogRoutes from "./blog-routes";
 import EmailVerificationGuard from "./components/EmailVerificationGuard";
@@ -59,6 +60,7 @@ const AccountControlsPage = lazy(() => import("./pages/dashboard/AccountControls
 const BlockedUsersPage = lazy(() => import("./pages/dashboard/BlockedUsersPage"));
 const ConnectionsInboxPage = lazy(() => import("./pages/dashboard/ConnectionsInboxPage"));
 const VerificationRequestPage = lazy(() => import("./pages/VerificationRequestPage"));
+const AdminVerificationPage = lazy(() => import("./pages/admin/AdminVerificationPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
@@ -76,6 +78,7 @@ const SubmitPublicationPage = lazy(() => import("./pages/library/SubmitPublicati
 const PublicationPoliciesPage = lazy(() => import("./pages/library/PublicationPoliciesPage"));
 const AdminPublicationsPage = lazy(() => import("./pages/admin/AdminPublicationsPage"));
 const PublicationEditorPage = lazy(() => import("./pages/admin/PublicationEditorPage"));
+const PublicationSlugPage = lazy(() => import("./pages/library/PublicationSlugPage"));
 
 const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations", "/members", "/companies", "/messages", "/community"];
 
@@ -136,6 +139,8 @@ const AppRoutes = () => (
       <Route path="/email-verified" element={<ProtectedRoute requireEmailVerified={false}><EmailVerifiedPage /></ProtectedRoute>} />
       <Route path="/pricing" element={<Navigate to="/" replace />} />
       <Route path="/enterprise" element={<EnterpriseServicesPage />} />
+      <Route path="/dashboard/publications/:id" element={<ProtectedRoute><PublicationEditorPage /></ProtectedRoute>} />
+      <Route path="/dashboard/publications" element={<ProtectedRoute><MyLibraryPage /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/dashboard/jobs" element={<Navigate to="/jobs" replace />} />
       <Route path="/dashboard/consultations" element={<Navigate to="/consultations" replace />} />
@@ -157,10 +162,15 @@ const AppRoutes = () => (
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/auth/error" element={<AuthError />} />
       <Route path="/admin/academy/:courseId" element={<AdminRoute><AcademyBuilderPage /></AdminRoute>} />
-      <Route path="/admin/publications/:id" element={<AdminRoute><PublicationEditorPage /></AdminRoute>} />
-      <Route path="/admin/publications" element={<AdminRoute><AdminPublicationsPage /></AdminRoute>} />
-      <Route path="/admin/ops" element={<AdminRoute><AdminOpsPage /></AdminRoute>} />
+      <Route path="/admin/publications/:id" element={<PublicationsStaffRoute><PublicationEditorPage /></PublicationsStaffRoute>} />
+      <Route path="/admin/publications" element={<PublicationsStaffRoute><AdminPublicationsPage /></PublicationsStaffRoute>} />
+      <Route path="/admin/ops" element={<AdminRoute capability="moderate_community"><AdminOpsPage /></AdminRoute>} />
+      <Route path="/admin/verification" element={<AdminRoute capability="review_verification"><AdminVerificationPage /></AdminRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+      <Route path="/publications/books" element={<BooksPage />} />
+      <Route path="/publications/research" element={<ResearchPage />} />
+      <Route path="/publications/:slug" element={<PublicationSlugPage />} />
+      <Route path="/publications" element={<LibraryPage />} />
       <Route path="/library" element={<LibraryPage />} />
       <Route path="/books/:slug/chapters/:chapterSlug" element={<BookReaderPage />} />
       <Route path="/books/:slug" element={<BookDetailPage />} />

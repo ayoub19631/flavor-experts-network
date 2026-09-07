@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import SeoJsonLd, { breadcrumbJsonLd } from "@/components/SeoJsonLd";
 import CitationBlock from "@/components/publications/CitationBlock";
+import PublicationActions from "@/components/publications/PublicationActions";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -48,7 +49,7 @@ export default function ResearchDetailPage() {
   usePageMeta({
     title,
     description,
-    path: `/research/${slug}`,
+    path: `/publications/${slug}`,
     locale: lang,
     type: "article",
     noIndex: !publication || !["published", "corrected", "retracted"].includes(publication.status) || publication.visibility !== "public",
@@ -69,8 +70,8 @@ export default function ResearchDetailPage() {
       <SeoJsonLd data={[
         breadcrumbJsonLd([
           { name: t("nav.home"), path: "/" },
-          { name: t("research.title"), path: "/research" },
-          { name: title, path: `/research/${slug}` },
+          { name: t("research.title"), path: "/publications/research" },
+          { name: title, path: `/publications/${slug}` },
         ]),
         publicationJsonLd(publication, language),
       ]} />
@@ -134,6 +135,7 @@ export default function ResearchDetailPage() {
             </div>
           </section>
         )}
+        <PublicationActions publication={publication} />
         <div className="mt-8">
           <CitationBlock
             publicationId={publication.id}
@@ -142,8 +144,10 @@ export default function ResearchDetailPage() {
               authors: publication.publication_authors || [],
               publishedAt: publication.published_at,
               doi: publication.doi,
-              url: canonicalUrl(`/research/${slug}`),
+              url: canonicalUrl(`/publications/${slug}`),
               type: publication.type,
+              publisher: publication.publisher || undefined,
+              isbn: publication.isbn,
             }}
           />
         </div>

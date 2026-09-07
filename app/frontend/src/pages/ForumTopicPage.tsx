@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import MentionField from "@/components/MentionField";
+import MentionRichText from "@/components/MentionRichText";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
@@ -19,6 +21,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { enrichRepliesWithAuthors, enrichTopicsWithAuthors } from "@/lib/forum";
+import { saveContentMentions } from "@/lib/phase5/mention-save";
 import type { ForumCategory, ForumReply, ForumTopic } from "@/lib/types";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
@@ -58,6 +61,13 @@ export default function ForumTopicPage() {
   const [modBusy, setModBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState("");
+  const [editingTopic, setEditingTopic] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editBody, setEditBody] = useState("");
+  const [topicBusy, setTopicBusy] = useState(false);
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editReplyBody, setEditReplyBody] = useState("");
+  const [replyBusy, setReplyBusy] = useState(false);
 
   usePageMeta({
     title: topic?.title || t("forum.title"),
@@ -131,6 +141,69 @@ export default function ForumTopicPage() {
     }
   };
 
+  const startTopicEdit = () => {
+    if (!topic) return;
+    setEditTitle(topic.title);
+    setEditBody(topic.body);
+    setEditingTopic(true);
+  };
+
+  const saveTopicEdit = async () => {
+    if (!user || !topic || topic.author_id !== user.id) return;
+    const nextTitle = editTitle.trim();
+    const nextBody = editBody.trim();
+    if (!nextTitle || !nextBody) {
+      setError(t("forum.error.fields"));
+      return;
+    }
+    setTopicBusy(true);
+    setError(null);
+    const { error: updateError } = await supabase
+      .from("forum_topics")
+      .update({
+        title: nextTitle,
+        body: nextBody,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", topic.id)
+      .eq("author_id", user.id);
+    if (updateError) {
+      setTopicBusy(false);
+      setError(updateError.message);
+      return;
+    }
+    await saveContentMentions("forum_topic", topic.id, `${nextTitle}\n${nextBody}`);
+    setTopic({ ...topic, title: nextTitle, body: nextBody });
+    setEditingTopic(false);
+    setTopicBusy(false);
+    toast.success(t("forum.updated"));
+  };
+
+  const saveReplyEdit = async (replyId: string) => {
+    if (!user) return;
+    const next = editReplyBody.trim();
+    if (!next) {
+      setError(t("forum.error.fields"));
+      return;
+    }
+    setReplyBusy(true);
+    const { error: updateError } = await supabase
+      .from("forum_replies")
+      .update({ body: next, updated_at: new Date().toISOString() })
+      .eq("id", replyId)
+      .eq("author_id", user.id);
+    if (updateError) {
+      setReplyBusy(false);
+      setError(updateError.message);
+      return;
+    }
+    await saveContentMentions("forum_reply", replyId, next);
+    setReplies((prev) => prev.map((reply) => (reply.id === replyId ? { ...reply, body: next } : reply)));
+    setEditingReplyId(null);
+    setReplyBusy(false);
+    toast.success(t("forum.reply_updated"));
+  };
+
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !topic) {
@@ -153,16 +226,24 @@ export default function ForumTopicPage() {
     setError(null);
 
     try {
-      const { error: insertError } = await supabase.from("forum_replies").insert({
-        topic_id: topic.id,
-        author_id: user.id,
-        body: trimmed,
-      });
+      const { data: created, error: insertError } = await supabase
+        .from("forum_replies")
+        .insert({
+          topic_id: topic.id,
+          author_id: user.id,
+          body: trimmed,
+        })
+        .select("id")
+        .single();
 
       if (insertError) {
         setError(insertError.message || t("forum.error.reply"));
         setSubmitting(false);
         return;
+      }
+
+      if (created?.id) {
+        await saveContentMentions("forum_reply", created.id, trimmed);
       }
 
       await supabase
@@ -300,17 +381,53 @@ export default function ForumTopicPage() {
                     )}
                   </div>
                   <div className="flex items-start justify-between gap-3 mb-4">
-                    <h1 className="text-2xl font-bold text-foreground">{topic.title}</h1>
-                    <CommunitySafetyMenu entityType="forum_topic" entityId={topic.id} />
+                    {editingTopic ? (
+                      <Input
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        disabled={topicBusy}
+                        className="text-2xl font-bold h-auto py-2"
+                      />
+                    ) : (
+                      <h1 className="text-2xl font-bold text-foreground">{topic.title}</h1>
+                    )}
+                    <div className="flex items-center gap-2">
+                      {user && topic.author_id === user.id && !editingTopic && (
+                        <Button size="sm" variant="outline" className="h-8" onClick={startTopicEdit}>
+                          {t("forum.edit")}
+                        </Button>
+                      )}
+                      <CommunitySafetyMenu entityType="forum_topic" entityId={topic.id} />
+                    </div>
                   </div>
                   <AuthorBlock
                     name={topic.author?.full_name || t("forum.anonymous")}
                     avatarUrl={topic.author?.avatar_url}
                     date={topic.created_at}
                   />
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-foreground whitespace-pre-wrap">
-                    {topic.body}
-                  </div>
+                  {editingTopic ? (
+                    <div className="space-y-3">
+                      <MentionField
+                        value={editBody}
+                        onChange={setEditBody}
+                        rows={6}
+                        disabled={topicBusy}
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" disabled={topicBusy} onClick={saveTopicEdit}>
+                          {t("forum.save")}
+                        </Button>
+                        <Button size="sm" variant="outline" disabled={topicBusy} onClick={() => setEditingTopic(false)}>
+                          {t("forum.cancel")}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <MentionRichText
+                      text={topic.body}
+                      className="prose prose-sm dark:prose-invert max-w-none text-foreground whitespace-pre-wrap"
+                    />
+                  )}
                 </CardContent>
               </Card>
 
@@ -324,12 +441,54 @@ export default function ForumTopicPage() {
                   replies.map((reply) => (
                     <Card key={reply.id} className="border border-border">
                       <CardContent className="p-5">
-                        <AuthorBlock
-                          name={reply.author?.full_name || t("forum.anonymous")}
-                          avatarUrl={reply.author?.avatar_url}
-                          date={reply.created_at}
-                        />
-                        <div className="text-sm text-foreground whitespace-pre-wrap">{reply.body}</div>
+                        <div className="flex items-start justify-between gap-3">
+                          <AuthorBlock
+                            name={reply.author?.full_name || t("forum.anonymous")}
+                            avatarUrl={reply.author?.avatar_url}
+                            date={reply.created_at}
+                          />
+                          {user && reply.author_id === user.id && editingReplyId !== reply.id && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8"
+                              onClick={() => {
+                                setEditingReplyId(reply.id);
+                                setEditReplyBody(reply.body);
+                              }}
+                            >
+                              {t("forum.edit")}
+                            </Button>
+                          )}
+                        </div>
+                        {editingReplyId === reply.id ? (
+                          <div className="space-y-3">
+                            <MentionField
+                              value={editReplyBody}
+                              onChange={setEditReplyBody}
+                              rows={4}
+                              disabled={replyBusy}
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" disabled={replyBusy} onClick={() => saveReplyEdit(reply.id)}>
+                                {t("forum.save")}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={replyBusy}
+                                onClick={() => setEditingReplyId(null)}
+                              >
+                                {t("forum.cancel")}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <MentionRichText
+                            text={reply.body}
+                            className="text-sm text-foreground whitespace-pre-wrap"
+                          />
+                        )}
                       </CardContent>
                     </Card>
                   ))
@@ -354,14 +513,13 @@ export default function ForumTopicPage() {
                     <form onSubmit={handleReply} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="reply-body">{t("forum.reply_body")}</Label>
-                        <Textarea
+                        <MentionField
                           id="reply-body"
                           value={replyBody}
-                          onChange={(e) => setReplyBody(e.target.value)}
+                          onChange={setReplyBody}
                           placeholder={t("forum.reply_body_placeholder")}
                           rows={4}
                           disabled={submitting}
-                          required
                         />
                       </div>
                       {error && (

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("phase 3 publications library", () => {
-  for (const path of ["/library", "/books", "/research", "/policies", "/policies/publication-ethics"]) {
+  for (const path of ["/library", "/books", "/research", "/publications", "/publications/books", "/publications/research", "/policies", "/policies/publication-ethics"]) {
     test(`${path} is publicly reachable`, async ({ page }) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
       await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
@@ -13,6 +13,11 @@ test.describe("phase 3 publications library", () => {
     await page.goto("/books/flavor-creation-fundamentals-volume-1", { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByRole("heading", { name: /Flavor Creation Fundamentals/i })).toHaveCount(0);
+  });
+
+  test("guest cannot open the author dashboard", async ({ page }) => {
+    await page.goto("/dashboard/publications", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/\/(auth|dashboard)/);
   });
 
   test("guest cannot open the publications admin", async ({ page }) => {
@@ -38,6 +43,7 @@ test.describe("phase 3 publications library", () => {
     expect(text).toMatch(/\/library/);
     expect(text).toMatch(/\/books/);
     expect(text).toMatch(/\/research/);
+    expect(text).toMatch(/\/publications/);
     expect(text).not.toMatch(/\/admin\/publications/);
     expect(text).not.toMatch(/flavor-creation-fundamentals-volume-1/);
     const libraryHits = text.match(/\/library/g) || [];

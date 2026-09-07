@@ -8,7 +8,14 @@ import type {
 } from "./types";
 
 const PUBLIC_STATUSES: PublicationStatus[] = ["published", "corrected", "retracted"];
-const AUTHOR_EDITABLE: PublicationStatus[] = ["draft", "submitted", "revision_required", "revised"];
+const AUTHOR_EDITABLE: PublicationStatus[] = [
+  "draft",
+  "submitted",
+  "revision_required",
+  "revision_requested",
+  "revised",
+  "rejected",
+];
 
 export function isPubliclyListedStatus(status: PublicationStatus): boolean {
   return PUBLIC_STATUSES.includes(status);

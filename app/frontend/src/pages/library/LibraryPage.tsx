@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
@@ -15,23 +15,28 @@ import { PUBLICATION_TYPES, AUDIENCE_LEVELS } from "@/lib/publications/types";
 
 export default function LibraryPage() {
   const { t, lang } = useI18n();
+  const { pathname } = useLocation();
+  const basePath = pathname.startsWith("/publications") ? "/publications" : "/library";
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const [type, setType] = useState("");
   const [category, setCategory] = useState("");
   const [language, setLanguage] = useState("");
   const [level, setLevel] = useState("");
+  const [sort, setSort] = useState<"newest" | "most_read">("newest");
   const [categories, setCategories] = useState<PublicationCategory[]>([]);
   const [featured, setFeatured] = useState<Publication[]>([]);
   const [items, setItems] = useState<Publication[]>([]);
   const [page, setPage] = useState(0);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pageSize = 12;
 
   usePageMeta({
     title: t("library.title"),
     description: t("library.desc"),
-    path: "/library",
+    path: basePath,
     locale: lang,
     hreflang: true,
   });
@@ -45,52 +50,51 @@ export default function LibraryPage() {
     fetchPublicationCategories().then((result) => setCategories(result.data));
   }, []);
 
+  const load = async () => {
+    setLoading(true);
+    const [featureRes, listRes] = await Promise.all([
+      listPublications({ featured: true, pageSize: 4 }),
+      listPublications({
+        query: debounced,
+        type,
+        category,
+        language,
+        level,
+        sort,
+        page,
+        pageSize,
+      }),
+    ]);
+    setFeatured(featureRes.data);
+    setItems(listRes.data);
+    setCount(listRes.count || listRes.data.length);
+    setError(listRes.error || featureRes.error);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      const [featureRes, listRes] = await Promise.all([
-        listPublications({ featured: true, pageSize: 4 }),
-        listPublications({
-          query: debounced,
-          type,
-          category,
-          language,
-          level,
-          page,
-          pageSize: 12,
-        }),
-      ]);
-      if (cancelled) return;
-      setFeatured(featureRes.data);
-      setItems((current) => (page === 0 ? listRes.data : [...current, ...listRes.data]));
-      setError(listRes.error || featureRes.error);
-      setLoading(false);
-    }
     load();
-    return () => {
-      cancelled = true;
-    };
-  }, [debounced, type, category, language, level, page]);
+  }, [debounced, type, category, language, level, sort, page]);
 
   const books = useMemo(() => items.filter((item) => item.type === "book"), [items]);
   const research = useMemo(() => items.filter((item) => item.type !== "book"), [items]);
+  const pageCount = Math.max(1, Math.ceil(count / pageSize));
 
   return (
     <div className="min-h-screen bg-background">
-      <SeoJsonLd data={breadcrumbJsonLd([{ name: t("nav.home"), path: "/" }, { name: t("library.title"), path: "/library" }])} />
+      <SeoJsonLd data={breadcrumbJsonLd([{ name: t("nav.home"), path: "/" }, { name: t("library.title"), path: basePath }])} />
       <Navbar />
       <div className="pt-24 pb-16 mx-auto max-w-6xl px-4 sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">{t("library.tag")}</p>
         <h1 className="mt-3 text-3xl sm:text-4xl font-bold">{t("library.title")}</h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-3xl">{t("library.desc")}</p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
-          <Link to="/books" className="text-primary">{t("nav.books")}</Link>
-          <Link to="/research" className="text-primary">{t("nav.research")}</Link>
+          <Link to={`${basePath === "/publications" ? "/publications/books" : "/books"}`} className="text-primary">{t("nav.books")}</Link>
+          <Link to={`${basePath === "/publications" ? "/publications/research" : "/research"}`} className="text-primary">{t("nav.research")}</Link>
           <Link to="/policies" className="text-primary">{t("policies.title")}</Link>
         </div>
 
-        <div className="mt-8 grid gap-3 md:grid-cols-5">
+        <div className="mt-8 grid gap-3 md:grid-cols-6">
           <Input value={query} onChange={(event) => { setPage(0); setQuery(event.target.value); }} placeholder={t("library.search")} className="md:col-span-2" aria-label={t("library.search")} />
           <select className="h-10 rounded-md border bg-background px-3 text-sm" value={type} onChange={(event) => { setPage(0); setType(event.target.value); }} aria-label={t("library.type")}>
             <option value="">{t("library.type")}</option>
@@ -105,6 +109,10 @@ export default function LibraryPage() {
             <option value="en">English</option>
             <option value="ar">العربية</option>
           </select>
+          <select className="h-10 rounded-md border bg-background px-3 text-sm" value={sort} onChange={(event) => { setPage(0); setSort(event.target.value as "newest" | "most_read"); }} aria-label={t("library.sort")}>
+            <option value="newest">{t("library.sort.newest")}</option>
+            <option value="most_read">{t("library.sort.most_read")}</option>
+          </select>
         </div>
         <div className="mt-3">
           <select className="h-10 rounded-md border bg-background px-3 text-sm" value={level} onChange={(event) => { setPage(0); setLevel(event.target.value); }} aria-label={t("library.level")}>
@@ -113,8 +121,13 @@ export default function LibraryPage() {
           </select>
         </div>
 
-        {error && <p className="mt-6 text-sm text-destructive" role="alert">{t("library.error")}</p>}
-        {loading && page === 0 && (
+        {error && (
+          <div className="mt-6 flex items-center gap-3" role="alert">
+            <p className="text-sm text-destructive">{t("library.error")}</p>
+            <Button type="button" size="sm" variant="outline" onClick={load}>{t("library.retry")}</Button>
+          </div>
+        )}
+        {loading && (
           <div className="flex items-center gap-2 mt-10 text-muted-foreground" role="status" aria-live="polite">
             <Loader2 className="w-4 h-4 animate-spin" /> {t("library.loading")}
           </div>
@@ -144,9 +157,11 @@ export default function LibraryPage() {
           </section>
         )}
 
-        {items.length >= 12 && (
-          <div className="mt-8 flex justify-center">
-            <Button type="button" variant="outline" onClick={() => setPage((value) => value + 1)}>{t("library.more")}</Button>
+        {count > pageSize && (
+          <div className="mt-8 flex justify-center gap-2">
+            <Button type="button" variant="outline" disabled={page === 0} onClick={() => setPage((value) => Math.max(0, value - 1))}>{t("library.prev")}</Button>
+            <span className="self-center text-sm text-muted-foreground">{t("library.page")} {page + 1} / {pageCount}</span>
+            <Button type="button" variant="outline" disabled={page + 1 >= pageCount} onClick={() => setPage((value) => value + 1)}>{t("library.more")}</Button>
           </div>
         )}
       </div>

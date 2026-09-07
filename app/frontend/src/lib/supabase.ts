@@ -11,10 +11,11 @@ import type {
 // Re-export so existing imports from supabase.ts keep working
 export type { UserProfile, Member, IndustryNews, EducationalResource, ContactMessage, EnterpriseRequest };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || "https://example.supabase.co";
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+  || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder";
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
   console.error('Missing Supabase environment variables. Check your .env file.');
 }
 

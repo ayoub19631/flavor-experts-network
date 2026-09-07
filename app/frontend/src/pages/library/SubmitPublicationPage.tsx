@@ -29,7 +29,7 @@ function SubmitInner() {
       return;
     }
     toast.success(t("pub.draft_hidden"));
-    navigate(`/my-library/${result.data.id}`);
+    navigate(`/dashboard/publications/${result.data.id}`);
   };
 
   return (

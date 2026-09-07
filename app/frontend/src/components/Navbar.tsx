@@ -46,7 +46,7 @@ export default function Navbar() {
   const primaryLinks = [
     { href: "/community", label: t("nav.community") },
     { href: "/insights", label: t("nav.insights") },
-    { href: "/library", label: t("nav.library") },
+    { href: "/publications", label: t("nav.library") },
     { href: "/members", label: t("nav.members") },
     { href: "/companies", label: t("nav.companies") },
     ...(user ? [{ href: "/messages", label: t("nav.messages") }] : []),
@@ -59,9 +59,9 @@ export default function Navbar() {
   const exploreLinks = [
     { href: "/#about", label: t("nav.about") },
     { href: "/insights", label: t("nav.insights") },
-    { href: "/library", label: t("nav.library") },
-    { href: "/books", label: t("nav.books") },
-    { href: "/research", label: t("nav.research") },
+    { href: "/publications", label: t("nav.library") },
+    { href: "/publications/books", label: t("nav.books") },
+    { href: "/publications/research", label: t("nav.research") },
     { href: "/consultations", label: t("nav.consultations") },
     { href: "/events", label: t("nav.events") },
     { href: "/enterprise", label: t("nav.enterprise") },

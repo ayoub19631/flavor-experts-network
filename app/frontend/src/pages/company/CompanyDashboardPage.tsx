@@ -16,6 +16,7 @@ function Inner() {
   const [name, setName] = useState(profile?.company || profile?.full_name || "");
   const [description, setDescription] = useState(profile?.bio || "");
   const [invite, setInvite] = useState("");
+  const [applications, setApplications] = useState<Array<{ id: string; status: string; applicant_id: string; job_id: string }>>([]);
   const isCompany = profile?.account_type === "company";
   usePageMeta({ title: lang === "ar" ? "لوحة الشركة" : "Company dashboard", path: "/company/dashboard", noIndex: true });
 
@@ -23,6 +24,12 @@ function Inner() {
     setName(profile?.company || profile?.full_name || "");
     setDescription(profile?.bio || "");
   }, [profile]);
+
+  useEffect(() => {
+    if (!user || !isCompany) return;
+    supabase.from("job_applications").select("id, status, applicant_id, job_id")
+      .then(({ data }) => setApplications((data as typeof applications) || []));
+  }, [user, isCompany]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -57,6 +64,30 @@ function Inner() {
                 });
                 toast[error ? "error" : "success"](error?.message || (lang === "ar" ? "تم إرسال الدعوة" : "Invitation sent"));
               }}>{lang === "ar" ? "إرسال دعوة" : "Send invitation"}</Button>
+            </div>
+            <div className="space-y-2">
+              <h2 className="font-semibold">{lang === "ar" ? "الطلبات" : "Applications"}</h2>
+              {applications.length === 0 && <p className="text-sm text-muted-foreground">{lang === "ar" ? "لا طلبات بعد." : "No applications yet."}</p>}
+              {applications.map((row) => (
+                <div key={row.id} className="flex items-center justify-between gap-2 rounded-lg border p-3 text-sm">
+                  <span>{row.status}</span>
+                  <select
+                    className="h-9 rounded-md border bg-background px-2"
+                    aria-label="Application status"
+                    value={row.status}
+                    onChange={async (event) => {
+                      const next = event.target.value;
+                      const { error } = await supabase.from("job_applications").update({ status: next }).eq("id", row.id);
+                      toast[error ? "error" : "success"](error?.message || next);
+                      if (!error) setApplications((list) => list.map((item) => item.id === row.id ? { ...item, status: next } : item));
+                    }}
+                  >
+                    {["submitted", "reviewing", "shortlisted", "rejected", "hired"].map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
             </div>
           </>
         )}
