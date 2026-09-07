@@ -1,18 +1,14 @@
-name: Deploy Vercel Production
+name: Deploy Vercel CLI (manual)
 
+# Automatic production deploys come from Vercel Git Integration on main.
+# This workflow is an optional CLI fallback and never runs on push/PR.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "app/frontend/**"
-      - "vercel.json"
-      - "package.json"
-      - ".github/workflows/deploy-vercel.yml"
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - name: Check Vercel secrets
         id: secrets
@@ -23,7 +19,7 @@ jobs:
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping Vercel deploy — add repository secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID."
+            echo "::notice::Skipping Vercel CLI deploy — repository secrets VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID are not configured. Automatic deploys continue via Vercel Git Integration."
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
@@ -79,7 +75,6 @@ jobs:
           VITE_PAYMENTS_ENABLED: "false"
         run: |
           set +x
-          # Production deploys only from main (workflow trigger). Never echo tokens.
           pnpm dlx vercel@39 pull --yes --environment=production --token="$VERCEL_TOKEN"
           pnpm dlx vercel@39 build --prod --token="$VERCEL_TOKEN"
           url=$(pnpm dlx vercel@39 deploy --prebuilt --prod --token="$VERCEL_TOKEN")

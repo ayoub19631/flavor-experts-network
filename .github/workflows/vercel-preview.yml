@@ -1,13 +1,9 @@
-name: Vercel Preview
+name: Deploy Vercel Preview CLI (manual)
 
+# Pull-request previews come from Vercel Git Integration.
+# This workflow is an optional CLI fallback and never runs automatically.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "app/frontend/**"
-      - "vercel.json"
-      - "package.json"
-      - ".github/workflows/vercel-preview.yml"
+  workflow_dispatch:
 
 jobs:
   preview:
@@ -22,7 +18,7 @@ jobs:
         run: |
           if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping preview deploy — add VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID. Vercel Git integration can still publish PR previews."
+            echo "::notice::Skipping Vercel CLI preview — secrets are not configured. Use Vercel Git Integration for PR previews."
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi

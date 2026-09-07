@@ -1,0 +1,103 @@
+{
+  "generated_for": "Phase 6.1",
+  "items": [
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-23hp-3jrh-7fpw",
+      "severity": "critical",
+      "production": false,
+      "reason": "@capacitor/assets@3.0.5 still vendors @capacitor/cli@5.7.8 and tar@6.2.1. No patched 6.x exists; forcing tar 7 broke that CLI 5 tree. Assets CLI is local icon generation only and is not shipped to the website."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-34x7-hfp2-rc4v",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-8qq5-rm4j-mr97",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-83g3-92jg-28cx",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-qffp-2rhf-9h96",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-9ppj-qmqm-q256",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-r6q2-hw4h-h46w",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-8x88-c5mf-7j5w",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "tar",
+      "github_advisory_id": "GHSA-r292-9mhp-454m",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+    },
+    {
+      "module": "minimatch",
+      "github_advisory_id": "GHSA-3ppc-4f35-3m26",
+      "severity": "high",
+      "production": false,
+      "reason": "Pinned by @capacitor/assets > @trapezedev/project@7.1.4 > replace@1.2.2. A global minimatch 3 override would also flatten minimatch 10 used by Capacitor CLI 8."
+    },
+    {
+      "module": "minimatch",
+      "github_advisory_id": "GHSA-7r86-cg39-jmmj",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > replace > minimatch@3.0.5 development path."
+    },
+    {
+      "module": "minimatch",
+      "github_advisory_id": "GHSA-23c5-xmqv-rm74",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets > replace > minimatch@3.0.5 development path."
+    },
+    {
+      "module": "sharp",
+      "github_advisory_id": "GHSA-f88m-g3jw-g9cj",
+      "severity": "high",
+      "production": false,
+      "reason": "@capacitor/assets@3.0.5 depends on sharp@0.32.6. The project already uses sharp@0.35.3 directly; swapping the nested 0.32 API is an incompatible assets-pipeline change."
+    },
+    {
+      "module": "vite",
+      "github_advisory_id": "GHSA-fx2h-pf6j-xcff",
+      "severity": "high",
+      "production": false,
+      "reason": "Latest Vite 5 is 5.4.21. The fix is Vite 6.4.3+, a major that would risk vite-prerender-plugin and vite-plugin-sitemap. The advisory is a Windows dev-server fs.deny bypass, not the production browser bundle."
+    }
+  ]
+}

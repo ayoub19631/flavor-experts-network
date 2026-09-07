@@ -1,15 +1,9 @@
 name: Migration chain
 
 on:
-  push:
-    paths:
-      - "supabase/migrations/**"
-      - "supabase/approved-migration-history.json"
-      - "supabase/tests/fresh_db/**"
-      - "scripts/check-migration-chain.mjs"
-      - "scripts/apply-fresh-migrations.py"
-      - ".github/workflows/migration-chain.yml"
   pull_request:
+  push:
+    branches: [main]
     paths:
       - "supabase/migrations/**"
       - "supabase/approved-migration-history.json"

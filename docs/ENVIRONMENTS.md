@@ -6,16 +6,18 @@ The frontend is Vite (`app/frontend`), not Next.js. Browser-exposed names use `V
 
 | Secret | Required for | Notes |
 |---|---|---|
-| `VERCEL_TOKEN` | Production + preview deploy workflows | Never printed in logs |
-| `VERCEL_ORG_ID` | Production + preview deploy workflows | |
-| `VERCEL_PROJECT_ID` | Production + preview deploy workflows | |
-| `VITE_SUPABASE_URL` | Production CLI build | Public project URL |
-| `VITE_SUPABASE_ANON_KEY` | Production CLI build | Anon/publishable key only |
-| `SUPABASE_ACCESS_TOKEN` | `deploy-supabase.yml` | Personal access token |
-| `SUPABASE_DB_PASSWORD` | `deploy-supabase.yml` db push | Prefer over Management API fallback |
+| `VERCEL_TOKEN` | Manual Vercel CLI fallback only | Never printed in logs. Automatic deploys use Vercel Git Integration |
+| `VERCEL_ORG_ID` | Manual Vercel CLI fallback only | |
+| `VERCEL_PROJECT_ID` | Manual Vercel CLI fallback only | |
+| `VITE_SUPABASE_URL` | Manual CLI / Pages build | Public project URL |
+| `VITE_SUPABASE_ANON_KEY` | Manual CLI / Pages build | Anon/publishable key only |
+| `SUPABASE_ACCESS_TOKEN` | Manual `deploy-supabase.yml` | Personal access token |
+| `SUPABASE_DB_PASSWORD` | Manual `deploy-supabase.yml` db push | Required if `apply_migrations` is selected |
 | `CRON_SECRET` | Daily market workflow | |
 
-Production deploy workflow runs only on `main`. Pull requests get preview builds from this repo’s preview workflow and/or Vercel Git integration.
+Automatic frontend deploys come from **Vercel Git Integration** on `main` and pull-request previews. The Vercel CLI workflows are `workflow_dispatch` only and skip when secrets are missing.
+
+Supabase migrations and Edge Function deploys are **manual** (`workflow_dispatch`) and use the GitHub `Production` environment with required reviewers. They never run on pull requests. Ordinary CI keeps `migration guard` and `fresh-db` offline.
 
 ## Vercel project environment variables
 
