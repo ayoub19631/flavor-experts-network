@@ -85,6 +85,7 @@ def main() -> int:
             p.name.startswith("202609072")
             and not p.name.startswith("20260907201000")
         )
+        or p.name.startswith("202609081")
     ]
     print(f"squash_skip={len(all_files) - len(files)} apply={len(files)}")
     for path in files:

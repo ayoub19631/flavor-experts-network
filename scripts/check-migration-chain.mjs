@@ -53,6 +53,10 @@ const PHASE6_REQUIRES = {
   "20260907230000": ["publications", "publication_events", "publication_related"],
   "20260907240000": ["publications", "publication_staff"],
   "20260907250000": ["publications", "publication_authors", "reading_progress"],
+  "20260908120000": ["member_directory_data", "events", "market_materials"],
+  "20260908130000": ["search_analytics"],
+  "20260908140000": ["job_listings", "forum_topics"],
+  "20260908150000": ["search_analytics"],
 };
 
 const errors = [];

@@ -1,7 +1,6 @@
 {
   "production_ref": "imucfofvdwfyexdwrsfe",
-  "updated_at": "2026-09-07T22:00:00Z",
-  "repair_policy": "migration repair --status applied is history-only. Use it only when Production already has the equivalent schema effect.",
+  "updated_at": "2026-09-07T22:48:59.050Z",
   "files": [
     {
       "version": "20260724120000",
@@ -590,6 +589,46 @@
       "production_status": "applied",
       "equivalent_remote": null,
       "repair_reason": "Phase 6G corrective migration applied on Production.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908120000",
+      "filename": "20260908120000_phase7a_search_schema.sql",
+      "sha256": "0a33411757c8882e97054da0f95b7406925010f7ce6ae689335cc8975778f9a0",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908130000",
+      "filename": "20260908130000_phase7b_search_engine.sql",
+      "sha256": "013dda1437154213f93f78dc9e33479993723f4a4f88f7795c7136e17db26b53",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908140000",
+      "filename": "20260908140000_phase7d_discover.sql",
+      "sha256": "556d03ecf1d87b511599c13cfe2fee36f48f04c66bdd192275d06283b8d8dfc1",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908150000",
+      "filename": "20260908150000_phase7e_search_security.sql",
+      "sha256": "2f8e85966da70e33937398eb939c50c2a93c29cb515bcb875fa8c4fbeefcf904",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
       "immutable": true,
       "documented_edit": null
     }
