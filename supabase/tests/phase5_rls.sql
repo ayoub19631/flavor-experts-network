@@ -23,6 +23,7 @@
 -- 19. review_verification_request writes audit_logs
 -- 20. Duplicate idempotency keys do not create a second notification
 
+-- Test file only. Do not treat this as a migration.
 -- Schema gate used by CI/local before the authenticated cases below.
 SELECT public.phase5_workflows_ready() AS phase5_ready;
 
