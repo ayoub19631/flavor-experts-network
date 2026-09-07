@@ -10,6 +10,9 @@ export type MentionToken = {
   displayName: string;
 };
 
+export const MENTION_ENTITY_TYPES = ["post", "comment", "forum_topic", "forum_reply"] as const;
+export type MentionEntityType = (typeof MENTION_ENTITY_TYPES)[number];
+
 const MENTION_TOKEN = /@\[([^\]]+)\]\(([0-9a-f-]{36})\)/gi;
 const AT_QUERY = /(^|[\s([{])@([^\s@[]{0,40})$/;
 
@@ -69,4 +72,8 @@ export function isAllowedVerificationFile(file: File) {
 export function sanitizeUploadName(name: string) {
   const base = name.split(/[/\\]/).pop() || "document";
   return (base.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^\.+/, "") || "document").slice(0, 80);
+}
+
+export function mentionIdempotencyKey(entityType: MentionEntityType, entityId: string, mentionedUserId: string) {
+  return `mention:${entityType}:${entityId}:${mentionedUserId}`;
 }

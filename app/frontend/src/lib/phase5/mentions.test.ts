@@ -4,6 +4,8 @@ import {
   insertMentionToken,
   isAllowedVerificationFile,
   mentionCaretQuery,
+  mentionIdempotencyKey,
+  MENTION_ENTITY_TYPES,
   renderMentionSegments,
   sanitizeUploadName,
 } from "./mentions";
@@ -35,6 +37,14 @@ describe("mentions", () => {
       { type: "text", value: "See " },
       { type: "mention", value: "Ada", profileId: id },
     ]);
+  });
+
+  it("supports forum topic and reply mention entities", () => {
+    expect(MENTION_ENTITY_TYPES).toEqual(["post", "comment", "forum_topic", "forum_reply"]);
+    const id = "44444444-4444-4444-4444-444444444444";
+    expect(extractMentionIds(`Forum note @[Ada](${id})`)).toEqual([id]);
+    expect(mentionIdempotencyKey("forum_topic", "topic-1", id)).toBe(`mention:forum_topic:topic-1:${id}`);
+    expect(mentionIdempotencyKey("forum_reply", "reply-1", id)).toBe(`mention:forum_reply:reply-1:${id}`);
   });
 });
 

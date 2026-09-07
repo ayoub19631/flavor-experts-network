@@ -31,4 +31,10 @@ test.describe("phase 5 critical routes", () => {
     await page.goto("/jobs", { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
   });
+
+  test("forum pages stay public and mention-safe", async ({ page }) => {
+    await page.goto("/forum", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("body")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Forum|المنتدى/i).first()).toBeVisible({ timeout: 20_000 });
+  });
 });
