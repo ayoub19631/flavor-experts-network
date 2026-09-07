@@ -26,6 +26,15 @@ The preflight is read-only. It does not insert, update, delete, or change migrat
 
 Stop if any row has `status = FAIL` or `blocking = true`.
 
+Latest Production preflight (2026-09-07): **no FAIL, no blocking=true**. Safe to continue after backup.
+
+Do this before 4A:
+
+- Create Storage bucket `verifications` as **Private**.
+- Leave the 2 orphan auth users untouched.
+- Expect 4A to add `member` for ~24 profiles and `super_admin`/`platform_admin` for the 1 `is_admin` row (`ON CONFLICT DO NOTHING`).
+- Contact/welcome/enterprise email triggers stay as they are. 5G only drops the forum-reply Resend trigger and tightens `notifications` / `audit_logs` grants.
+
 Typical blockers:
 
 - Missing prerequisite tables (`user_profiles`, `notifications`, `forum_topics`, …)
