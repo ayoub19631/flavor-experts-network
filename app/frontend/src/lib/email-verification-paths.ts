@@ -26,6 +26,7 @@ export const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/library",
   "/books",
   "/research",
+  "/publications",
   "/policies",
 ]);
 
@@ -47,6 +48,7 @@ export const ALLOWED_PREFIXES = [
   "/library/",
   "/books/",
   "/research/",
+  "/publications/",
   "/policies/",
 ];
 

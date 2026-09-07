@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import FooterSection from "@/components/FooterSection";
 import SeoJsonLd, { breadcrumbJsonLd } from "@/components/SeoJsonLd";
 import CitationBlock from "@/components/publications/CitationBlock";
+import PublicationActions from "@/components/publications/PublicationActions";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -52,7 +53,7 @@ export default function BookDetailPage() {
   usePageMeta({
     title,
     description,
-    path: `/books/${slug}`,
+    path: `/publications/${slug}`,
     locale: lang,
     type: "book",
     image: coverUrl || undefined,
@@ -76,8 +77,8 @@ export default function BookDetailPage() {
       <SeoJsonLd data={[
         breadcrumbJsonLd([
           { name: t("nav.home"), path: "/" },
-          { name: t("books.title"), path: "/books" },
-          { name: title, path: `/books/${slug}` },
+          { name: t("books.title"), path: "/publications/books" },
+          { name: title, path: `/publications/${slug}` },
         ]),
         publicationJsonLd(publication, language),
       ]} />
@@ -118,6 +119,8 @@ export default function BookDetailPage() {
             </li>
           ))}
         </ol>
+        {publication.keywords?.length ? <p className="mt-6 text-sm"><span className="font-medium">{t("research.keywords")}: </span>{publication.keywords.join(", ")}</p> : null}
+        <PublicationActions publication={publication} />
         <div className="mt-8">
           <CitationBlock
             publicationId={publication.id}
@@ -127,7 +130,8 @@ export default function BookDetailPage() {
               publishedAt: publication.published_at,
               doi: publication.doi,
               isbn: publication.isbn,
-              url: canonicalUrl(`/books/${slug}`),
+              url: canonicalUrl(`/publications/${slug}`),
+              publisher: publication.publisher || undefined,
               type: "book",
             }}
           />

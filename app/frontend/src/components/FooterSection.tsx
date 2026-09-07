@@ -157,7 +157,7 @@ export default function FooterSection() {
                 </a>
               </li>
               <li>
-                <a href="/library" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                <a href="/publications" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.library")}
                 </a>
               </li>
