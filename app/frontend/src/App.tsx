@@ -59,6 +59,7 @@ const AccountControlsPage = lazy(() => import("./pages/dashboard/AccountControls
 const BlockedUsersPage = lazy(() => import("./pages/dashboard/BlockedUsersPage"));
 const ConnectionsInboxPage = lazy(() => import("./pages/dashboard/ConnectionsInboxPage"));
 const VerificationRequestPage = lazy(() => import("./pages/VerificationRequestPage"));
+const AdminVerificationPage = lazy(() => import("./pages/admin/AdminVerificationPage"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
@@ -159,7 +160,8 @@ const AppRoutes = () => (
       <Route path="/admin/academy/:courseId" element={<AdminRoute><AcademyBuilderPage /></AdminRoute>} />
       <Route path="/admin/publications/:id" element={<AdminRoute><PublicationEditorPage /></AdminRoute>} />
       <Route path="/admin/publications" element={<AdminRoute><AdminPublicationsPage /></AdminRoute>} />
-      <Route path="/admin/ops" element={<AdminRoute><AdminOpsPage /></AdminRoute>} />
+      <Route path="/admin/ops" element={<AdminRoute capability="moderate_community"><AdminOpsPage /></AdminRoute>} />
+      <Route path="/admin/verification" element={<AdminRoute capability="review_verification"><AdminVerificationPage /></AdminRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/library" element={<LibraryPage />} />
       <Route path="/books/:slug/chapters/:chapterSlug" element={<BookReaderPage />} />
