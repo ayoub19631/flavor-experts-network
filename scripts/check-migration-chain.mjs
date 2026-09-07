@@ -57,8 +57,12 @@ const PHASE6_REQUIRES = {
 
 const errors = [];
 
-function sha256(buf) {
-  return createHash("sha256").update(buf).digest("hex");
+function normalizeSql(buf) {
+  return buf.toString("utf8").replace(/\r\n/g, "\n");
+}
+
+function sha256(text) {
+  return createHash("sha256").update(text).digest("hex");
 }
 
 function stripSqlComments(sql) {
@@ -71,9 +75,8 @@ function loadFiles() {
     .sort()
     .map((name) => {
       const version = name.slice(0, 14);
-      const buf = readFileSync(join(migrationsDir, name));
-      const sql = buf.toString("utf8");
-      return { name, version, sql, sha256: sha256(buf) };
+      const sql = normalizeSql(readFileSync(join(migrationsDir, name)));
+      return { name, version, sql, sha256: sha256(sql) };
     });
 }
 

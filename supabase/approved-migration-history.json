@@ -166,7 +166,7 @@
     {
       "version": "20260803120000",
       "filename": "20260803120000_welcome_email_platform_policy.sql",
-      "sha256": "4f08aa0d08fa34f74053fcd5074efc3b2ebcc0078970123d9c6424905847a653",
+      "sha256": "d384c049326ab223bea296a54b6cd49cc5636427e709663bb45694d6315420de",
       "production_status": "repaired_applied",
       "equivalent_remote": "20260829204336",
       "repair_reason": "Welcome-email policy already applied under later dashboard timestamps.",
@@ -176,7 +176,7 @@
     {
       "version": "20260804140000",
       "filename": "20260804140000_platform_fully_free.sql",
-      "sha256": "6d5168398f05a65173cf8ef72134e7082776265d0685c8337d83ea5a19e03108",
+      "sha256": "b0332e435156c1d2c9fd79cbc8153c41a27712fea2ed17bc5ac2a94f1838cd9b",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "has_active_subscription and free-access behavior already exist on Production.",
@@ -186,7 +186,7 @@
     {
       "version": "20260804140100",
       "filename": "20260804140100_welcome_email_fully_free.sql",
-      "sha256": "5d401139e75e04cd244dd9eeeb17a864152273688969648d6e243f67ecad496d",
+      "sha256": "ba38dd088a2b1eff84fdda6ab45eec274800d046e1ffc746dbb96ff7cc1013ee",
       "production_status": "repaired_applied",
       "equivalent_remote": "20260829204913",
       "repair_reason": "Welcome-email function already applied; later copy supersedes this file.",
@@ -196,7 +196,7 @@
     {
       "version": "20260804150000",
       "filename": "20260804150000_professional_member_profile.sql",
-      "sha256": "e10b8f66f3fae2af6b4dab18b3282f04df197ba19697fb98ee4cadc232cb933d",
+      "sha256": "f3c767d7f41aedad92884ad6cbbb10eab7707ad9d249e9c9e0f1a793685ad1b3",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "user_profiles.cover_url / specialty columns already exist on Production.",
@@ -206,7 +206,7 @@
     {
       "version": "20260805120000",
       "filename": "20260805120000_public_author_profiles.sql",
-      "sha256": "1e3e4449ebc97e3aacd49ed0c2cef6b58810fb8276266c87ebd207ee378460ed",
+      "sha256": "5584172a4dff29361679bebe5127d59dbd6e9754c8c24f13a76e39e5ea972091",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "public_author_profiles view (or author_profiles equivalent) already exists.",
@@ -216,7 +216,7 @@
     {
       "version": "20260805140000",
       "filename": "20260805140000_phase2_network_learning.sql",
-      "sha256": "7e6b54d52270c170702b43e9a88b91d3d1f1e24ebf4997ae342d1f7f9ecb40ea",
+      "sha256": "5c08077a6cf6b098f39acbf5885e0f624807ad17d3ca2c929c49b782f93d461a",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "member_connections / learning_paths / course_enrollments already exist.",
@@ -226,7 +226,7 @@
     {
       "version": "20260806160000",
       "filename": "20260806160000_community_comments_and_media.sql",
-      "sha256": "ed59f496f60d1762d31d08f5f77d14ea8ccd2f8cda829e29e1dea239176ef4fc",
+      "sha256": "91f3c26a30496db82b45de3c36b7511955ef8df3803243f63629b7e57ee27076",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "social_post_comments already exists on Production.",
@@ -236,7 +236,7 @@
     {
       "version": "20260809160000",
       "filename": "20260809160000_database_hardening_complete.sql",
-      "sha256": "dc448fa3276a992c75589813b01298fa9fd3816dee11e0aba02e5aba0df90df9",
+      "sha256": "5b868f34e7a1f3da89f007b336b46384afd130c28e0ac9614caead1e3791024a",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "Hardening objects from this file are already present on Production.",
@@ -246,7 +246,7 @@
     {
       "version": "20260809170000",
       "filename": "20260809170000_email_delivery_reliability.sql",
-      "sha256": "d26ec1122a0f8d2ffa052f69e72286ead283be5dcb15186dc96e6e2823c96647",
+      "sha256": "2d89c12de3a75dd5f2773d5751b3710af75f9ba8377847ecc27d9b4d9a7def45",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "Email delivery reliability objects already present on Production.",
@@ -256,7 +256,7 @@
     {
       "version": "20260809180000",
       "filename": "20260809180000_fix_security_definer_views.sql",
-      "sha256": "d0deeb7216e213802fc39b4cb25c628becc1e64729a4e088e8ff1ae5ed445b1b",
+      "sha256": "8dfef466a80d14aa446797820666a4938039b103c522690533c9daea0696693c",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "Security definer view fixes already present on Production.",
@@ -266,7 +266,7 @@
     {
       "version": "20260809190000",
       "filename": "20260809190000_members_admin_policies.sql",
-      "sha256": "b518b06b2ebb14e8fb8ffeed175052c19524861672e0e7c5227116ef59ceb89c",
+      "sha256": "c2229bbb75bac874f9f19c2032d105424aec0c12020f14e7b3d3504e8dff6a4f",
       "production_status": "repaired_applied",
       "equivalent_remote": null,
       "repair_reason": "Members admin policies already present on Production.",
@@ -276,7 +276,7 @@
     {
       "version": "20260829220000",
       "filename": "20260829220000_company_signup_and_free_access.sql",
-      "sha256": "7713fa4738f177c0a10bedd8cc478c976c4aeb5c418bf277687d79ed6234091f",
+      "sha256": "4c11e27cc1022de70f932a2d35c63a95842a8f3ddedb7935501073c16b97aade",
       "production_status": "repaired_applied",
       "equivalent_remote": "20260829190817",
       "repair_reason": "Dashboard apply of company_signup_and_free_access under a different timestamp.",
@@ -286,7 +286,7 @@
     {
       "version": "20260829223000",
       "filename": "20260829223000_sanitize_company_website_on_signup.sql",
-      "sha256": "72c5c4dbf8d13f3d4f1b00406c1b41e1cb47c93412daca899495b195dd01d3b7",
+      "sha256": "69d337b38e46877384236f95ed9e60dc108fbec40851938071ecdcab297a5f12",
       "production_status": "repaired_applied",
       "equivalent_remote": "20260829191821",
       "repair_reason": "Dashboard apply of sanitize_company_website_on_signup under a different timestamp.",
@@ -386,7 +386,7 @@
     {
       "version": "20260902120000",
       "filename": "20260902120000_publications_library.sql",
-      "sha256": "8223eb1b15e6900c0aaf1d828cc5a3c0dadf4dabe107dcb25204fe0d9eb18dcb",
+      "sha256": "e4588053cadf3585ff3a88ad466a7bf7f1890bb3c7558e3f1eea2b6513f82512",
       "production_status": "repaired_applied",
       "equivalent_remote": "20260907201000",
       "repair_reason": "Never executed. Production already received the equivalent immutable library as 20260907201000 (plain tsvector + triggers). Repair records history only so db push cannot run the old pending file.",
@@ -396,7 +396,7 @@
     {
       "version": "20260902200000",
       "filename": "20260902200000_phase4a_security_moderation.sql",
-      "sha256": "9287953096f4751aee9289ed5bd1364b149d77bee9cd60e1dd2ea2cdce73e0ac",
+      "sha256": "9975695606fc9915d86125fbd014d602f678707acc49b84bba578e9ebe717430",
       "production_status": "applied",
       "equivalent_remote": null,
       "repair_reason": null,
@@ -406,7 +406,7 @@
     {
       "version": "20260902210000",
       "filename": "20260902210000_phase4b_network.sql",
-      "sha256": "3d94227d4e7ab2dc6349d12ebbff973c3a1f61b930bbf5a811791c0a14240ad5",
+      "sha256": "86e1463415493b22f8f24f4217c1caf9b7b86826a54d2c7d0e0c9ac69f4220fc",
       "production_status": "applied",
       "equivalent_remote": null,
       "repair_reason": null,
@@ -416,7 +416,7 @@
     {
       "version": "20260902220000",
       "filename": "20260902220000_phase4c_professional.sql",
-      "sha256": "d83a16cbadf995dbc81564b6abb419b4367aaa8cb6beafbb1c114ef3bc04290e",
+      "sha256": "11c91ad2b57bd755def659e2ea6340767934cf009b94d9fdc2d74ac89d7a5943",
       "production_status": "applied",
       "equivalent_remote": null,
       "repair_reason": null,
@@ -426,7 +426,7 @@
     {
       "version": "20260902300000",
       "filename": "20260902300000_phase4d_readiness.sql",
-      "sha256": "6292b42071064f700cfce10e6ae2b1747e5253ce00e8a2155daa625dfa76c1cf",
+      "sha256": "5905dae393a69760a5630c134518e9b530c3358caea0b695b0a6d03ea21792ae",
       "production_status": "applied",
       "equivalent_remote": null,
       "repair_reason": null,
@@ -536,7 +536,7 @@
     {
       "version": "20260907201000",
       "filename": "20260907201000_publications_library_immutable.sql",
-      "sha256": "6eff526af944226ef7ced9fed187d16e6ac17adbd01099cbd9d4fc4cc4ebe4fc",
+      "sha256": "061254d131d8bb86810789c5303f92b0fc15641845bf85d82f3e726f67bf1f0c",
       "production_status": "applied",
       "equivalent_remote": null,
       "repair_reason": null,
