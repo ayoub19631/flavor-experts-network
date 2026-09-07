@@ -7,12 +7,16 @@ on:
       - ".github/workflows/frontend-ci.yml"
       - "vercel.json"
       - "package.json"
+      - "scripts/check-capacitor-alignment.mjs"
+      - "app/frontend/pnpm-workspace.yaml"
   pull_request:
     paths:
       - "app/frontend/**"
       - ".github/workflows/frontend-ci.yml"
       - "vercel.json"
       - "package.json"
+      - "scripts/check-capacitor-alignment.mjs"
+      - "app/frontend/pnpm-workspace.yaml"
 
 defaults:
   run:
@@ -59,6 +63,9 @@ jobs:
           VITE_PLATFORM_ACCESS_ALLOWLIST: ci@example.com
           VITE_ADMIN_EMAIL: ci@example.com
           VITE_APP_DESCRIPTION: Flavor Experts Network is currently under development.
+
+      - name: Capacitor major alignment
+        run: node ../../scripts/check-capacitor-alignment.mjs
 
   e2e:
     runs-on: ubuntu-latest

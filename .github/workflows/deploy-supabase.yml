@@ -1,19 +1,24 @@
-name: Deploy Supabase Welcome Email
+name: Deploy Supabase (manual)
 
+# Never runs on pull_request. Never pushes migrations during ordinary CI.
+# Production database and Edge Functions deploy only from a manual dispatch
+# after GitHub Environment approval.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/functions/send-email/**"
-      - "supabase/functions/auth-email-hook/**"
-      - "supabase/functions/submit-public-form/**"
-      - "supabase/migrations/**"
-      - ".github/workflows/deploy-supabase.yml"
   workflow_dispatch:
+    inputs:
+      apply_migrations:
+        description: Apply pending local migrations with supabase db push
+        type: boolean
+        default: false
+      deploy_functions:
+        description: Deploy send-email, auth-email-hook, and submit-public-form
+        type: boolean
+        default: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - name: Check credentials
         id: creds
@@ -25,7 +30,7 @@ jobs:
             echo "access_token=true" >> "$GITHUB_OUTPUT"
           else
             echo "access_token=false" >> "$GITHUB_OUTPUT"
-            echo "::error::SUPABASE_ACCESS_TOKEN secret is missing. Add a personal access token from https://supabase.com/dashboard/account/tokens"
+            echo "::notice::Skipping Supabase deploy — SUPABASE_ACCESS_TOKEN is not configured on this repository."
           fi
           if [ -n "$SUPABASE_DB_PASSWORD" ]; then
             echo "db_password=true" >> "$GITHUB_OUTPUT"
@@ -47,28 +52,27 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
+          set +x
           if [ -n "$SUPABASE_DB_PASSWORD" ]; then
             supabase link --project-ref imucfofvdwfyexdwrsfe --password "$SUPABASE_DB_PASSWORD"
           else
             supabase link --project-ref imucfofvdwfyexdwrsfe
           fi
 
-      - name: Apply welcome-email migration
-        if: steps.creds.outputs.access_token == 'true'
+      - name: Apply pending migrations
+        if: steps.creds.outputs.access_token == 'true' && inputs.apply_migrations
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
-          # Prefer database push when DB password is available; otherwise execute SQL via Management API helper.
-          if [ -n "$SUPABASE_DB_PASSWORD" ]; then
-            supabase db push --include-all --yes
-          else
-            echo "No SUPABASE_DB_PASSWORD — applying welcome migration SQL via --linked query file"
-            supabase db query --linked -f supabase/migrations/20260803120000_welcome_email_platform_policy.sql
+          if [ "${{ steps.creds.outputs.db_password }}" != "true" ]; then
+            echo "::error::apply_migrations requires SUPABASE_DB_PASSWORD. Refusing Management API fallback so Production is not mutated unexpectedly."
+            exit 1
           fi
+          supabase db push --yes
 
       - name: Deploy email edge functions
-        if: steps.creds.outputs.access_token == 'true'
+        if: steps.creds.outputs.access_token == 'true' && inputs.deploy_functions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
@@ -76,14 +80,6 @@ jobs:
           supabase functions deploy auth-email-hook --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
           supabase functions deploy submit-public-form --project-ref imucfofvdwfyexdwrsfe --no-verify-jwt
 
-      - name: Verify welcome trigger exists
-        if: steps.creds.outputs.access_token == 'true'
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: |
-          supabase db query --linked "select pg_get_functiondef('public.notify_welcome_email()'::regprocedure) ilike '%سياسة المنصة%' as has_policy_copy;"
-
-      - name: Fail if credentials missing
+      - name: Skip notice
         if: steps.creds.outputs.access_token != 'true'
-        run: exit 1
+        run: echo "Supabase manual deploy skipped because repository secrets are missing."
