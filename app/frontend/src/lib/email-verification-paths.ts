@@ -15,6 +15,7 @@ export const ALLOWED_WHILE_UNVERIFIED = new Set([
   "/members",
   "/companies",
   "/search",
+  "/discover",
   "/market",
   "/forum",
   "/jobs",
@@ -50,6 +51,7 @@ export const ALLOWED_PREFIXES = [
   "/research/",
   "/publications/",
   "/policies/",
+  "/discover/",
 ];
 
 export function isAllowedPath(pathname: string): boolean {

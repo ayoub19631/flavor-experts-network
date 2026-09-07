@@ -28,6 +28,7 @@ import NotificationBell from "@/components/NotificationBell";
 import InboxButton from "@/components/InboxButton";
 import TestingModeBanner from "@/components/TestingModeBanner";
 import MemberAvatar from "@/components/MemberAvatar";
+import GlobalSearch from "@/components/search/GlobalSearch";
 import { SITE } from "@/lib/site-config";
 
 export default function Navbar() {
@@ -62,6 +63,7 @@ export default function Navbar() {
     { href: "/publications", label: t("nav.library") },
     { href: "/publications/books", label: t("nav.books") },
     { href: "/publications/research", label: t("nav.research") },
+    { href: "/discover", label: t("nav.discover") },
     { href: "/consultations", label: t("nav.consultations") },
     { href: "/events", label: t("nav.events") },
     { href: "/enterprise", label: t("nav.enterprise") },
@@ -130,6 +132,9 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <GlobalSearch compact />
+            </div>
             <LanguageSwitcher compact />
 
             <Button
@@ -147,7 +152,7 @@ export default function Navbar() {
               )}
             </Button>
 
-            <Link to="/search" className="hidden sm:inline-flex" aria-label={t("nav.search")}>
+            <Link to="/search" className="md:hidden inline-flex" aria-label={t("nav.search")}>
               <Button variant="ghost" size="icon" className="h-9 w-9">
                 <Search className="w-4 h-4" />
               </Button>
@@ -253,12 +258,22 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <div className="px-3 py-2 md:hidden">
+              <GlobalSearch />
+            </div>
             <Link
               to="/search"
               className="block px-3 py-2 text-sm font-medium text-foreground hover:text-primary"
               onClick={() => setMobileOpen(false)}
             >
               {t("nav.search")}
+            </Link>
+            <Link
+              to="/discover"
+              className="block px-3 py-2 text-sm font-medium text-foreground hover:text-primary"
+              onClick={() => setMobileOpen(false)}
+            >
+              {t("nav.discover")}
             </Link>
             <p className="px-3 pt-3 pb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
               {t("nav.explore")}
