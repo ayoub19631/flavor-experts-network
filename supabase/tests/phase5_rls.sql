@@ -24,6 +24,7 @@
 -- 20. Duplicate idempotency keys do not create a second notification
 
 -- Test file only. Do not treat this as a migration.
+-- Run after Phase 5 files. For a read-only first pass use phase4_5_production_preflight.sql.
 -- Schema gate used by CI/local before the authenticated cases below.
 SELECT public.phase5_workflows_ready() AS phase5_ready;
 
