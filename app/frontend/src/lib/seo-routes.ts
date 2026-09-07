@@ -19,6 +19,7 @@ export const PUBLIC_INDEXABLE_PATHS = [
   "/policies",
   "/consultations",
   "/events",
+  "/discover",
   "/enterprise",
   "/terms",
   "/privacy",
@@ -37,6 +38,7 @@ export const PRIVATE_NOINDEX_PREFIXES = [
   "/submit-publication",
   "/verify-email",
   "/email-verified",
+  "/search",
 ] as const;
 
 export function canonicalUrl(path = "/"): string {

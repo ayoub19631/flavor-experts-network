@@ -81,6 +81,7 @@ export default defineConfig(({ command, mode }) => {
                 '/policies',
                 '/consultations',
                 '/events',
+                '/discover',
                 '/enterprise',
                 '/terms',
                 '/privacy',
@@ -99,6 +100,7 @@ export default defineConfig(({ command, mode }) => {
                 '/email-verified',
                 '/my-library',
                 '/submit-publication',
+                '/search',
               ],
             }),
           ]
