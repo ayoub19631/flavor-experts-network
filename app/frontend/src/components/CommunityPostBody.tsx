@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import { looksTechnicalPost, shouldCollapsePost, splitPostPresentation, truncatePost, uniqueHashtags } from "@/lib/community-post";
+import { renderMentionSegments } from "@/lib/phase5/mentions";
 
 type Props = {
   text: string;
@@ -11,20 +13,33 @@ type Props = {
 };
 
 function renderRichText(text: string, onHashtag: (tag: string) => void) {
-  return text.split(/(#[\p{L}\p{N}_-]+)/gu).map((part, index) =>
-    part.startsWith("#") ? (
-      <button
-        key={`${part}-${index}`}
-        type="button"
-        className="font-medium text-primary hover:underline"
-        onClick={() => onHashtag(part)}
-      >
-        {part}
-      </button>
-    ) : (
-      <span key={`${index}-${part.slice(0, 8)}`}>{part}</span>
-    ),
-  );
+  return renderMentionSegments(text).flatMap((segment, segmentIndex) => {
+    if (segment.type === "mention") {
+      return [
+        <Link
+          key={`mention-${segment.profileId}-${segmentIndex}`}
+          to={`/members/${segment.profileId}`}
+          className="font-medium text-primary hover:underline"
+        >
+          @{segment.value}
+        </Link>,
+      ];
+    }
+    return segment.value.split(/(#[\p{L}\p{N}_-]+)/gu).map((part, index) =>
+      part.startsWith("#") ? (
+        <button
+          key={`${segmentIndex}-${part}-${index}`}
+          type="button"
+          className="font-medium text-primary hover:underline"
+          onClick={() => onHashtag(part)}
+        >
+          {part}
+        </button>
+      ) : (
+        <span key={`${segmentIndex}-${index}-${part.slice(0, 8)}`}>{part}</span>
+      ),
+    );
+  });
 }
 
 export default function CommunityPostBody({

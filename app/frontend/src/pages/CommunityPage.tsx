@@ -56,6 +56,8 @@ import { SITE } from "@/lib/site-config";
 import type { ReactionType, SocialPost, SocialPostComment } from "@/lib/types";
 import { toast } from "sonner";
 import { violatesEducationalPolicy } from "@/lib/content-policy";
+import MentionField from "@/components/MentionField";
+import { extractMentionIds } from "@/lib/phase5/mentions";
 import {
   extractHashtags,
   readingMinutes,
@@ -389,12 +391,22 @@ export default function CommunityPage() {
       return;
     }
     setPublishing(true);
-    const { error } = await supabase.from("social_posts").insert({
+    const { data: created, error } = await supabase.from("social_posts").insert({
       author_id: user.id,
       body: text || (lang === "ar" ? "صورة" : "Photo"),
       image_url: imageUrl,
       is_published: true,
-    });
+    }).select("id").single();
+    if (!error && created?.id) {
+      const mentions = extractMentionIds(text);
+      if (mentions.length) {
+        await supabase.rpc("save_content_mentions", {
+          p_entity_type: "post",
+          p_entity_id: created.id,
+          p_profile_ids: mentions,
+        });
+      }
+    }
     setPublishing(false);
     if (error) {
       toast.error(error.message);
@@ -505,6 +517,14 @@ export default function CommunityPage() {
     if (error) {
       toast.error(error.message);
       return;
+    }
+    const mentions = extractMentionIds(text);
+    if (data?.id && mentions.length) {
+      await supabase.rpc("save_content_mentions", {
+        p_entity_type: "comment",
+        p_entity_id: data.id,
+        p_profile_ids: mentions,
+      });
     }
     const [enriched] = await enrichComments([data as SocialPostComment]);
     setCommentsByPost((p) => ({
@@ -699,10 +719,10 @@ export default function CommunityPage() {
                     </div>
                     <PenLine className="w-5 h-5 text-primary/60" />
                   </div>
-                  <Textarea
+                  <MentionField
                     rows={4}
                     value={body}
-                    onChange={(e) => setBody(e.target.value.slice(0, MAX_POST_LENGTH))}
+                    onChange={(next) => setBody(next.slice(0, MAX_POST_LENGTH))}
                     maxLength={MAX_POST_LENGTH}
                     disabled={!user}
                     placeholder={t("community.composer_ph")}
@@ -1271,11 +1291,11 @@ export default function CommunityPage() {
                                     </div>
                                   )}
                                   <div className="flex gap-2">
-                                  <Textarea
+                                  <MentionField
                                     rows={2}
                                     value={commentDrafts[post.id] || ""}
-                                    onChange={(e) =>
-                                      setCommentDrafts((p) => ({ ...p, [post.id]: e.target.value }))
+                                    onChange={(next) =>
+                                      setCommentDrafts((p) => ({ ...p, [post.id]: next }))
                                     }
                                     placeholder={
                                       replyTo[post.id]
