@@ -25,6 +25,8 @@ describe("publication visibility", () => {
     expect(canPublishPublication({ userId: "author-1", isAdmin: true })).toBe(true);
     expect(canAuthorEditPublication(publishedPublic, { userId: "author-1" })).toBe(false);
     expect(canAuthorEditPublication(draft, { userId: "member-2" })).toBe(false);
+    expect(canAuthorEditPublication({ status: "revision_requested", created_by: "author-1" }, { userId: "author-1" })).toBe(true);
+    expect(canAuthorEditPublication({ status: "published", created_by: "author-1" }, { userId: "author-1" })).toBe(false);
   });
 
   it("keeps private files away from unauthorized users", () => {

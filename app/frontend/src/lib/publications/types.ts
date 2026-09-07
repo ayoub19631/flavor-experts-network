@@ -9,6 +9,9 @@ export const PUBLICATION_TYPES = [
   "regulatory_update",
   "white_paper",
   "method_protocol",
+  "technical_article",
+  "industry_report",
+  "guide",
 ] as const;
 
 export type PublicationType = (typeof PUBLICATION_TYPES)[number];
@@ -19,10 +22,13 @@ export const PUBLICATION_STATUSES = [
   "editorial_check",
   "under_review",
   "revision_required",
+  "revision_requested",
   "revised",
   "accepted",
+  "approved",
   "scheduled",
   "published",
+  "rejected",
   "corrected",
   "retracted",
   "archived",
@@ -153,7 +159,17 @@ export type Publication = {
   cover_image_path?: string | null;
   license?: string | null;
   doi?: string | null;
+  doi_url?: string | null;
   isbn?: string | null;
+  publisher?: string | null;
+  institution?: string | null;
+  edition?: string | null;
+  page_count?: number | null;
+  reading_minutes?: number | null;
+  publication_date?: string | null;
+  decision_reason?: string | null;
+  view_count?: number;
+  download_count?: number;
   version_number: number;
   audience_level?: AudienceLevel | null;
   application_area?: string | null;
