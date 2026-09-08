@@ -65,6 +65,18 @@ const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
 const DiscoverPage = lazy(() => import("./pages/DiscoverPage"));
+const MarketplaceHomePage = lazy(() => import("./pages/marketplace/MarketplaceHomePage"));
+const MarketplaceSuppliersPage = lazy(() => import("./pages/marketplace/MarketplaceSuppliersPage"));
+const MarketplaceSupplierDetailPage = lazy(() => import("./pages/marketplace/MarketplaceSupplierDetailPage"));
+const MarketplaceMaterialsPage = lazy(() => import("./pages/marketplace/MarketplaceMaterialsPage"));
+const MarketplaceMaterialDetailPage = lazy(() => import("./pages/marketplace/MarketplaceMaterialDetailPage"));
+const CreateRfqPage = lazy(() => import("./pages/marketplace/CreateRfqPage"));
+const RfqsPage = lazy(() => import("./pages/dashboard/RfqsPage"));
+const RfqDetailPage = lazy(() => import("./pages/dashboard/RfqDetailPage"));
+const QuotesPage = lazy(() => import("./pages/dashboard/QuotesPage"));
+const SupplierCatalogPage = lazy(() => import("./pages/supplier/CatalogPage"));
+const SupplierQuotesPage = lazy(() => import("./pages/supplier/SupplierQuotesPage"));
+const AdminMarketplacePage = lazy(() => import("./pages/admin/AdminMarketplacePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
@@ -167,6 +179,7 @@ const AppRoutes = () => (
       <Route path="/admin/publications" element={<PublicationsStaffRoute><AdminPublicationsPage /></PublicationsStaffRoute>} />
       <Route path="/admin/ops" element={<AdminRoute capability="moderate_community"><AdminOpsPage /></AdminRoute>} />
       <Route path="/admin/verification" element={<AdminRoute capability="review_verification"><AdminVerificationPage /></AdminRoute>} />
+      <Route path="/admin/marketplace" element={<AdminRoute capability="review_marketplace"><AdminMarketplacePage /></AdminRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="/publications/books" element={<BooksPage />} />
       <Route path="/publications/research" element={<ResearchPage />} />
@@ -201,6 +214,17 @@ const AppRoutes = () => (
       <Route path="/consultations/experts" element={<ConsultationExpertsPage />} />
       <Route path="/consultations" element={<ConsultationsPage />} />
       <Route path="/market" element={<MarketPage />} />
+      <Route path="/marketplace/materials/:slug" element={<MarketplaceMaterialDetailPage />} />
+      <Route path="/marketplace/materials" element={<MarketplaceMaterialsPage />} />
+      <Route path="/marketplace/suppliers/:slug" element={<MarketplaceSupplierDetailPage />} />
+      <Route path="/marketplace/suppliers" element={<MarketplaceSuppliersPage />} />
+      <Route path="/marketplace/rfq" element={<CreateRfqPage />} />
+      <Route path="/marketplace" element={<MarketplaceHomePage />} />
+      <Route path="/dashboard/rfqs/:id" element={<RfqDetailPage />} />
+      <Route path="/dashboard/rfqs" element={<RfqsPage />} />
+      <Route path="/dashboard/quotes" element={<QuotesPage />} />
+      <Route path="/supplier/catalog" element={<SupplierCatalogPage />} />
+      <Route path="/supplier/quotes" element={<SupplierQuotesPage />} />
       <Route path="/jobs/:slug" element={<JobDetailPage />} />
       <Route path="/jobs" element={<JobsPage />} />
       <Route path="/events/:slug" element={<EventDetailPage />} />

@@ -68,7 +68,26 @@ export const postgresSearchAdapter: SearchAdapter = {
         error: isMissingSchemaError(error.message) ? null : error.message,
       };
     }
-    const hits = ((data as SearchHit[]) || []).map(mapHit);
+    const wantMarket =
+      !filters.types?.length ||
+      filters.types.some((type) => type === "suppliers" || type === "raw_materials");
+    const market = wantMarket
+      ? await supabase.rpc("marketplace_search", {
+          p_query: query.trim(),
+          p_types: filters.types?.length ? filters.types : ["suppliers", "raw_materials"],
+          p_limit: Math.min(Math.max(limit, 1), 20),
+        })
+      : { data: [] as SearchHit[], error: null };
+    const merged = [...((data as SearchHit[]) || []), ...((market.data as SearchHit[]) || [])];
+    const seen = new Set<string>();
+    const hits = merged
+      .map(mapHit)
+      .filter((hit) => {
+        const key = `${hit.entity_type}:${hit.entity_id}:${hit.href}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return !hit.href.startsWith("/dashboard") && !hit.href.startsWith("/supplier/");
+      });
     const last = hits[hits.length - 1];
     return {
       hits,
@@ -93,7 +112,12 @@ export const postgresSearchAdapter: SearchAdapter = {
       p_limit: Math.min(Math.max(limit, 1), 8),
     });
     if (error) return [];
-    return ((data as SearchHit[]) || []).map(mapHit);
+    const market = await supabase.rpc("marketplace_search", {
+      p_query: query.trim(),
+      p_types: ["suppliers", "raw_materials"],
+      p_limit: 4,
+    });
+    return [...((data as SearchHit[]) || []), ...((market.data as SearchHit[]) || [])].map(mapHit);
   },
 
   async remember(query) {

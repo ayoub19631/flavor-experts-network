@@ -810,6 +810,10 @@ export default function AdminPage() {
               <Link to="/admin/ops" className="text-sm text-primary hover:underline">
                 {isAR ? "طابور الإشراف وسجل التدقيق والمهملات" : "Moderation queue, audit log, and trash"}
               </Link>
+              <span className="mx-2 text-muted-foreground">·</span>
+              <Link to="/admin/marketplace" className="text-sm text-primary hover:underline">
+                {isAR ? "مراجعة سوق الموردين" : "Marketplace review"}
+              </Link>
             </div>
 
             {/* ══ OVERVIEW ══════════════════════════════════════════════════ */}

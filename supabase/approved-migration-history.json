@@ -1,6 +1,6 @@
 {
   "production_ref": "imucfofvdwfyexdwrsfe",
-  "updated_at": "2026-09-07T23:22:50.175Z",
+  "updated_at": "2026-09-08T11:13:00.802Z",
   "files": [
     {
       "version": "20260724120000",
@@ -659,6 +659,66 @@
       "production_status": "applied",
       "equivalent_remote": "20260907232234",
       "repair_reason": "Corrective: gate loose trigram to short queries and honor block/mute on publications and events.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908200000",
+      "filename": "20260908200000_phase8a_marketplace_schema.sql",
+      "sha256": "88efc83e1b49704c079e4cc6609c6b74f3470a4434c4d0edb7596720d0142a2b",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908210000",
+      "filename": "20260908210000_phase8b_supplier_catalog.sql",
+      "sha256": "a85398125380f63ce0c35a9efb5ad0a926ee26099ee6532a6cfb7d0bed67821e",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908220000",
+      "filename": "20260908220000_phase8c_rfq_workflow.sql",
+      "sha256": "b33c6301e1881d4d2921b4fd5d7dcdd99e303ff0d3f2e3cb7b589d92ee1d4ff1",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908230000",
+      "filename": "20260908230000_phase8d_quotes.sql",
+      "sha256": "be5e2c07ffb6cf0c06b2f119e236e1c2d495b13c87482076c6bafaf442be99e3",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908240000",
+      "filename": "20260908240000_phase8e_storage_security.sql",
+      "sha256": "83449eb0e4bedac00f6aad2e0ccb536d714014853c83e81fe230976dad919fda",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908250000",
+      "filename": "20260908250000_phase8f_notify_admin_search.sql",
+      "sha256": "2aea532ee954b6ce6c9c851499ff27fab8b3917a0c44b076365bec369e0e3c5a",
+      "production_status": "local",
+      "equivalent_remote": null,
+      "repair_reason": null,
       "immutable": true,
       "documented_edit": null
     }

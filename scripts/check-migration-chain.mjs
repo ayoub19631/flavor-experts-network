@@ -60,6 +60,12 @@ const PHASE6_REQUIRES = {
   "20260908160000": ["search_analytics"],
   "20260908170000": ["search_analytics"],
   "20260908180000": ["publications", "events"],
+  "20260908200000": ["user_profiles", "platform_roles"],
+  "20260908210000": ["supplier_profiles"],
+  "20260908220000": ["supplier_profiles", "supplier_materials"],
+  "20260908230000": ["rfqs"],
+  "20260908240000": ["rfqs", "rfq_quotes"],
+  "20260908250000": ["supplier_profiles", "content_reports"],
 };
 
 const errors = [];

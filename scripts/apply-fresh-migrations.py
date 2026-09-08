@@ -86,6 +86,7 @@ def main() -> int:
             and not p.name.startswith("20260907201000")
         )
         or p.name.startswith("202609081")
+        or p.name.startswith("202609082")
     ]
     print(f"squash_skip={len(all_files) - len(files)} apply={len(files)}")
     for path in files:
@@ -155,7 +156,7 @@ def main() -> int:
             "-U",
             "postgres",
             "-tAc",
-            "select to_regclass('public.publications'), to_regclass('public.publication_review_actions')",
+            "select to_regclass('public.publications'), to_regclass('public.rfqs'), to_regclass('public.supplier_profiles')",
         ],
         check=False,
     )
