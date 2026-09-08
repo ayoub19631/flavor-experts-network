@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,8 @@ function Inner() {
           <>
             <Input value={name} onChange={(event) => setName(event.target.value)} aria-label={lang === "ar" ? "اسم الشركة" : "Company name"} />
             <Textarea value={description} onChange={(event) => setDescription(event.target.value)} aria-label={lang === "ar" ? "الوصف" : "Description"} />
+            <Button asChild variant="outline"><Link to="/supplier/catalog">{lang === "ar" ? "كتالوج السوق" : "Marketplace catalog"}</Link></Button>
+            <Button asChild variant="outline"><Link to="/supplier/quotes">{lang === "ar" ? "عروض السوق" : "Marketplace quotes"}</Link></Button>
             <Button onClick={async () => {
               const { error } = await supabase.from("user_profiles").update({ company: name, bio: description }).eq("id", user.id);
               toast[error ? "error" : "success"](error?.message || (lang === "ar" ? "تم الحفظ" : "Saved"));
