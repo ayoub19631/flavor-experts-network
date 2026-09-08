@@ -11,12 +11,16 @@ import { supabase, type Member } from "@/lib/supabase";
 import { filterPublicMembers } from "@/lib/public-members";
 import { buildCompanyDirectory, employerName, slugsEqual } from "@/lib/companies";
 import { safeHttpUrl } from "@/lib/url";
+import { listPublicSuppliers } from "@/lib/marketplace/api";
+import { showVerifiedBadge } from "@/lib/marketplace/privacy";
+import type { PublicSupplier } from "@/lib/marketplace/types";
 
 export default function CompanyDetailPage() {
   const { slug } = useParams();
   const { t, lang } = useI18n();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [supplier, setSupplier] = useState<PublicSupplier | null>(null);
 
   useEffect(() => {
     supabase
@@ -39,6 +43,13 @@ export default function CompanyDetailPage() {
   }, [members, listing]);
 
   const websiteHref = safeHttpUrl(listing?.website);
+
+  useEffect(() => {
+    if (!listing?.name) return;
+    listPublicSuppliers(listing.name)
+      .then((rows) => setSupplier(rows.find((row) => row.trade_name.toLowerCase() === listing.name.toLowerCase()) || null))
+      .catch(() => setSupplier(null));
+  }, [listing?.name]);
 
   usePageMeta({
     title: listing?.name || t("companies.title"),
@@ -66,6 +77,7 @@ export default function CompanyDetailPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-2xl font-bold">{listing.name}</h1>
                   {listing.is_company_account && <Badge variant="secondary">{t("profile.type.company")}</Badge>}
+                  {showVerifiedBadge(supplier?.is_verified) && <Badge>{t("mp.verified")}</Badge>}
                 </div>
                 {listing.location && <p className="text-sm text-muted-foreground mt-1 inline-flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{listing.location}</p>}
                 {websiteHref && (
@@ -76,6 +88,14 @@ export default function CompanyDetailPage() {
                 )}
               </div>
             </div>
+            {supplier && (
+              <section className="rounded-2xl border p-4 space-y-2">
+                <p className="text-sm">{supplier.supplier_type} · {[supplier.city, supplier.country].filter(Boolean).join(", ")}</p>
+                {supplier.legal_name && <p className="text-sm">{t("mp.legal")}: {supplier.legal_name}</p>}
+                {!!supplier.markets?.length && <p className="text-sm">{t("mp.markets")}: {supplier.markets.join(", ")}</p>}
+                <Link to={`/marketplace/suppliers/${supplier.slug}`} className="text-sm text-primary">{t("mp.catalog")}</Link>
+              </section>
+            )}
             <section>
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4 inline-flex items-center gap-2">
                 <Building2 className="w-4 h-4" />

@@ -1,6 +1,6 @@
 {
   "production_ref": "imucfofvdwfyexdwrsfe",
-  "updated_at": "2026-09-07T23:22:50.175Z",
+  "updated_at": "2026-09-08T13:44:06.006Z",
   "files": [
     {
       "version": "20260724120000",
@@ -659,6 +659,116 @@
       "production_status": "applied",
       "equivalent_remote": "20260907232234",
       "repair_reason": "Corrective: gate loose trigram to short queries and honor block/mute on publications and events.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908200000",
+      "filename": "20260908200000_phase8a_marketplace_schema.sql",
+      "sha256": "88efc83e1b49704c079e4cc6609c6b74f3470a4434c4d0edb7596720d0142a2b",
+      "production_status": "applied",
+      "equivalent_remote": "20260908120604",
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908210000",
+      "filename": "20260908210000_phase8b_supplier_catalog.sql",
+      "sha256": "a85398125380f63ce0c35a9efb5ad0a926ee26099ee6532a6cfb7d0bed67821e",
+      "production_status": "applied",
+      "equivalent_remote": "20260908120800",
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908220000",
+      "filename": "20260908220000_phase8c_rfq_workflow.sql",
+      "sha256": "b33c6301e1881d4d2921b4fd5d7dcdd99e303ff0d3f2e3cb7b589d92ee1d4ff1",
+      "production_status": "applied",
+      "equivalent_remote": "20260908120822",
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908230000",
+      "filename": "20260908230000_phase8d_quotes.sql",
+      "sha256": "be5e2c07ffb6cf0c06b2f119e236e1c2d495b13c87482076c6bafaf442be99e3",
+      "production_status": "applied",
+      "equivalent_remote": "20260908120856",
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908240000",
+      "filename": "20260908240000_phase8e_storage_security.sql",
+      "sha256": "83449eb0e4bedac00f6aad2e0ccb536d714014853c83e81fe230976dad919fda",
+      "production_status": "applied",
+      "equivalent_remote": "20260908120914",
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908250000",
+      "filename": "20260908250000_phase8f_notify_admin_search.sql",
+      "sha256": "2aea532ee954b6ce6c9c851499ff27fab8b3917a0c44b076365bec369e0e3c5a",
+      "production_status": "applied",
+      "equivalent_remote": "20260908121025",
+      "repair_reason": null,
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908260000",
+      "filename": "20260908260000_phase8g_anon_verified_helper.sql",
+      "sha256": "5c53685e6a2d404fe87aff969601e2f7b80366b76c9d109fb1d859f9a56b40e3",
+      "production_status": "applied",
+      "equivalent_remote": "20260908121348",
+      "repair_reason": "Corrective: public catalog Verified badge without anon SELECT on user_profiles or platform_roles.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908270000",
+      "filename": "20260908270000_phase8h_rls_helper_definer.sql",
+      "sha256": "2a2aae90b321d8f9790ddd191d4391affbb9b82b00bd3cca6250cef97fbd4ccd",
+      "production_status": "applied",
+      "equivalent_remote": "20260908121757",
+      "repair_reason": "Corrective: SECURITY DEFINER RFQ/quote/thread visibility helpers to stop RLS recursion; caller uid pinned to auth.uid().",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908280000",
+      "filename": "20260908280000_phase8i_revoke_anon_sensitive_rpcs.sql",
+      "sha256": "b2a472d9b2f217077493f13cae12023e5231e352729774413398f04f0176c924",
+      "production_status": "applied",
+      "equivalent_remote": "20260908132604",
+      "repair_reason": "Corrective: revoke leftover anon EXECUTE on sensitive marketplace DEFINER RPCs.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908290000",
+      "filename": "20260908290000_phase8j_revoke_anon_file_rpcs.sql",
+      "sha256": "a9a3ee23025d05d2eea2fb13ebc7d6b0b6d0733da8a63e0eae49bb8796c35842",
+      "production_status": "applied",
+      "equivalent_remote": "20260908133013",
+      "repair_reason": "Corrective: revoke leftover anon EXECUTE on file-registration RPCs missed by 8I.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908300000",
+      "filename": "20260908300000_phase8k_marketplace_auth_hardening.sql",
+      "sha256": "cddf5f6b7b5c99379c7e28a5c384290977cc8cff9a7749315654639861969cf2",
+      "production_status": "applied",
+      "equivalent_remote": "20260908134217",
+      "repair_reason": "Corrective: staff-gate restore/hide, bind quote supplier_id, restrict RFQ line writes, lock document review, honor block on threads, escape public JSON-LD sink.",
       "immutable": true,
       "documented_edit": null
     }

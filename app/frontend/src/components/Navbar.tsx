@@ -53,6 +53,7 @@ export default function Navbar() {
     ...(user ? [{ href: "/messages", label: t("nav.messages") }] : []),
     { href: "/jobs", label: t("nav.jobs") },
     { href: "/forum", label: t("nav.forum") },
+    { href: "/marketplace", label: t("nav.marketplace") },
     { href: "/market", label: t("nav.market") },
     { href: "/blog", label: t("nav.blog") },
   ];
