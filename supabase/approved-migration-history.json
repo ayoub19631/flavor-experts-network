@@ -1,6 +1,6 @@
 {
   "production_ref": "imucfofvdwfyexdwrsfe",
-  "updated_at": "2026-09-08T13:33:01.371Z",
+  "updated_at": "2026-09-08T13:44:06.006Z",
   "files": [
     {
       "version": "20260724120000",
@@ -759,6 +759,16 @@
       "production_status": "applied",
       "equivalent_remote": "20260908133013",
       "repair_reason": "Corrective: revoke leftover anon EXECUTE on file-registration RPCs missed by 8I.",
+      "immutable": true,
+      "documented_edit": null
+    },
+    {
+      "version": "20260908300000",
+      "filename": "20260908300000_phase8k_marketplace_auth_hardening.sql",
+      "sha256": "cddf5f6b7b5c99379c7e28a5c384290977cc8cff9a7749315654639861969cf2",
+      "production_status": "applied",
+      "equivalent_remote": "20260908134217",
+      "repair_reason": "Corrective: staff-gate restore/hide, bind quote supplier_id, restrict RFQ line writes, lock document review, honor block on threads, escape public JSON-LD sink.",
       "immutable": true,
       "documented_edit": null
     }

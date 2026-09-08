@@ -70,6 +70,7 @@ const PHASE6_REQUIRES = {
   "20260908270000": ["rfqs", "rfq_quotes", "rfq_threads"],
   "20260908280000": ["rfqs", "rfq_quotes", "rfq_threads"],
   "20260908290000": ["marketplace_files", "supplier_materials"],
+  "20260908300000": ["rfqs", "rfq_quotes", "rfq_lines"],
 };
 
 const errors = [];

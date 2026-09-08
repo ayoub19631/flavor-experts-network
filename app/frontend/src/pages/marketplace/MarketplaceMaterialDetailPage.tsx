@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { getPublicMaterial } from "@/lib/marketplace/api";
 import { showVerifiedBadge } from "@/lib/marketplace/privacy";
+import SeoJsonLd from "@/components/SeoJsonLd";
 import { canonicalUrl } from "@/lib/seo-routes";
 
 type MaterialDetail = Record<string, unknown> & {
@@ -42,13 +43,13 @@ export default function MarketplaceMaterialDetailPage() {
       <div className="pt-24 pb-16 mx-auto max-w-4xl px-4 space-y-6">
         {!row ? <p className="text-muted-foreground">{t("mp.empty")}</p> : (
           <>
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            <SeoJsonLd data={{
               "@context": "https://schema.org",
               "@type": "Product",
               name: row.trade_name,
               url: canonicalUrl(`/marketplace/materials/${row.slug}`),
               brand: supplier?.trade_name,
-            }) }} />
+            }} />
             <h1 className="text-3xl font-bold">{String(row.trade_name || "")}</h1>
             {supplier && (
               <Link to={`/marketplace/suppliers/${supplier.slug}`} className="inline-flex items-center gap-2">

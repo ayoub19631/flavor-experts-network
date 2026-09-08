@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { getPublicSupplier, listPublicMaterials } from "@/lib/marketplace/api";
 import { showVerifiedBadge } from "@/lib/marketplace/privacy";
+import SeoJsonLd from "@/components/SeoJsonLd";
 import { canonicalUrl } from "@/lib/seo-routes";
 import type { PublicMaterial, PublicSupplier } from "@/lib/marketplace/types";
 
@@ -38,14 +39,14 @@ export default function MarketplaceSupplierDetailPage() {
           <p className="text-muted-foreground">{t("mp.empty")}</p>
         ) : (
           <>
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            <SeoJsonLd data={{
               "@context": "https://schema.org",
               "@type": "Organization",
               name: row.trade_name,
               legalName: row.legal_name || undefined,
               url: canonicalUrl(`/marketplace/suppliers/${row.slug}`),
               address: { "@type": "PostalAddress", addressLocality: row.city, addressCountry: row.country },
-            }) }} />
+            }} />
             {row.cover_url && <img src={row.cover_url} alt="" className="w-full h-40 object-cover rounded-2xl" />}
             <div className="flex items-center gap-3">
               {row.logo_url && <img src={row.logo_url} alt="" className="w-16 h-16 rounded-xl object-cover" />}

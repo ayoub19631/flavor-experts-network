@@ -5,6 +5,7 @@ import FooterSection from "@/components/FooterSection";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { usePageMeta } from "@/hooks/use-page-meta";
+import SeoJsonLd from "@/components/SeoJsonLd";
 import { canonicalUrl } from "@/lib/seo-routes";
 
 export default function MarketplaceHomePage() {
@@ -21,12 +22,12 @@ export default function MarketplaceHomePage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-16 mx-auto max-w-5xl px-4 space-y-8">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        <SeoJsonLd data={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           name: t("mp.title"),
           url: canonicalUrl("/marketplace"),
-        }) }} />
+        }} />
         <div>
           <h1 className="text-3xl font-bold">{t("mp.title")}</h1>
           <p className="text-muted-foreground mt-2 max-w-2xl">{t("mp.desc")}</p>
