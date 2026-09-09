@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -132,7 +132,8 @@ export default function DashboardPage() {
   const { user, profile, signOut, isPremium, isEnterprise, isAdmin, updateProfile } = useAuth();
   const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { pathname } = useLocation();
 
   // Private workspace page — never index.
   usePageMeta({
@@ -152,6 +153,26 @@ export default function DashboardPage() {
     }
     return "overview";
   });
+
+  const selectTab = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (tab === "overview") next.delete("tab");
+      else next.set("tab", tab);
+      return next;
+    }, { replace: true });
+  };
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "profile" || tab === "premium" || tab === "posts" || tab === "security" || tab === "subscription") {
+      setActiveTab(tab);
+    } else if (!tab) {
+      setActiveTab("overview");
+    }
+  }, [searchParams]);
+
   const [myPosts, setMyPosts] = useState<SocialPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [dashPostBody, setDashPostBody] = useState("");
@@ -506,7 +527,7 @@ export default function DashboardPage() {
     { icon: MessageSquareText, label: lang === "ar" ? "المجتمع المهني" : "Community Feed", desc: lang === "ar" ? "انشر وتابع التحديثات" : "Publish & follow updates", color: "bg-blue-100 dark:bg-blue-900/30", iconColor: "text-blue-600", href: "/community" },
     { icon: Users, label: lang === "ar" ? "دليل الأعضاء" : "Members Directory", desc: lang === "ar" ? "تواصل مع المتخصصين" : "Connect with professionals", color: "bg-purple-100 dark:bg-purple-900/30", iconColor: "text-purple-600", href: "/members" },
     { icon: TrendingUp, label: lang === "ar" ? "أخبار الصناعة" : "Industry News", desc: lang === "ar" ? "آخر تطورات علوم النكهات" : "Latest flavor science updates", color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#news" },
-    { icon: Star, label: lang === "ar" ? "عضويتي" : "My Membership", desc: lang === "ar" ? "منصة مجانية بالكامل" : "Fully free platform access", color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: undefined, onClick: () => setActiveTab("subscription") },
+    { icon: Star, label: lang === "ar" ? "عضويتي" : "My Membership", desc: lang === "ar" ? "منصة مجانية بالكامل" : "Fully free platform access", color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: undefined, onClick: () => selectTab("subscription") },
     { icon: ExternalLink, label: lang === "ar" ? "مجموعة لينكد إن" : "LinkedIn Group", desc: lang === "ar" ? "مجتمع محترفي النكهات" : "Flavor professionals community", color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: SITE.linkedInGroup },
   ];
 
@@ -536,21 +557,21 @@ export default function DashboardPage() {
           <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
             <div>
               <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary mb-3 transition-colors">
-                <ArrowLeft className="w-3 h-3" /> {lang === "ar" ? "العودة للرئيسية" : "Back to home"}
+                <ArrowLeft className="w-3 h-3 rtl:rotate-180" /> {t("dash.back")}
               </Link>
-              <h1 className="text-2xl font-bold text-foreground">{lang === "ar" ? "لوحة التحكم" : "Dashboard"}</h1>
-              <p className="text-sm text-muted-foreground">{lang === "ar" ? "مرحباً بعودتك، " : "Welcome back, "}<span className="font-semibold text-foreground">{displayName}</span></p>
+              <h1 className="text-2xl font-bold text-foreground">{t("dash.title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("dash.welcome")} <span className="font-semibold text-foreground">{displayName}</span></p>
             </div>
             <div className="flex items-center gap-2">
               {isAdmin && (
                 <Link to="/admin">
                   <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Admin Panel
+                    <ShieldCheck className="w-3.5 h-3.5" /> {t("dash.admin")}
                   </Button>
                 </Link>
               )}
               <Button variant="outline" size="sm" className="gap-2 text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={handleSignOut}>
-                <LogOut className="w-3.5 h-3.5" /> {lang === "ar" ? "خروج" : "Sign Out"}
+                <LogOut className="w-3.5 h-3.5" /> {t("dash.signout")}
               </Button>
             </div>
           </div>
@@ -568,8 +589,8 @@ export default function DashboardPage() {
                       ))}
                     </div>
                   )}
-                  {isPro && <Crown className="absolute right-3 top-3 w-5 h-5 text-white/60" />}
-                  {isEnt && <Star className="absolute right-3 top-3 w-5 h-5 text-white/60" />}
+                  {isPro && <Crown className="absolute end-3 top-3 w-5 h-5 text-white/60" />}
+                  {isEnt && <Star className="absolute end-3 top-3 w-5 h-5 text-white/60" />}
                 </div>
                 <CardContent className="p-4 -mt-9">
                   <div className="w-16 h-16 rounded-2xl bg-background border-4 border-background shadow-lg flex items-center justify-center mb-3 overflow-hidden">
@@ -618,8 +639,8 @@ export default function DashboardPage() {
                   {TABS.map(({ key, label, icon: Icon }) => (
                     <button
                       key={key}
-                      onClick={() => setActiveTab(key as typeof activeTab)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
+                      onClick={() => selectTab(key as typeof activeTab)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-start ${
                         activeTab === key
                           ? key === "premium"
                             ? isEnt ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary" : "bg-primary/10 text-primary"
@@ -630,47 +651,55 @@ export default function DashboardPage() {
                       <Icon className="w-4 h-4" />
                       {label}
                       {key === "premium" && localIsPremium && (
-                        <span className="ml-auto text-xs px-1.5 py-0.5 rounded-full font-semibold bg-primary/20 text-primary">
+                        <span className="ms-auto text-xs px-1.5 py-0.5 rounded-full font-semibold bg-primary/20 text-primary">
                           {isEnt ? "✦" : "★"}
                         </span>
                       )}
-                      {activeTab === key && key !== "premium" && <ChevronRight className="w-3 h-3 ml-auto" />}
+                      {activeTab === key && key !== "premium" && <ChevronRight className="w-3 h-3 ms-auto rtl:rotate-180" />}
                     </button>
                   ))}
                   <Separator className="my-2" />
                   {[
-                    { href: "/notifications", label: lang === "ar" ? "الإشعارات" : "Notifications" },
-                    { href: "/dashboard/connections", label: lang === "ar" ? "الاتصالات" : "Connections" },
-                    { href: "/messages", label: lang === "ar" ? "الرسائل" : "Messages" },
-                    { href: "/dashboard/saved-jobs", label: lang === "ar" ? "وظائف محفوظة" : "Saved jobs" },
-                    { href: "/dashboard/applications", label: lang === "ar" ? "طلباتي" : "My applications" },
-                    { href: "/dashboard/rfqs", label: lang === "ar" ? "طلبات العروض" : "RFQs" },
-                    { href: "/dashboard/quotes", label: lang === "ar" ? "عروض الأسعار" : "Quotes" },
-                    { href: "/supplier/catalog", label: lang === "ar" ? "كتالوج المورد" : "Supplier catalog" },
-                    { href: "/supplier/quotes", label: lang === "ar" ? "عروض المورد" : "Supplier quotes" },
-                    { href: "/consultations", label: lang === "ar" ? "الاستشارات" : "Consultations" },
-                    { href: "/events", label: lang === "ar" ? "الفعاليات" : "Events" },
-                    { href: "/dashboard/publications", label: lang === "ar" ? "مكتبتي" : "My library" },
-                    { href: "/verification", label: lang === "ar" ? "التوثيق" : "Verification" },
-                    { href: "/dashboard/blocked", label: lang === "ar" ? "المحظورون" : "Blocked users" },
-                    { href: "/dashboard/privacy", label: lang === "ar" ? "الخصوصية والأمان" : "Privacy & security" },
-                    ...(isCompany ? [{ href: "/company/dashboard", label: lang === "ar" ? "لوحة الشركة" : "Company dashboard" }] : []),
+                    { href: "/notifications", label: t("dash.nav.notifications") },
+                    { href: "/dashboard/connections", label: t("dash.nav.connections") },
+                    { href: "/messages", label: t("dash.nav.messages") },
+                    { href: "/dashboard/saved-jobs", label: t("dash.nav.saved_jobs") },
+                    { href: "/dashboard/applications", label: t("dash.nav.applications") },
+                    { href: "/dashboard/rfqs", label: t("dash.nav.rfqs") },
+                    { href: "/dashboard/quotes", label: t("dash.nav.quotes") },
+                    { href: "/supplier/catalog", label: t("dash.nav.catalog") },
+                    { href: "/supplier/quotes", label: t("dash.nav.supplier_quotes") },
+                    { href: "/consultations", label: t("dash.nav.consultations") },
+                    { href: "/events", label: t("dash.nav.events") },
+                    { href: "/dashboard/publications", label: t("dash.nav.library") },
+                    { href: "/verification", label: t("dash.nav.verification") },
+                    { href: "/dashboard/blocked", label: t("dash.nav.blocked") },
+                    { href: "/dashboard/privacy", label: t("dash.nav.privacy") },
+                    ...(isCompany ? [{ href: "/company/dashboard", label: t("dash.nav.company") }] : []),
                   ].map((item) => (
-                    <Link key={item.href} to={item.href} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted">
+                    <Link
+                      key={item.href}
+                      to={item.href}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${
+                        pathname === item.href || pathname.startsWith(`${item.href}/`)
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
                       {item.label}
                     </Link>
                   ))}
                   <Separator className="my-2" />
                   {isAdmin && (
                     <Link to="/admin" className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-primary hover:bg-secondary dark:hover:bg-primary/20">
-                      <ShieldCheck className="w-4 h-4" /> Admin Panel
+                      <ShieldCheck className="w-4 h-4" /> {t("dash.admin")}
                     </Link>
                   )}
                   <button
                     onClick={handleSignOut}
                     className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
-                    <LogOut className="w-4 h-4" /> {lang === "ar" ? "تسجيل الخروج" : "Sign Out"}
+                    <LogOut className="w-4 h-4" /> {t("dash.signout")}
                   </button>
                 </CardContent>
               </Card>
@@ -687,7 +716,7 @@ export default function DashboardPage() {
                     <div key={label} className={`flex items-center gap-2 text-xs ${earned ? "text-foreground" : "text-muted-foreground/50"}`}>
                       <Icon className={`w-3.5 h-3.5 ${earned ? color : "text-muted-foreground/30"}`} />
                       <span>{label}</span>
-                      {earned && <CheckCircle className="w-3 h-3 text-emerald-500 ml-auto" />}
+                      {earned && <CheckCircle className="w-3 h-3 text-emerald-500 ms-auto" />}
                     </div>
                   ))}
                 </CardContent>
@@ -712,7 +741,7 @@ export default function DashboardPage() {
                           : (lang === "ar" ? "ملفك مكتمل — أحسنت!" : "Your profile looks complete — great work!")}
                       </p>
                       {incomplete && (
-                        <Button size="sm" className="w-full" onClick={() => setActiveTab("profile")}>
+                        <Button size="sm" className="w-full" onClick={() => selectTab("profile")}>
                           {lang === "ar" ? "أكمل ملفك الآن" : "Complete profile now"}
                         </Button>
                       )}
@@ -879,7 +908,7 @@ export default function DashboardPage() {
                           <p className="font-bold text-primary text-base">{lang === "ar" ? "مرحباً بك — عضويتك مجانية بالكامل" : "Welcome — your membership is fully free"}</p>
                           <p className="text-sm text-muted-foreground">{lang === "ar" ? "وصول كامل للموارد والوظائف والمجتمع والمنتدى بدون اشتراك" : "Full access to resources, jobs, community, and forum — no subscription"}</p>
                         </div>
-                        <Button size="sm" className="ml-auto whitespace-nowrap" onClick={() => setActiveTab("premium")}>
+                        <Button size="sm" className="ms-auto whitespace-nowrap" onClick={() => selectTab("premium")}>
                           {lang === "ar" ? "استكشف" : "Explore"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                       </CardContent>
@@ -897,7 +926,7 @@ export default function DashboardPage() {
                           <p className="font-bold text-primary text-base">{lang === "ar" ? "حساب الشركة نشط — مجاني بالكامل" : "Company account active — fully free"}</p>
                           <p className="text-sm text-muted-foreground">{lang === "ar" ? "انشر الوظائف، أدر ملف الشركة، وتواصل مع مجتمع المتخصصين — مجاناً" : "Post jobs, manage your company profile, and reach professionals — free"}</p>
                         </div>
-                        <Button size="sm" className="ml-auto bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap" onClick={() => setActiveTab("premium")}>
+                        <Button size="sm" className="ms-auto bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap" onClick={() => selectTab("premium")}>
                           {lang === "ar" ? "لوحتي" : "My Hub"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                       </CardContent>
@@ -925,7 +954,7 @@ export default function DashboardPage() {
                               <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                           );
-                          if (onClick) return <button key={label} className="text-left" onClick={onClick}>{Inner}</button>;
+                          if (onClick) return <button key={label} className="text-start" onClick={onClick}>{Inner}</button>;
                           if (isExternal) return <a key={label} href={href} target="_blank" rel="noopener noreferrer">{Inner}</a>;
                           return <Link key={label} to={href!}>{Inner}</Link>;
                         })}
@@ -938,7 +967,7 @@ export default function DashboardPage() {
                     <CardHeader className="p-4 pb-3">
                       <CardTitle className="text-sm font-semibold flex items-center justify-between">
                         {lang === "ar" ? "ملخص الحساب" : "Account Summary"}
-                        <button onClick={() => setActiveTab("profile")} className="text-xs text-primary hover:underline font-normal">
+                        <button onClick={() => selectTab("profile")} className="text-xs text-primary hover:underline font-normal">
                           {lang === "ar" ? "تعديل الملف" : "Edit Profile"}
                         </button>
                       </CardTitle>
@@ -1019,7 +1048,7 @@ export default function DashboardPage() {
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <BookMarked className="w-4 h-4 text-primary" />
                           {lang === "ar" ? "مكتبتك البحثية" : "Your Research Library"}
-                          <Badge className="ml-auto text-xs bg-primary/10 text-primary">{lang === "ar" ? "وصول كامل" : "Full Access"}</Badge>
+                          <Badge className="ms-auto text-xs bg-primary/10 text-primary">{lang === "ar" ? "وصول كامل" : "Full Access"}</Badge>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0 space-y-3">
@@ -1352,7 +1381,7 @@ export default function DashboardPage() {
                       }}>
                         {lang === "ar" ? "عرض الملف العام" : "View public profile"}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setActiveTab("posts")}>
+                      <Button variant="outline" size="sm" onClick={() => selectTab("posts")}>
                         {lang === "ar" ? "نشر منشور" : "Write a post"}
                       </Button>
                       <Button asChild size="sm">
@@ -1607,7 +1636,7 @@ export default function DashboardPage() {
                     <CardHeader className="p-5 pb-2">
                       <CardTitle className="text-sm font-semibold flex items-center justify-between">
                         {lang === "ar" ? "أحدث منشوراتك" : "Latest posts"}
-                        <button onClick={() => setActiveTab("posts")} className="text-xs text-primary hover:underline font-normal">
+                        <button onClick={() => selectTab("posts")} className="text-xs text-primary hover:underline font-normal">
                           {lang === "ar" ? "إدارة الكل" : "Manage all"}
                         </button>
                       </CardTitle>

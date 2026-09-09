@@ -562,7 +562,7 @@ export default function MemberProfilePage() {
                   </h2>
                   <div className="space-y-2">
                     {publications.map((item) => (
-                      <Link key={item.id} to={item.type === "book" ? `/books/${item.slug}` : `/research/${item.slug}`} className="block rounded-xl border p-3 hover:border-primary/40">
+                      <Link key={item.id} to={`/publications/${item.slug}`} className="block rounded-xl border p-3 hover:border-primary/40">
                         <p className="text-sm font-medium">{item.title}</p>
                         <p className="text-xs text-muted-foreground">{item.type === "book" ? (lang === "ar" ? "كتاب" : "Book") : (lang === "ar" ? "بحث" : "Research")}</p>
                       </Link>

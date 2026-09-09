@@ -1,5 +1,5 @@
 {
-  "generated_for": "Phase 6.1",
+  "generated_for": "Phase 9",
   "items": [
     {
       "module": "tar",
@@ -91,6 +91,90 @@
       "severity": "high",
       "production": false,
       "reason": "@capacitor/assets@3.0.5 depends on sharp@0.32.6. The project already uses sharp@0.35.3 directly; swapping the nested 0.32 API is an incompatible assets-pipeline change."
+    },
+    {
+      "module": "sharp",
+      "github_advisory_id": "GHSA-rgj7-g3m4-5g8c",
+      "severity": "high",
+      "production": false,
+      "reason": "New libheif advisory in sharp. @capacitor/assets still pulls sharp@0.32.6; the app also has sharp@0.35.3 for local asset work. Neither ships in the production website bundle."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-6mj3-qw4j-hgrw",
+      "severity": "high",
+      "production": false,
+      "reason": "Transitive through @capacitor/assets > @capacitor/cli@5 / @trapezedev/project plist tooling. Local icon generation only; not shipped to the website."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-g53g-w8rj-fmg7",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-w2rr-34g9-rvrj",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-4w3w-2rp5-g8jm",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-c7q8-3ch8-vqpv",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-27p8-2357-5qqv",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-3px3-54cx-rmw9",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-vr34-hp96-76pp",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-8344-3jmq-59r6",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-965w-775f-mr7g",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
+    },
+    {
+      "module": "@xmldom/xmldom",
+      "github_advisory_id": "GHSA-93r5-fhx6-vmg9",
+      "severity": "high",
+      "production": false,
+      "reason": "Same @capacitor/assets plist/@xmldom development path."
     },
     {
       "module": "vite",

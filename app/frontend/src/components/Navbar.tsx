@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Search,
   FileText,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
@@ -30,6 +31,7 @@ import TestingModeBanner from "@/components/TestingModeBanner";
 import MemberAvatar from "@/components/MemberAvatar";
 import GlobalSearch from "@/components/search/GlobalSearch";
 import { SITE } from "@/lib/site-config";
+import { isLibraryNavPath } from "@/lib/platform-routes";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,6 +43,7 @@ export default function Navbar() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+    if (href === "/publications") return isLibraryNavPath(pathname);
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
@@ -70,6 +73,11 @@ export default function Navbar() {
     { href: "/enterprise", label: t("nav.enterprise") },
     { href: "/#contact", label: t("nav.contact") },
   ];
+  const exploreActive = exploreLinks.some((link) => {
+    if (link.href.includes("#")) return false;
+    if (primaryLinks.some((primary) => primary.href === link.href)) return false;
+    return isActive(link.href);
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -108,7 +116,7 @@ export default function Navbar() {
             ))}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-primary">
+                <Button variant="ghost" size="sm" className={`gap-1 ${exploreActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"}`}>
                   {t("nav.explore")}
                   <ChevronDown className="w-3.5 h-3.5" />
                 </Button>
@@ -181,6 +189,10 @@ export default function Navbar() {
                     <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                       <LayoutDashboard className="w-4 h-4 me-2" />
                       {t("nav.dashboard")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/notifications")}>
+                      <Bell className="w-4 h-4 me-2" />
+                      {t("dash.nav.notifications")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate("/insights")}>
                       <FileText className="w-4 h-4 me-2" />

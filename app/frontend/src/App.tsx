@@ -1,7 +1,7 @@
 ﻿import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, useParams } from "react-router-dom";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { ThemeProvider } from "@/lib/theme";
@@ -82,10 +82,8 @@ const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const ChatAssistant = lazy(() => import("./components/ChatAssistant"));
 const LibraryPage = lazy(() => import("./pages/library/LibraryPage"));
 const BooksPage = lazy(() => import("./pages/library/BooksPage"));
-const BookDetailPage = lazy(() => import("./pages/library/BookDetailPage"));
 const BookReaderPage = lazy(() => import("./pages/library/BookReaderPage"));
 const ResearchPage = lazy(() => import("./pages/library/ResearchPage"));
-const ResearchDetailPage = lazy(() => import("./pages/library/ResearchDetailPage"));
 const MyLibraryPage = lazy(() => import("./pages/library/MyLibraryPage"));
 const SubmitPublicationPage = lazy(() => import("./pages/library/SubmitPublicationPage"));
 const PublicationPoliciesPage = lazy(() => import("./pages/library/PublicationPoliciesPage"));
@@ -94,6 +92,17 @@ const PublicationEditorPage = lazy(() => import("./pages/admin/PublicationEditor
 const PublicationSlugPage = lazy(() => import("./pages/library/PublicationSlugPage"));
 
 const FORM_HEAVY_PREFIXES = ["/auth", "/enterprise", "/consultations", "/members", "/companies", "/messages", "/community"];
+
+const RedirectWithSearch = ({ to }: { to: string }) => {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+};
+
+const LegacyParamRedirect = ({ prefix, param }: { prefix: string; param: string }) => {
+  const params = useParams();
+  const { search } = useLocation();
+  return <Navigate to={`${prefix}/${params[param] || ""}${search}`} replace />;
+};
 
 const LanguageProfileSync = () => {
   const { profile } = useAuth();
@@ -161,15 +170,15 @@ const AppRoutes = () => (
       <Route path="/expert/consultations" element={<ProtectedRoute><ConsultationExpertsPage /></ProtectedRoute>} />
       <Route path="/company/jobs/:id/applications" element={<Navigate to="/jobs" replace />} />
       <Route path="/admin/events" element={<AdminRoute><AdminOpsPage /></AdminRoute>} />
-      <Route path="/dashboard/saved-jobs" element={<SavedJobsPage />} />
-      <Route path="/dashboard/applications" element={<MyApplicationsPage />} />
-      <Route path="/dashboard/privacy" element={<AccountControlsPage />} />
-      <Route path="/dashboard/blocked" element={<BlockedUsersPage />} />
-      <Route path="/dashboard/connections" element={<ConnectionsInboxPage />} />
-      <Route path="/company/dashboard" element={<CompanyDashboardPage />} />
-      <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
-      <Route path="/notifications" element={<NotificationsPage />} />
-      <Route path="/verification" element={<VerificationRequestPage />} />
+      <Route path="/dashboard/saved-jobs" element={<ProtectedRoute><SavedJobsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/applications" element={<ProtectedRoute><MyApplicationsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/privacy" element={<ProtectedRoute><AccountControlsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/blocked" element={<ProtectedRoute><BlockedUsersPage /></ProtectedRoute>} />
+      <Route path="/dashboard/connections" element={<ProtectedRoute><ConnectionsInboxPage /></ProtectedRoute>} />
+      <Route path="/company/dashboard" element={<ProtectedRoute><CompanyDashboardPage /></ProtectedRoute>} />
+      <Route path="/notifications/preferences" element={<ProtectedRoute><NotificationPreferencesPage /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+      <Route path="/verification" element={<ProtectedRoute><VerificationRequestPage /></ProtectedRoute>} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
@@ -185,15 +194,15 @@ const AppRoutes = () => (
       <Route path="/publications/research" element={<ResearchPage />} />
       <Route path="/publications/:slug" element={<PublicationSlugPage />} />
       <Route path="/publications" element={<LibraryPage />} />
-      <Route path="/library" element={<LibraryPage />} />
+      <Route path="/library" element={<RedirectWithSearch to="/publications" />} />
       <Route path="/books/:slug/chapters/:chapterSlug" element={<BookReaderPage />} />
-      <Route path="/books/:slug" element={<BookDetailPage />} />
-      <Route path="/books" element={<BooksPage />} />
-      <Route path="/research/:slug" element={<ResearchDetailPage />} />
-      <Route path="/research" element={<ResearchPage />} />
-      <Route path="/my-library/:id" element={<ProtectedRoute><PublicationEditorPage /></ProtectedRoute>} />
-      <Route path="/my-library" element={<MyLibraryPage />} />
-      <Route path="/submit-publication" element={<SubmitPublicationPage />} />
+      <Route path="/books/:slug" element={<LegacyParamRedirect prefix="/publications" param="slug" />} />
+      <Route path="/books" element={<RedirectWithSearch to="/publications/books" />} />
+      <Route path="/research/:slug" element={<LegacyParamRedirect prefix="/publications" param="slug" />} />
+      <Route path="/research" element={<RedirectWithSearch to="/publications/research" />} />
+      <Route path="/my-library/:id" element={<LegacyParamRedirect prefix="/dashboard/publications" param="id" />} />
+      <Route path="/my-library" element={<RedirectWithSearch to="/dashboard/publications" />} />
+      <Route path="/submit-publication" element={<ProtectedRoute><SubmitPublicationPage /></ProtectedRoute>} />
       <Route path="/policies/:slug" element={<PublicationPoliciesPage />} />
       <Route path="/policies" element={<PublicationPoliciesPage />} />
       <Route path="/members/:id" element={<MemberProfilePage />} />
@@ -218,13 +227,13 @@ const AppRoutes = () => (
       <Route path="/marketplace/materials" element={<MarketplaceMaterialsPage />} />
       <Route path="/marketplace/suppliers/:slug" element={<MarketplaceSupplierDetailPage />} />
       <Route path="/marketplace/suppliers" element={<MarketplaceSuppliersPage />} />
-      <Route path="/marketplace/rfq" element={<CreateRfqPage />} />
+      <Route path="/marketplace/rfq" element={<ProtectedRoute><CreateRfqPage /></ProtectedRoute>} />
       <Route path="/marketplace" element={<MarketplaceHomePage />} />
-      <Route path="/dashboard/rfqs/:id" element={<RfqDetailPage />} />
-      <Route path="/dashboard/rfqs" element={<RfqsPage />} />
-      <Route path="/dashboard/quotes" element={<QuotesPage />} />
-      <Route path="/supplier/catalog" element={<SupplierCatalogPage />} />
-      <Route path="/supplier/quotes" element={<SupplierQuotesPage />} />
+      <Route path="/dashboard/rfqs/:id" element={<ProtectedRoute><RfqDetailPage /></ProtectedRoute>} />
+      <Route path="/dashboard/rfqs" element={<ProtectedRoute><RfqsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/quotes" element={<ProtectedRoute><QuotesPage /></ProtectedRoute>} />
+      <Route path="/supplier/catalog" element={<ProtectedRoute><SupplierCatalogPage /></ProtectedRoute>} />
+      <Route path="/supplier/quotes" element={<ProtectedRoute><SupplierQuotesPage /></ProtectedRoute>} />
       <Route path="/jobs/:slug" element={<JobDetailPage />} />
       <Route path="/jobs" element={<JobsPage />} />
       <Route path="/events/:slug" element={<EventDetailPage />} />

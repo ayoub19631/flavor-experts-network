@@ -187,6 +187,21 @@ export default function FooterSection() {
                 </a>
               </li>
               <li>
+                <a href="/marketplace" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                  {t("nav.marketplace")}
+                </a>
+              </li>
+              <li>
+                <a href="/events" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                  {t("nav.events")}
+                </a>
+              </li>
+              <li>
+                <a href="/discover" className="hover:text-[hsl(47_30%_90%)] transition-colors">
+                  {t("nav.discover")}
+                </a>
+              </li>
+              <li>
                 <a href="/consultations" className="hover:text-[hsl(47_30%_90%)] transition-colors">
                   {t("nav.consultations")}
                 </a>

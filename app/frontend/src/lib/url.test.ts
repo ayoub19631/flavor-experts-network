@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeHttpUrl, isSafeHttpUrl, safeLinkedInUrl } from "./url";
+import { safeHttpUrl, isSafeHttpUrl, safeLinkedInUrl, safeInternalPath } from "./url";
 
 describe("safeHttpUrl", () => {
   it("accepts a full https URL", () => {
@@ -41,6 +41,20 @@ describe("safeHttpUrl", () => {
 
   it("trims surrounding whitespace", () => {
     expect(safeHttpUrl("  https://example.com  ")).toBe("https://example.com/");
+  });
+});
+
+describe("safeInternalPath", () => {
+  it("accepts same-origin paths and query strings", () => {
+    expect(safeInternalPath("/dashboard?tab=profile")).toBe("/dashboard?tab=profile");
+    expect(safeInternalPath("/marketplace/rfq")).toBe("/marketplace/rfq");
+  });
+
+  it("rejects open redirects", () => {
+    expect(safeInternalPath("https://evil.example")).toBeNull();
+    expect(safeInternalPath("//evil.example")).toBeNull();
+    expect(safeInternalPath("\\evil")).toBeNull();
+    expect(safeInternalPath("dashboard")).toBeNull();
   });
 });
 

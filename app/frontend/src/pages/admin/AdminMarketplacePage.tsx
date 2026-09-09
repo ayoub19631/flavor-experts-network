@@ -19,12 +19,15 @@ function Inner() {
   const { t } = useI18n();
   const [queue, setQueue] = useState<Queue>({});
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(true);
   usePageMeta({ title: t("admin.mp"), path: "/admin/marketplace", noIndex: true });
 
   async function load() {
+    setLoading(true);
     const { data, error } = await supabase.rpc("list_marketplace_review_queue");
     if (error) toast.error(error.message);
     setQueue((data as Queue) || {});
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -48,15 +51,19 @@ function Inner() {
       <div className="pt-24 pb-16 mx-auto max-w-4xl px-4 space-y-6">
         <h1 className="text-3xl font-bold">{t("admin.mp")}</h1>
         <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("rfq.reason")} />
+        {loading && <p className="text-muted-foreground" role="status">{t("dash.loading")}</p>}
         {(["suppliers", "materials", "documents"] as const).map((key) => (
           <section key={key} className="space-y-2">
-            <h2 className="font-semibold">{key}</h2>
+            <h2 className="font-semibold">{t(`admin.mp.${key}`)}</h2>
+            {!loading && (queue[key] || []).length === 0 && <p className="text-sm text-muted-foreground">{t("admin.mp.empty")}</p>}
             {(queue[key] || []).map((row) => (
               <div key={row.id} className="flex flex-wrap items-center gap-2 rounded-lg border p-3 text-sm">
-                <span>{"trade_name" in row ? row.trade_name : "doc_type" in row ? row.doc_type : row.id}</span>
-                <Button size="sm" variant="outline" onClick={() => void review(key === "suppliers" ? "supplier" : key === "materials" ? "supplier_material" : "marketplace_document", row.id, "approve")}>approve</Button>
-                <Button size="sm" variant="outline" onClick={() => void review(key === "suppliers" ? "supplier" : key === "materials" ? "supplier_material" : "marketplace_document", row.id, "reject")}>reject</Button>
-                <Button size="sm" variant="outline" onClick={() => void review(key === "suppliers" ? "supplier" : "supplier_material", row.id, "hide")}>hide</Button>
+                <span className="min-w-0 flex-1">{"trade_name" in row ? row.trade_name : "doc_type" in row ? row.doc_type : row.id}</span>
+                <Button size="sm" variant="outline" onClick={() => void review(key === "suppliers" ? "supplier" : key === "materials" ? "supplier_material" : "marketplace_document", row.id, "approve")}>{t("admin.mp.approve")}</Button>
+                <Button size="sm" variant="outline" onClick={() => void review(key === "suppliers" ? "supplier" : key === "materials" ? "supplier_material" : "marketplace_document", row.id, "reject")}>{t("admin.mp.reject")}</Button>
+                {key !== "documents" && (
+                  <Button size="sm" variant="outline" onClick={() => void review(key === "suppliers" ? "supplier" : "supplier_material", row.id, "hide")}>{t("admin.mp.hide")}</Button>
+                )}
               </div>
             ))}
           </section>
