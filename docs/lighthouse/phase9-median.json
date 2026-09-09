@@ -1,0 +1,271 @@
+{
+  "generated_at": "2026-09-09T16:30:28.791Z",
+  "origin": "https://flavorexpertsnetwork.com",
+  "device": "desktop Chrome driving Lighthouse mobile emulation",
+  "form_factor": "mobile",
+  "throttling": "lighthouse default simulated Slow 4G",
+  "runs_per_page": 3,
+  "note": "TBT is a lab proxy, not INP.",
+  "pages": [
+    {
+      "id": "home",
+      "path": "/",
+      "url": "https://flavorexpertsnetwork.com/",
+      "runs": [
+        {
+          "performance": 55,
+          "accessibility": 90,
+          "best_practices": 96,
+          "seo": 100,
+          "lcp_ms": 5171.89213,
+          "cls": 0,
+          "tbt_ms": 867.9300099999998,
+          "third_party_ms": null,
+          "bootup_js_ms": 1623.1079999999936,
+          "unused_js_ms": 610
+        },
+        {
+          "performance": 67,
+          "accessibility": 90,
+          "best_practices": 96,
+          "seo": 100,
+          "lcp_ms": 4696.246510000001,
+          "cls": 0,
+          "tbt_ms": 444.588935,
+          "third_party_ms": null,
+          "bootup_js_ms": 1254.219999999999,
+          "unused_js_ms": 650
+        },
+        {
+          "performance": 61,
+          "accessibility": 90,
+          "best_practices": 96,
+          "seo": 100,
+          "lcp_ms": 4781.246045,
+          "cls": 0,
+          "tbt_ms": 595.7798149999999,
+          "third_party_ms": null,
+          "bootup_js_ms": 1466.3599999999965,
+          "unused_js_ms": 780
+        }
+      ],
+      "median": {
+        "performance": 61,
+        "accessibility": 90,
+        "best_practices": 96,
+        "seo": 100,
+        "lcp_ms": 4781,
+        "cls": 0,
+        "tbt_ms": 596
+      }
+    },
+    {
+      "id": "publications",
+      "path": "/publications",
+      "url": "https://flavorexpertsnetwork.com/publications",
+      "runs": [
+        {
+          "performance": 88,
+          "accessibility": 90,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 3293.6488400000003,
+          "cls": 0.004237231832683969,
+          "tbt_ms": 76,
+          "third_party_ms": null,
+          "bootup_js_ms": 395.70000000000044,
+          "unused_js_ms": 620
+        },
+        {
+          "performance": 90,
+          "accessibility": 90,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 2834.3342800000005,
+          "cls": 0.004237231832683969,
+          "tbt_ms": 104,
+          "third_party_ms": null,
+          "bootup_js_ms": 405.99600000000027,
+          "unused_js_ms": 620
+        },
+        {
+          "performance": 77,
+          "accessibility": 90,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 2942.0112500000005,
+          "cls": 0.004237231832683969,
+          "tbt_ms": 518.1173000000003,
+          "third_party_ms": null,
+          "bootup_js_ms": 1298.7799999999975,
+          "unused_js_ms": 620
+        }
+      ],
+      "median": {
+        "performance": 88,
+        "accessibility": 90,
+        "best_practices": 100,
+        "seo": 100,
+        "lcp_ms": 2942,
+        "cls": 0.004,
+        "tbt_ms": 104
+      }
+    },
+    {
+      "id": "search",
+      "path": "/search",
+      "url": "https://flavorexpertsnetwork.com/search",
+      "runs": [
+        {
+          "performance": 89,
+          "accessibility": 95,
+          "best_practices": 100,
+          "seo": 69,
+          "lcp_ms": 2898.835,
+          "cls": 0,
+          "tbt_ms": 150,
+          "third_party_ms": null,
+          "bootup_js_ms": 674.6240000000009,
+          "unused_js_ms": 750
+        },
+        {
+          "performance": 73,
+          "accessibility": 95,
+          "best_practices": 100,
+          "seo": 69,
+          "lcp_ms": 3021.3115,
+          "cls": 0,
+          "tbt_ms": 659,
+          "third_party_ms": null,
+          "bootup_js_ms": 1406.127999999999,
+          "unused_js_ms": 600
+        },
+        {
+          "performance": 92,
+          "accessibility": 95,
+          "best_practices": 100,
+          "seo": 69,
+          "lcp_ms": 2742.44,
+          "cls": 0,
+          "tbt_ms": 72,
+          "third_party_ms": null,
+          "bootup_js_ms": 393.66000000000065,
+          "unused_js_ms": 600
+        }
+      ],
+      "median": {
+        "performance": 89,
+        "accessibility": 95,
+        "best_practices": 100,
+        "seo": 69,
+        "lcp_ms": 2899,
+        "cls": 0,
+        "tbt_ms": 150
+      }
+    },
+    {
+      "id": "marketplace",
+      "path": "/marketplace",
+      "url": "https://flavorexpertsnetwork.com/marketplace",
+      "runs": [
+        {
+          "performance": 90,
+          "accessibility": 90,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 2807.032,
+          "cls": 0.00004977029132147809,
+          "tbt_ms": 126,
+          "third_party_ms": null,
+          "bootup_js_ms": 463.464,
+          "unused_js_ms": 600
+        },
+        {
+          "performance": 78,
+          "accessibility": 90,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 3039.724,
+          "cls": 0,
+          "tbt_ms": 481,
+          "third_party_ms": null,
+          "bootup_js_ms": 1236.603999999999,
+          "unused_js_ms": 150
+        },
+        {
+          "performance": 91,
+          "accessibility": 90,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 2808.1130000000003,
+          "cls": 0.00004977029132147809,
+          "tbt_ms": 71,
+          "third_party_ms": null,
+          "bootup_js_ms": 433.1960000000006,
+          "unused_js_ms": 600
+        }
+      ],
+      "median": {
+        "performance": 90,
+        "accessibility": 90,
+        "best_practices": 100,
+        "seo": 100,
+        "lcp_ms": 2808,
+        "cls": 0,
+        "tbt_ms": 126
+      }
+    },
+    {
+      "id": "discover",
+      "path": "/discover",
+      "url": "https://flavorexpertsnetwork.com/discover",
+      "runs": [
+        {
+          "performance": 84,
+          "accessibility": 94,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 2785.1317399999994,
+          "cls": 0.1659231168825659,
+          "tbt_ms": 80,
+          "third_party_ms": null,
+          "bootup_js_ms": 433.5320000000013,
+          "unused_js_ms": 770
+        },
+        {
+          "performance": 74,
+          "accessibility": 94,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 3323.9916200000007,
+          "cls": 0.1659231168825659,
+          "tbt_ms": 289,
+          "third_party_ms": null,
+          "bootup_js_ms": 868.2040000000002,
+          "unused_js_ms": 470
+        },
+        {
+          "performance": 66,
+          "accessibility": 94,
+          "best_practices": 100,
+          "seo": 100,
+          "lcp_ms": 4119.64902,
+          "cls": 0.1659231168825659,
+          "tbt_ms": 351,
+          "third_party_ms": null,
+          "bootup_js_ms": 878.5760000000005,
+          "unused_js_ms": 730
+        }
+      ],
+      "median": {
+        "performance": 74,
+        "accessibility": 94,
+        "best_practices": 100,
+        "seo": 100,
+        "lcp_ms": 3324,
+        "cls": 0.166,
+        "tbt_ms": 289
+      }
+    }
+  ]
+}

@@ -504,6 +504,7 @@ export default function ChatAssistant({
             <button
               onClick={clearChat}
               title={clearLabel}
+              aria-label={clearLabel}
               className="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5 text-white/75" />
@@ -511,6 +512,7 @@ export default function ChatAssistant({
             <button
               onClick={() => setMinimized(m => !m)}
               title={minimized ? expandLabel : minimizeLabel}
+              aria-label={minimized ? expandLabel : minimizeLabel}
               className="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors"
             >
               {minimized
@@ -520,6 +522,7 @@ export default function ChatAssistant({
             <button
               onClick={() => setOpen(false)}
               title={closeLabel}
+              aria-label={closeLabel}
               className="w-7 h-7 rounded-lg hover:bg-white/20 flex items-center justify-center transition-colors"
             >
               <X className="w-3.5 h-3.5 text-white/75" />
@@ -559,6 +562,7 @@ export default function ChatAssistant({
                           onClick={() => copyMsg(msg.id, msg.content)}
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
                           title={lang === "ar" ? "نسخ" : "Copy"}
+                          aria-label={lang === "ar" ? "نسخ" : "Copy"}
                         >
                           {copied === msg.id
                             ? <Check className="w-3 h-3 text-emerald-500" />
@@ -620,6 +624,7 @@ export default function ChatAssistant({
                 <button
                   onClick={() => sendMessage()}
                   disabled={!input.trim() || loading}
+                  aria-label={lang === "ar" ? "إرسال" : "Send"}
                   className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 transition-all hover:scale-105 active:scale-95"
                 >
                   {loading

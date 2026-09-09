@@ -77,9 +77,10 @@ export default function DiscoverPage() {
           <section key={section} className="mb-10">
             <h2 className="mb-3 text-lg font-semibold">{t(`discover.${section}`)}</h2>
             {loading && (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Skeleton className="h-20 w-full" />
-                <Skeleton className="h-20 w-full" />
+              <div className="grid min-h-[21rem] gap-3 sm:grid-cols-2">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Skeleton key={index} className="h-20 w-full" />
+                ))}
               </div>
             )}
             {!loading && rows[section].length === 0 && (

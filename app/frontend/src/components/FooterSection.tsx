@@ -266,7 +266,7 @@ export default function FooterSection() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-10 pt-6 border-t border-white/10 text-center text-sm text-[hsl(47_23%_85%/0.5)]">
+        <div className="mt-10 pt-6 border-t border-white/10 text-center text-sm text-[hsl(47_23%_85%/0.78)]">
           <p>
             © {new Date().getFullYear()} {SITE.name}. {t("footer.rights")}
           </p>

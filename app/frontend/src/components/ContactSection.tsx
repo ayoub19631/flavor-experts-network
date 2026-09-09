@@ -118,7 +118,7 @@ export default function ContactSection() {
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-foreground mb-1">{t("contact.email")}</h4>
+                  <p className="font-semibold text-foreground mb-1">{t("contact.email")}</p>
                   {SITE.supportEmail ? (
                     <a
                       href={`mailto:${SITE.supportEmail}`}
@@ -145,9 +145,9 @@ export default function ContactSection() {
                   <MapPin className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-foreground mb-1">
+                  <p className="font-semibold text-foreground mb-1">
                     {t("contact.global")}
-                  </h4>
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {t("contact.global.desc")}
                   </p>

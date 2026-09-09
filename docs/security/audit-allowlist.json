@@ -6,182 +6,236 @@
       "github_advisory_id": "GHSA-23hp-3jrh-7fpw",
       "severity": "critical",
       "production": false,
-      "reason": "@capacitor/assets@3.0.5 still vendors @capacitor/cli@5.7.8 and tar@6.2.1. No patched 6.x exists; forcing tar 7 broke that CLI 5 tree. Assets CLI is local icon generation only and is not shipped to the website."
+      "reason": "@capacitor/assets@3.0.5 still vendors @capacitor/cli@5.7.8 and tar@6.2.1. No patched 6.x exists; forcing tar 7 broke that CLI 5 tree. Assets CLI is local icon generation only and is not shipped to the website.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-34x7-hfp2-rc4v",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-8qq5-rm4j-mr97",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-83g3-92jg-28cx",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-qffp-2rhf-9h96",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-9ppj-qmqm-q256",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-r6q2-hw4h-h46w",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-8x88-c5mf-7j5w",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "tar",
       "github_advisory_id": "GHSA-r292-9mhp-454m",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path."
+      "reason": "Same @capacitor/assets > @capacitor/cli@5 > tar@6.2.1 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why tar (dev/transitive; not the production website bundle)"
     },
     {
       "module": "minimatch",
       "github_advisory_id": "GHSA-3ppc-4f35-3m26",
       "severity": "high",
       "production": false,
-      "reason": "Pinned by @capacitor/assets > @trapezedev/project@7.1.4 > replace@1.2.2. A global minimatch 3 override would also flatten minimatch 10 used by Capacitor CLI 8."
+      "reason": "Pinned by @capacitor/assets > @trapezedev/project@7.1.4 > replace@1.2.2. A global minimatch 3 override would also flatten minimatch 10 used by Capacitor CLI 8.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why minimatch (dev/transitive; not the production website bundle)"
     },
     {
       "module": "minimatch",
       "github_advisory_id": "GHSA-7r86-cg39-jmmj",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > replace > minimatch@3.0.5 development path."
+      "reason": "Same @capacitor/assets > replace > minimatch@3.0.5 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why minimatch (dev/transitive; not the production website bundle)"
     },
     {
       "module": "minimatch",
       "github_advisory_id": "GHSA-23c5-xmqv-rm74",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets > replace > minimatch@3.0.5 development path."
+      "reason": "Same @capacitor/assets > replace > minimatch@3.0.5 development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why minimatch (dev/transitive; not the production website bundle)"
     },
     {
       "module": "sharp",
       "github_advisory_id": "GHSA-f88m-g3jw-g9cj",
       "severity": "high",
       "production": false,
-      "reason": "@capacitor/assets@3.0.5 depends on sharp@0.32.6. The project already uses sharp@0.35.3 directly; swapping the nested 0.32 API is an incompatible assets-pipeline change."
+      "reason": "@capacitor/assets@3.0.5 depends on sharp@0.32.6. The project already uses sharp@0.35.3 directly; swapping the nested 0.32 API is an incompatible assets-pipeline change.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why sharp (dev/transitive; not the production website bundle)"
     },
     {
       "module": "sharp",
       "github_advisory_id": "GHSA-rgj7-g3m4-5g8c",
       "severity": "high",
       "production": false,
-      "reason": "New libheif advisory in sharp. @capacitor/assets still pulls sharp@0.32.6; the app also has sharp@0.35.3 for local asset work. Neither ships in the production website bundle."
+      "reason": "New libheif advisory in sharp. @capacitor/assets still pulls sharp@0.32.6; the app also has sharp@0.35.3 for local asset work. Neither ships in the production website bundle.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why sharp (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-6mj3-qw4j-hgrw",
       "severity": "high",
       "production": false,
-      "reason": "Transitive through @capacitor/assets > @capacitor/cli@5 / @trapezedev/project plist tooling. Local icon generation only; not shipped to the website."
+      "reason": "Transitive through @capacitor/assets > @capacitor/cli@5 / @trapezedev/project plist tooling. Local icon generation only; not shipped to the website.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-g53g-w8rj-fmg7",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-w2rr-34g9-rvrj",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-4w3w-2rp5-g8jm",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-c7q8-3ch8-vqpv",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-27p8-2357-5qqv",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-3px3-54cx-rmw9",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-vr34-hp96-76pp",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-8344-3jmq-59r6",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-965w-775f-mr7g",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "@xmldom/xmldom",
       "github_advisory_id": "GHSA-93r5-fhx6-vmg9",
       "severity": "high",
       "production": false,
-      "reason": "Same @capacitor/assets plist/@xmldom development path."
+      "reason": "Same @capacitor/assets plist/@xmldom development path.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why @xmldom/xmldom (dev/transitive; not the production website bundle)"
     },
     {
       "module": "vite",
       "github_advisory_id": "GHSA-fx2h-pf6j-xcff",
       "severity": "high",
       "production": false,
-      "reason": "Latest Vite 5 is 5.4.21. The fix is Vite 6.4.3+, a major that would risk vite-prerender-plugin and vite-plugin-sitemap. The advisory is a Windows dev-server fs.deny bypass, not the production browser bundle."
+      "reason": "Latest Vite 5 is 5.4.21. The fix is Vite 6.4.3+, a major that would risk vite-prerender-plugin and vite-plugin-sitemap. The advisory is a Windows dev-server fs.deny bypass, not the production browser bundle.",
+      "reviewed_on": "2026-09-09",
+      "versions": "see pnpm why vite (dev/transitive; not the production website bundle)"
     }
-  ]
+  ],
+  "reviewed_on": "2026-09-09",
+  "review_note": "No new exceptions added. Existing items remain development-only @capacitor/assets / Vite 5 leftovers."
 }

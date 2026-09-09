@@ -33,10 +33,10 @@ import {
   asEducation,
   asProjects,
   asWorkExperience,
+  buildProfileSavePayload,
   formatPipeLines,
   formatSkills,
-  parsePipeLines,
-  parseSkills,
+  profileViewFromPayload,
 } from "@/lib/profile-details";
 import { toast } from "sonner";
 import {
@@ -137,11 +137,9 @@ export default function DashboardPage() {
 
   // Private workspace page — never index.
   usePageMeta({
-    title: lang === "ar" ? "لوحة التحكم" : "Dashboard",
+    title: t("dash.copy.dashboard"),
     description:
-      lang === "ar"
-        ? "أدر ملفك ومنشوراتك ومواردك وعضويتك."
-        : "Manage your profile, posts, resources and membership.",
+      t("dash.copy.manage_your_profile_posts_resources_and_membersh"),
     path: "/dashboard",
     noIndex: true,
   });
@@ -235,21 +233,21 @@ export default function DashboardPage() {
         setUpcomingWebinars(webinarsRes.data.map((r) => ({
           id: r.id,
           title: r.title,
-          date: new Date(r.created_at as string).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+          date: new Date(r.created_at as string).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { month: "long", day: "numeric", year: "numeric" }),
           description: r.description,
           link: (r.premium ? linkMap.get(r.id) : null) || r.link || "",
         })));
       }
 
       setEnterpriseStats([
-        { label: "Published News", labelAr: "أخبار منشورة", value: String(newsRes.count ?? 0), icon: Newspaper },
-        { label: "Total Members", labelAr: "إجمالي الأعضاء", value: String(membersRes.count ?? 0), icon: Users },
-        { label: "Member Resources", labelAr: "موارد الأعضاء", value: String(resourcesRes.data?.length ?? 0), icon: BookOpen },
-        { label: "Company Access", labelAr: "وصول الشركات", value: "Active", icon: Star },
+        { label: t("dash.copy.published_news"), labelAr: t("dash.copy.published_news"), value: String(newsRes.count ?? 0), icon: Newspaper },
+        { label: t("dash.copy.total_members"), labelAr: t("dash.copy.total_members"), value: String(membersRes.count ?? 0), icon: Users },
+        { label: t("dash.copy.member_resources"), labelAr: t("dash.copy.member_resources"), value: String(resourcesRes.data?.length ?? 0), icon: BookOpen },
+        { label: t("dash.copy.company_access"), labelAr: t("dash.copy.company_access"), value: t("dash.copy.active"), icon: Star },
       ]);
     }
     fetchDashboardData();
-  }, []);
+  }, [lang, t]);
 
   useEffect(() => {
     if (user?.id) {
@@ -316,7 +314,7 @@ export default function DashboardPage() {
     if (!user) return;
     const text = dashPostBody.trim();
     if (text.length < 3) {
-      toast.error(lang === "ar" ? "اكتب المزيد قبل النشر" : "Write a bit more before publishing");
+      toast.error(t("dash.copy.write_a_bit_more_before_publishing"));
       return;
     }
     setDashPublishing(true);
@@ -331,7 +329,7 @@ export default function DashboardPage() {
       return;
     }
     setDashPostBody("");
-    toast.success(lang === "ar" ? "تم نشر المنشور" : "Post published");
+    toast.success(t("dash.copy.post_published"));
     loadMyPosts();
   };
 
@@ -342,7 +340,7 @@ export default function DashboardPage() {
       return;
     }
     setMyPosts((prev) => prev.filter((p) => p.id !== id));
-    toast.success(lang === "ar" ? "تم حذف المنشور" : "Post removed");
+    toast.success(t("dash.copy.post_removed"));
   };
 
   const handleSignOut = async () => {
@@ -382,51 +380,12 @@ export default function DashboardPage() {
   };
 
   const handleSave = async () => {
-    if (!editData.full_name?.trim()) return;
+    const built = buildProfileSavePayload(editData);
+    if ("error" in built) return;
+    const payload = built;
     setSaveLoading(true);
     setSaveError(null);
     try {
-      const fullName = editData.full_name.trim();
-      const skills = parseSkills(editData.skills_text || formatSkills(editData.skills));
-      const education = parsePipeLines<{ school: string; degree: string; year: string }>(
-        editData.education_text || "",
-        ["school", "degree", "year"],
-      );
-      const work_experience = parsePipeLines<{
-        title: string;
-        company: string;
-        period: string;
-        description: string;
-      }>(editData.work_text || "", ["title", "company", "period", "description"]);
-      const projects = parsePipeLines<{ name: string; description: string; url: string }>(
-        editData.projects_text || "",
-        ["name", "description", "url"],
-      );
-
-      const yearsRaw = editData.years_experience;
-      const years_experience =
-        yearsRaw === null || yearsRaw === undefined || String(yearsRaw).trim() === "" || Number.isNaN(Number(yearsRaw))
-          ? null
-          : Math.max(0, Math.min(80, Math.round(Number(yearsRaw))));
-
-      const payload = {
-        full_name: fullName,
-        role: (editData.role || "").trim(),
-        company: (editData.company || "").trim(),
-        location: (editData.location || "").trim(),
-        bio: (editData.bio || "").trim(),
-        linkedin_url: (editData.linkedin_url || "").trim(),
-        website_url: (editData.website_url || "").trim(),
-        phone: (editData.phone || "").trim(),
-        avatar_url: (editData.avatar_url || "").trim(),
-        cover_url: (editData.cover_url || "").trim(),
-        specialty: (editData.specialty || "").trim(),
-        years_experience,
-        skills,
-        education,
-        work_experience,
-        projects,
-      };
 
       const { error: metaError } = await supabase.auth.updateUser({
         data: {
@@ -455,27 +414,18 @@ export default function DashboardPage() {
       if (profileError) throw profileError;
 
       const profileResult = await updateProfile({
-        full_name: fullName,
+        full_name: payload.full_name,
         avatar_url: payload.avatar_url,
       });
       if (profileResult.error) throw new Error(profileResult.error);
 
       setExtProfile((prev) => ({
         ...prev,
-        ...payload,
-        skills_text: formatSkills(payload.skills),
-        education_text: formatPipeLines(payload.education, ["school", "degree", "year"]),
-        work_text: formatPipeLines(payload.work_experience, [
-          "title",
-          "company",
-          "period",
-          "description",
-        ]),
-        projects_text: formatPipeLines(payload.projects, ["name", "description", "url"]),
+        ...profileViewFromPayload(payload),
       }));
       setSaveSuccess(true);
       setEditing(false);
-      toast.success(lang === "ar" ? "تم حفظ الملف الشخصي" : "Profile saved");
+      toast.success(t("dash.copy.profile_saved"));
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to save";
@@ -492,8 +442,8 @@ export default function DashboardPage() {
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center">
             <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">Please sign in to access your dashboard.</p>
-            <Link to="/auth"><Button className="bg-primary text-primary-foreground">Sign In</Button></Link>
+            <p className="text-muted-foreground mb-4">{t("dash.copy.please_sign_in")}</p>
+            <Link to="/auth"><Button className="bg-primary text-primary-foreground">{t("dash.copy.sign_in")}</Button></Link>
           </CardContent>
         </Card>
       </div>
@@ -504,7 +454,7 @@ export default function DashboardPage() {
   const tierCfg = TIER_CONFIG[currentTier] || TIER_CONFIG.free;
   const memberSince = (extProfile.created_at || profile?.created_at)
     ? new Date(extProfile.created_at || profile!.created_at!).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { month: "long", year: "numeric" })
-    : lang === "ar" ? "يونيو 2026" : "June 2026";
+    : t("dash.copy.june_2026");
   const displayName = extProfile.full_name || profile?.full_name || user.email?.split("@")[0] || "User";
   const isCompany = extProfile.account_type === "company";
   const isPro = currentTier === "professional";
@@ -514,38 +464,38 @@ export default function DashboardPage() {
   const localIsEnterprise = isEnt || isEnterprise;
 
   const TABS = [
-    { key: "overview", label: lang === "ar" ? "نظرة عامة" : "Overview", icon: BarChart2 },
-    ...(localIsPremium ? [{ key: "premium" as const, label: lang === "ar" ? (isEnt ? "لوحة الشركة" : "مكتبة الموارد") : (isEnt ? "Company Hub" : "Resource Library"), icon: isEnt ? Building2 : Sparkles }] : []),
-    { key: "profile", label: lang === "ar" ? "ملفي الشخصي" : "My Profile", icon: User },
-    { key: "posts", label: lang === "ar" ? "منشوراتي" : "My Posts", icon: MessageSquareText },
-    { key: "subscription", label: lang === "ar" ? "عضويتي" : "My Membership", icon: CreditCard },
-    { key: "security", label: lang === "ar" ? "الأمان" : "Security", icon: Lock },
+    { key: "overview", label: t("dash.copy.overview"), icon: BarChart2 },
+    ...(localIsPremium ? [{ key: "premium" as const, label: isEnt ? t("dash.copy.company_hub") : t("dash.copy.resource_library"), icon: isEnt ? Building2 : Sparkles }] : []),
+    { key: "profile", label: t("dash.copy.my_profile"), icon: User },
+    { key: "posts", label: t("dash.copy.my_posts"), icon: MessageSquareText },
+    { key: "subscription", label: t("dash.copy.my_membership"), icon: CreditCard },
+    { key: "security", label: t("dash.copy.security"), icon: Lock },
   ] as const;
 
   const QUICK_ACTIONS = [
-    { icon: Briefcase, label: lang === "ar" ? "فرص العمل" : "Job Opportunities", desc: lang === "ar" ? "ابحث أو انشر وظائف" : "Search or post roles", color: "bg-primary/10 dark:bg-primary/20", iconColor: "text-primary", href: "/jobs" },
-    { icon: MessageSquareText, label: lang === "ar" ? "المجتمع المهني" : "Community Feed", desc: lang === "ar" ? "انشر وتابع التحديثات" : "Publish & follow updates", color: "bg-blue-100 dark:bg-blue-900/30", iconColor: "text-blue-600", href: "/community" },
-    { icon: Users, label: lang === "ar" ? "دليل الأعضاء" : "Members Directory", desc: lang === "ar" ? "تواصل مع المتخصصين" : "Connect with professionals", color: "bg-purple-100 dark:bg-purple-900/30", iconColor: "text-purple-600", href: "/members" },
-    { icon: TrendingUp, label: lang === "ar" ? "أخبار الصناعة" : "Industry News", desc: lang === "ar" ? "آخر تطورات علوم النكهات" : "Latest flavor science updates", color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#news" },
-    { icon: Star, label: lang === "ar" ? "عضويتي" : "My Membership", desc: lang === "ar" ? "منصة مجانية بالكامل" : "Fully free platform access", color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: undefined, onClick: () => selectTab("subscription") },
-    { icon: ExternalLink, label: lang === "ar" ? "مجموعة لينكد إن" : "LinkedIn Group", desc: lang === "ar" ? "مجتمع محترفي النكهات" : "Flavor professionals community", color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: SITE.linkedInGroup },
+    { icon: Briefcase, label: t("dash.copy.job_opportunities"), desc: t("dash.copy.search_or_post_roles"), color: "bg-primary/10 dark:bg-primary/20", iconColor: "text-primary", href: "/jobs" },
+    { icon: MessageSquareText, label: t("dash.copy.community_feed"), desc: t("dash.copy.publish_follow_updates"), color: "bg-blue-100 dark:bg-blue-900/30", iconColor: "text-blue-600", href: "/community" },
+    { icon: Users, label: t("dash.copy.members_directory"), desc: t("dash.copy.connect_with_professionals"), color: "bg-purple-100 dark:bg-purple-900/30", iconColor: "text-purple-600", href: "/members" },
+    { icon: TrendingUp, label: t("dash.copy.industry_news"), desc: t("dash.copy.latest_flavor_science_updates"), color: "bg-emerald-100 dark:bg-emerald-900/30", iconColor: "text-emerald-600", href: "/#news" },
+    { icon: Star, label: t("dash.copy.my_membership"), desc: t("dash.copy.fully_free_platform_access"), color: "bg-rose-100 dark:bg-rose-900/30", iconColor: "text-rose-600", href: undefined, onClick: () => selectTab("subscription") },
+    { icon: ExternalLink, label: t("dash.copy.linkedin_group"), desc: t("dash.copy.flavor_professionals_community"), color: "bg-sky-100 dark:bg-sky-900/30", iconColor: "text-sky-600", href: SITE.linkedInGroup },
   ];
 
   const ACHIEVEMENTS = [
-    { icon: CheckCircle, label: lang === "ar" ? "البريد موثق" : "Email Verified", earned: !!user.email_confirmed_at, color: "text-emerald-500" },
-    { icon: User, label: lang === "ar" ? "الملف مكتمل" : "Profile Complete", earned: !!(extProfile.role && extProfile.company && extProfile.bio && extProfile.specialty), color: "text-blue-500" },
-    { icon: Crown, label: lang === "ar" ? "وصول كامل" : "Full Access", earned: !!user, color: "text-primary" },
-    { icon: Star, label: lang === "ar" ? "حساب شركة" : "Company Account", earned: isEnt || localIsEnterprise || profile?.account_type === "company", color: "text-purple-500" },
-    { icon: Award, label: lang === "ar" ? "من المبكرين" : "Early Adopter", earned: new Date(user.created_at ?? Date.now()) < new Date("2026-08-01"), color: "text-primary" },
+    { icon: CheckCircle, label: t("dash.copy.email_verified"), earned: !!user.email_confirmed_at, color: "text-emerald-500" },
+    { icon: User, label: t("dash.copy.profile_complete"), earned: !!(extProfile.role && extProfile.company && extProfile.bio && extProfile.specialty), color: "text-blue-500" },
+    { icon: Crown, label: t("dash.copy.full_access"), earned: !!user, color: "text-primary" },
+    { icon: Star, label: t("dash.copy.company_account"), earned: isEnt || localIsEnterprise || profile?.account_type === "company", color: "text-purple-500" },
+    { icon: Award, label: t("dash.copy.early_adopter"), earned: new Date(user.created_at ?? Date.now()) < new Date("2026-08-01"), color: "text-primary" },
   ];
 
   const PREMIUM_FEATURES = [
-    { icon: FileText, label: lang === "ar" ? "الأوراق البحثية" : "Research Papers", desc: lang === "ar" ? "موارد علمية للأعضاء" : "Member research resources", color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
-    { icon: Video, label: lang === "ar" ? "الندوات الحصرية" : "Exclusive Webinars", desc: lang === "ar" ? "ندوات مباشرة مع خبراء الصناعة" : "Live webinars with industry experts", color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30" },
-    { icon: LineChart, label: lang === "ar" ? "تقارير الصناعة" : "Industry Reports", desc: lang === "ar" ? "تحليلات السوق والاتجاهات" : "Market analytics & trends", color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
-    { icon: FlaskConical, label: lang === "ar" ? "أدلة التركيب" : "Formulation Guides", desc: lang === "ar" ? "بروتوكولات وصيغ تقنية متقدمة" : "Advanced technical protocols", color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30" },
-    { icon: Target, label: lang === "ar" ? "استشارات الخبراء" : "Expert Consultations", desc: lang === "ar" ? "تواصل مباشر مع كبار الخبراء" : "Direct access to senior experts", color: "text-primary bg-primary/10 dark:bg-primary/20" },
-    { icon: Download, label: lang === "ar" ? "قوالب قابلة للتنزيل" : "Downloadable Templates", desc: lang === "ar" ? "نماذج وقوالب جاهزة للاستخدام" : "Ready-to-use professional templates", color: "text-sky-600 bg-sky-100 dark:bg-sky-900/30" },
+    { icon: FileText, label: t("dash.copy.research_papers"), desc: t("dash.copy.member_research_resources"), color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
+    { icon: Video, label: t("dash.copy.exclusive_webinars"), desc: t("dash.copy.live_webinars_with_industry_experts"), color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30" },
+    { icon: LineChart, label: t("dash.copy.industry_reports"), desc: t("dash.copy.market_analytics_trends"), color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
+    { icon: FlaskConical, label: t("dash.copy.formulation_guides"), desc: t("dash.copy.advanced_technical_protocols"), color: "text-rose-600 bg-rose-100 dark:bg-rose-900/30" },
+    { icon: Target, label: t("dash.copy.expert_consultations"), desc: t("dash.copy.direct_access_to_senior_experts"), color: "text-primary bg-primary/10 dark:bg-primary/20" },
+    { icon: Download, label: t("dash.copy.downloadable_templates"), desc: t("dash.copy.ready_to_use_professional_templates"), color: "text-sky-600 bg-sky-100 dark:bg-sky-900/30" },
   ];
 
   return (
@@ -616,18 +566,18 @@ export default function DashboardPage() {
                   )}
                   <div className="flex flex-wrap gap-1 mt-2">
                     <Badge className={`text-xs ${tierCfg.color}`}>
-                      {tierCfg.icon && <tierCfg.icon className="w-3 h-3 mr-1" />}
-                      {lang === "ar" ? tierCfg.labelAr : tierCfg.label}
+                      {tierCfg.icon && <tierCfg.icon className="w-3 h-3 me-1" />}
+                      {t(`dash.copy.tier_${currentTier}`)}
                     </Badge>
                     {isCompany && (
                       <Badge className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                        <Building2 className="w-3 h-3 mr-1" />{lang === "ar" ? "شركة" : "Company"}
+                        <Building2 className="w-3 h-3 me-1" />{t("dash.copy.company")}
                       </Badge>
                     )}
                   </div>
                   {saveSuccess && (
                     <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> {lang === "ar" ? "تم التحديث!" : "Profile updated!"}
+                      <CheckCircle className="w-3 h-3" /> {t("dash.copy.profile_updated")}
                     </p>
                   )}
                 </CardContent>
@@ -708,7 +658,7 @@ export default function DashboardPage() {
               <Card className="border border-border">
                 <CardHeader className="p-4 pb-2">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Award className="w-4 h-4 text-primary" /> {lang === "ar" ? "الإنجازات" : "Achievements"}
+                    <Award className="w-4 h-4 text-primary" /> {t("dash.copy.achievements")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-1 space-y-2">
@@ -731,18 +681,18 @@ export default function DashboardPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Rocket className="w-4 h-4 text-primary" />
-                        <p className="text-sm font-semibold text-primary">{lang === "ar" ? "اكتمال الملف" : "Profile Strength"}</p>
+                        <p className="text-sm font-semibold text-primary">{t("dash.copy.profile_strength")}</p>
                         <span className="ms-auto text-xs font-semibold text-primary">{pct}%</span>
                       </div>
                       <Progress value={pct} className="h-1.5 mb-2" />
                       <p className="text-xs text-muted-foreground mb-3">
                         {incomplete
-                          ? (lang === "ar" ? "أضف صورة الغلاف والتخصص والمهارات لزيادة الظهور" : "Add cover, specialty, and skills to boost visibility")
-                          : (lang === "ar" ? "ملفك مكتمل — أحسنت!" : "Your profile looks complete — great work!")}
+                          ? (t("dash.copy.add_cover_specialty_and_skills_to_boost_visibili"))
+                          : (t("dash.copy.your_profile_looks_complete_great_work"))}
                       </p>
                       {incomplete && (
                         <Button size="sm" className="w-full" onClick={() => selectTab("profile")}>
-                          {lang === "ar" ? "أكمل ملفك الآن" : "Complete profile now"}
+                          {t("dash.copy.complete_profile_now")}
                         </Button>
                       )}
                     </CardContent>
@@ -761,7 +711,7 @@ export default function DashboardPage() {
                       <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <Users className="w-4 h-4 text-primary" />
-                          {lang === "ar" ? "طلبات تواصل واردة" : "Incoming connection requests"}
+                          {t("dash.copy.incoming_connection_requests")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-2 space-y-2">
@@ -769,7 +719,7 @@ export default function DashboardPage() {
                           <div key={req.id} className="flex flex-wrap items-center gap-2 justify-between rounded-lg border border-border p-3">
                             <div className="min-w-0">
                               <p className="text-sm font-medium truncate">
-                                {connectionNames[req.requester_id] || (lang === "ar" ? "عضو" : "Member")}
+                                {connectionNames[req.requester_id] || (t("dash.copy.member"))}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {new Date(req.created_at).toLocaleDateString(lang === "ar" ? "ar" : "en")}
@@ -786,13 +736,13 @@ export default function DashboardPage() {
                                   setConnectionBusy(null);
                                   if (error) toast.error(error);
                                   else {
-                                    toast.success(lang === "ar" ? "تم القبول" : "Accepted");
+                                    toast.success(t("dash.copy.accepted"));
                                     setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
                                     setAcceptedConnections((prev) => [{ ...req, status: "accepted" }, ...prev]);
                                   }
                                 }}
                               >
-                                {lang === "ar" ? "قبول" : "Accept"}
+                                {t("dash.copy.accept")}
                               </Button>
                               <Button
                                 size="sm"
@@ -805,12 +755,12 @@ export default function DashboardPage() {
                                   setConnectionBusy(null);
                                   if (error) toast.error(error);
                                   else {
-                                    toast.message(lang === "ar" ? "تم الرفض" : "Declined");
+                                    toast.message(t("dash.copy.declined"));
                                     setPendingConnections((prev) => prev.filter((p) => p.id !== req.id));
                                   }
                                 }}
                               >
-                                {lang === "ar" ? "رفض" : "Decline"}
+                                {t("dash.copy.decline")}
                               </Button>
                             </div>
                           </div>
@@ -824,22 +774,22 @@ export default function DashboardPage() {
                       <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <Users className="w-4 h-4 text-primary" />
-                          {lang === "ar" ? "شبكتي" : "My network"}
+                          {t("dash.copy.my_network")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-2 space-y-2">
                         {acceptedConnections.length === 0 ? (
                           <div className="text-sm text-muted-foreground space-y-3">
-                            <p>{lang === "ar" ? "لا توجد اتصالات بعد" : "No connections yet"}</p>
+                            <p>{t("dash.copy.no_connections_yet")}</p>
                             <Button asChild size="sm" variant="outline">
-                              <Link to="/members">{lang === "ar" ? "تصفح الأعضاء" : "Browse members"}</Link>
+                              <Link to="/members">{t("dash.copy.browse_members")}</Link>
                             </Button>
                           </div>
                         ) : (
                           acceptedConnections.slice(0, 5).map((c) => {
                             const peer = peerUserId(c, user.id);
                             const memberId = memberIdsByProfile[peer];
-                            const name = connectionNames[peer] || (lang === "ar" ? "عضو" : "Member");
+                            const name = connectionNames[peer] || (t("dash.copy.member"));
                             return (
                               <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
                                 {memberId ? (
@@ -850,7 +800,7 @@ export default function DashboardPage() {
                                   <span className="truncate font-medium">{name}</span>
                                 )}
                                 <Badge variant="secondary" className="text-[10px]">
-                                  {lang === "ar" ? "متصل" : "Connected"}
+                                  {t("dash.copy.connected")}
                                 </Badge>
                               </div>
                             );
@@ -863,14 +813,14 @@ export default function DashboardPage() {
                       <CardHeader className="p-4 pb-2">
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <BookMarked className="w-4 h-4 text-primary" />
-                          {lang === "ar" ? "رؤى الصناعة" : "Industry Insights"}
+                          {t("dash.copy.industry_insights")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-2 space-y-3">
                         <div className="text-sm text-muted-foreground space-y-3">
-                          <p>{lang === "ar" ? "اطلع على المقالات التقنية والمنشورات المهنية." : "Browse technical articles and professional posts."}</p>
+                          <p>{t("dash.copy.browse_technical_articles_and_professional_posts")}</p>
                           <Button asChild size="sm" variant="outline">
-                            <Link to="/insights">{lang === "ar" ? "استكشف رؤى الصناعة" : "Explore industry insights"}</Link>
+                            <Link to="/insights">{t("dash.copy.explore_industry_insights")}</Link>
                           </Button>
                         </div>
                       </CardContent>
@@ -880,9 +830,9 @@ export default function DashboardPage() {
                   {/* Stats Row */}
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { icon: Crown, label: lang === "ar" ? "العضوية" : "Membership", value: lang === "ar" ? "مجانية" : "Free", color: "text-primary bg-primary/10" },
-                      { icon: Calendar, label: lang === "ar" ? "عضو منذ" : "Member Since", value: memberSince, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
-                      { icon: CheckCircle, label: lang === "ar" ? "الحالة" : "Status", value: lang === "ar" ? "نشط" : "Active", color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
+                      { icon: Crown, label: t("dash.copy.membership"), value: t("dash.copy.free"), color: "text-primary bg-primary/10" },
+                      { icon: Calendar, label: t("dash.copy.member_since"), value: memberSince, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
+                      { icon: CheckCircle, label: t("dash.copy.status"), value: t("dash.copy.active"), color: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30" },
                     ].map(({ icon: Icon, label, value, color }) => (
                       <Card key={label} className="border border-border">
                         <CardContent className="p-4">
@@ -905,11 +855,11 @@ export default function DashboardPage() {
                           <Crown className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-bold text-primary text-base">{lang === "ar" ? "مرحباً بك — عضويتك مجانية بالكامل" : "Welcome — your membership is fully free"}</p>
-                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "وصول كامل للموارد والوظائف والمجتمع والمنتدى بدون اشتراك" : "Full access to resources, jobs, community, and forum — no subscription"}</p>
+                          <p className="font-bold text-primary text-base">{t("dash.copy.welcome_your_membership_is_fully_free")}</p>
+                          <p className="text-sm text-muted-foreground">{t("dash.copy.full_access_to_resources_jobs_community_and_foru")}</p>
                         </div>
                         <Button size="sm" className="ms-auto whitespace-nowrap" onClick={() => selectTab("premium")}>
-                          {lang === "ar" ? "استكشف" : "Explore"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                          {t("dash.copy.explore")} <ChevronRight className="w-3.5 h-3.5 ms-1 rtl:rotate-180" />
                         </Button>
                       </CardContent>
                     </Card>
@@ -923,11 +873,11 @@ export default function DashboardPage() {
                           <Star className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-bold text-primary text-base">{lang === "ar" ? "حساب الشركة نشط — مجاني بالكامل" : "Company account active — fully free"}</p>
-                          <p className="text-sm text-muted-foreground">{lang === "ar" ? "انشر الوظائف، أدر ملف الشركة، وتواصل مع مجتمع المتخصصين — مجاناً" : "Post jobs, manage your company profile, and reach professionals — free"}</p>
+                          <p className="font-bold text-primary text-base">{t("dash.copy.company_account_active_fully_free")}</p>
+                          <p className="text-sm text-muted-foreground">{t("dash.copy.post_jobs_manage_your_company_profile_and_reach_")}</p>
                         </div>
                         <Button size="sm" className="ms-auto bg-primary hover:bg-primary/90 text-primary-foreground whitespace-nowrap" onClick={() => selectTab("premium")}>
-                          {lang === "ar" ? "لوحتي" : "My Hub"} <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                          {t("dash.copy.my_hub")} <ChevronRight className="w-3.5 h-3.5 ms-1 rtl:rotate-180" />
                         </Button>
                       </CardContent>
                     </Card>
@@ -936,7 +886,7 @@ export default function DashboardPage() {
                   {/* Quick Actions Grid */}
                   <Card className="border border-border">
                     <CardHeader className="p-4 pb-3">
-                      <CardTitle className="text-sm font-semibold">{lang === "ar" ? "وصول سريع" : "Quick Access"}</CardTitle>
+                      <CardTitle className="text-sm font-semibold">{t("dash.copy.quick_access")}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -966,20 +916,20 @@ export default function DashboardPage() {
                   <Card className="border border-border">
                     <CardHeader className="p-4 pb-3">
                       <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                        {lang === "ar" ? "ملخص الحساب" : "Account Summary"}
+                        {t("dash.copy.account_summary")}
                         <button onClick={() => selectTab("profile")} className="text-xs text-primary hover:underline font-normal">
-                          {lang === "ar" ? "تعديل الملف" : "Edit Profile"}
+                          {t("dash.copy.edit_profile")}
                         </button>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="space-y-2 text-sm">
                         {[
-                          { icon: Mail, label: lang === "ar" ? "البريد" : "Email", value: user.email },
-                          { icon: User, label: lang === "ar" ? "الاسم" : "Full Name", value: displayName },
-                          { icon: Briefcase, label: lang === "ar" ? "المنصب" : "Role", value: extProfile.role || "—" },
-                          { icon: Building2, label: lang === "ar" ? "الشركة" : "Company", value: extProfile.company || "—" },
-                          { icon: MapPin, label: lang === "ar" ? "الموقع" : "Location", value: extProfile.location || "—" },
+                          { icon: Mail, label: t("dash.copy.email"), value: user.email },
+                          { icon: User, label: t("dash.copy.full_name"), value: displayName },
+                          { icon: Briefcase, label: t("dash.copy.role"), value: extProfile.role || "—" },
+                          { icon: Building2, label: t("dash.copy.company_2"), value: extProfile.company || "—" },
+                          { icon: MapPin, label: t("dash.copy.location"), value: extProfile.location || "—" },
                         ].map(({ icon: Icon, label, value }) => (
                           <div key={label} className="flex items-center gap-3 py-1.5 border-b border-border last:border-0">
                             <Icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
@@ -1004,16 +954,16 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-3 mb-2">
                         <Crown className="w-7 h-7" />
-                        <h2 className="text-xl font-bold">{lang === "ar" ? "عضوية احترافية" : "Professional Membership"}</h2>
+                        <h2 className="text-xl font-bold">{t("dash.copy.professional_membership")}</h2>
                       </div>
-                      <p className="text-white/80 text-sm max-w-lg">{lang === "ar" ? "لديك وصول كامل لجميع الموارد البحثية والندوات الحصرية وتقارير الصناعة" : "You have full access to all research papers, exclusive webinars, and industry reports"}</p>
+                      <p className="text-white/80 text-sm max-w-lg">{t("dash.copy.you_have_full_access_to_all_research_papers_excl")}</p>
                       <div className="flex gap-3 mt-4 flex-wrap">
-                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">{lang === "ar" ? "موارد بحثية للأعضاء" : "Member research resources"}</div>
+                        <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">{t("dash.copy.member_research_resources_2")}</div>
                         <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">
-                          {premiumResources.length} {lang === "ar" ? "مورداً في مكتبتك" : "library resources"}
+                          {premiumResources.length} {t("dash.copy.library_resources")}
                         </div>
                         <div className="bg-white/20 rounded-lg px-3 py-1.5 text-sm font-medium">
-                          {upcomingWebinars.length} {lang === "ar" ? "ندوات مجدولة" : "scheduled webinars"}
+                          {upcomingWebinars.length} {t("dash.copy.scheduled_webinars")}
                         </div>
                       </div>
                     </div>
@@ -1025,16 +975,16 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-3 mb-2">
                         <Building2 className="w-7 h-7" />
-                        <h2 className="text-xl font-bold">{lang === "ar" ? "لوحة تحكم الشركة" : "Enterprise Control Panel"}</h2>
+                        <h2 className="text-xl font-bold">{t("dash.copy.enterprise_control_panel")}</h2>
                       </div>
-                      <p className="text-white/80 text-sm max-w-lg">{lang === "ar" ? "إدارة حضور شركتك والإعلانات والمقالات وتحليلات الأداء" : "Manage your company presence, ads, articles, and performance analytics"}</p>
+                      <p className="text-white/80 text-sm max-w-lg">{t("dash.copy.manage_your_company_presence_ads_articles_and_pe")}</p>
                       {/* Enterprise Stats */}
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                         {enterpriseStats.map(({ label, labelAr, value, icon: Icon }) => (
                           <div key={label} className="bg-white/20 rounded-xl p-3">
                             <Icon className="w-4 h-4 mb-1 opacity-80" />
                             <p className="text-lg font-bold">{value}</p>
-                            <p className="text-xs opacity-80">{lang === "ar" ? labelAr : label}</p>
+                            <p className="text-xs opacity-80">{label}</p>
                           </div>
                         ))}
                       </div>
@@ -1047,14 +997,14 @@ export default function DashboardPage() {
                       <CardHeader className="p-4 pb-3">
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <BookMarked className="w-4 h-4 text-primary" />
-                          {lang === "ar" ? "مكتبتك البحثية" : "Your Research Library"}
-                          <Badge className="ms-auto text-xs bg-primary/10 text-primary">{lang === "ar" ? "وصول كامل" : "Full Access"}</Badge>
+                          {t("dash.copy.your_research_library")}
+                          <Badge className="ms-auto text-xs bg-primary/10 text-primary">{t("dash.copy.full_access")}</Badge>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0 space-y-3">
                         {premiumResources.length === 0 ? (
                           <div className="text-center py-6 text-muted-foreground text-sm">
-                            {lang === "ar" ? "لا توجد موارد مميزة حتى الآن" : "No premium resources yet"}
+                            {t("dash.copy.no_premium_resources_yet")}
                           </div>
                         ) : premiumResources.map((res) => (
                           <div key={res.id} className="flex items-center gap-3 p-3 rounded-xl border border-border hover:border-primary/40 hover:bg-muted/30 transition-all cursor-pointer group">
@@ -1066,7 +1016,7 @@ export default function DashboardPage() {
                               <p className="font-medium text-foreground text-sm truncate">{res.title}</p>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <Badge variant="outline" className="text-xs px-1.5 py-0">{res.category}</Badge>
-                                <span className="text-xs text-muted-foreground capitalize">{res.type === "course" ? (lang === "ar" ? "مورد" : "Resource") : res.type}</span>
+                                <span className="text-xs text-muted-foreground capitalize">{res.type === "course" ? (t("dash.copy.resource")) : res.type}</span>
                                 {res.description && <span className="text-xs text-muted-foreground truncate max-w-[120px]">{res.description}</span>}
                               </div>
                             </div>
@@ -1077,18 +1027,18 @@ export default function DashboardPage() {
                                 className="text-xs gap-1"
                                 onClick={() => void openResourceLink(res.id, res.link, true)}
                               >
-                                <Download className="w-3 h-3" /> {lang === "ar" ? "فتح" : "Open"}
+                                <Download className="w-3 h-3" /> {t("dash.copy.open")}
                               </Button>
                             ) : (
                               <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => void openResourceLink(res.id, null, true)}>
-                                <Download className="w-3 h-3" /> {lang === "ar" ? "فتح" : "Open"}
+                                <Download className="w-3 h-3" /> {t("dash.copy.open")}
                               </Button>
                             )}
                           </div>
                         ))}
                         <Link to="/#resources">
                           <Button variant="outline" size="sm" className="w-full gap-2 mt-1">
-                            {lang === "ar" ? "عرض جميع الموارد" : "View All Resources"} <ChevronRight className="w-3.5 h-3.5" />
+                            {t("dash.copy.view_all_resources")} <ChevronRight className="w-3.5 h-3.5" />
                           </Button>
                         </Link>
                       </CardContent>
@@ -1101,13 +1051,13 @@ export default function DashboardPage() {
                       <CardHeader className="p-4 pb-3">
                         <CardTitle className="text-sm font-semibold flex items-center gap-2">
                           <Video className="w-4 h-4 text-purple-500" />
-                          {lang === "ar" ? "الندوات القادمة" : "Upcoming Webinars"}
+                          {t("dash.copy.upcoming_webinars")}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0 space-y-3">
                         {upcomingWebinars.length === 0 ? (
                           <div className="text-center py-6 text-muted-foreground text-sm">
-                            {lang === "ar" ? "لا توجد ندوات قادمة حالياً" : "No upcoming webinars scheduled yet"}
+                            {t("dash.copy.no_upcoming_webinars_scheduled_yet")}
                           </div>
                         ) : upcomingWebinars.map((wb) => (
                           <div key={wb.id} className="flex items-start gap-3 p-3 rounded-xl border border-purple-100 dark:border-purple-900/30 bg-purple-50/50 dark:bg-purple-900/10">
@@ -1122,12 +1072,12 @@ export default function DashboardPage() {
                             {wb.link && safeHttpUrl(wb.link) ? (
                               <a href={safeHttpUrl(wb.link)!} target="_blank" rel="noopener noreferrer">
                                 <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white text-xs">
-                                  {lang === "ar" ? "سجّل" : "Join"}
+                                  {t("dash.copy.join")}
                                 </Button>
                               </a>
                             ) : (
                               <Button size="sm" variant="outline" className="text-xs" disabled>
-                                {lang === "ar" ? "قريباً" : "Soon"}
+                                {t("dash.copy.soon")}
                               </Button>
                             )}
                           </div>
@@ -1140,10 +1090,10 @@ export default function DashboardPage() {
                   {isEnt && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {[
-                        { icon: Newspaper, title: lang === "ar" ? "إدارة الإعلانات" : "Manage Ads", desc: lang === "ar" ? "3 إعلانات نشطة شهرياً" : "3 active ads monthly", color: "border-blue-200 bg-blue-50/50 dark:bg-blue-900/10", iconColor: "text-blue-600 bg-blue-100 dark:bg-blue-900/30", cta: lang === "ar" ? "إضافة إعلان" : "Add Ad", href: "/contact?type=enterprise" },
-                        { icon: FileText, title: lang === "ar" ? "نشر مقالات" : "Publish Articles", desc: lang === "ar" ? "نشر غير محدود على الموقع" : "Unlimited articles on platform", color: "border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10", iconColor: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30", cta: lang === "ar" ? "كتابة مقال" : "Write Article", href: "/contact?type=enterprise&subject=article" },
-                        { icon: Layers, title: lang === "ar" ? "شعار الشركة" : "Brand Placement", desc: lang === "ar" ? "شعارك في صفحة الشركاء" : "Logo in Partners section", color: "border-purple-200 bg-purple-50/50 dark:bg-purple-900/10", iconColor: "text-purple-600 bg-purple-100 dark:bg-purple-900/30", cta: lang === "ar" ? "رفع الشعار" : "Upload Logo", href: "/contact?type=enterprise&subject=brand" },
-                        { icon: BarChart, title: lang === "ar" ? "تقارير الأداء" : "Performance Reports", desc: lang === "ar" ? "تحليلات شهرية مفصلة" : "Monthly detailed analytics", color: "border-primary/30 bg-secondary/50 dark:bg-primary/10", iconColor: "text-primary bg-primary/10 dark:bg-primary/20", cta: lang === "ar" ? "عرض التقرير" : "View Report", href: "/contact?type=enterprise&subject=report" },
+                        { icon: Newspaper, title: t("dash.copy.manage_ads"), desc: t("dash.copy.3_active_ads_monthly"), color: "border-blue-200 bg-blue-50/50 dark:bg-blue-900/10", iconColor: "text-blue-600 bg-blue-100 dark:bg-blue-900/30", cta: t("dash.copy.add_ad"), href: "/contact?type=enterprise" },
+                        { icon: FileText, title: t("dash.copy.publish_articles"), desc: t("dash.copy.unlimited_articles_on_platform"), color: "border-emerald-200 bg-emerald-50/50 dark:bg-emerald-900/10", iconColor: "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30", cta: t("dash.copy.write_article"), href: "/contact?type=enterprise&subject=article" },
+                        { icon: Layers, title: t("dash.copy.brand_placement"), desc: t("dash.copy.logo_in_partners_section"), color: "border-purple-200 bg-purple-50/50 dark:bg-purple-900/10", iconColor: "text-purple-600 bg-purple-100 dark:bg-purple-900/30", cta: t("dash.copy.upload_logo"), href: "/contact?type=enterprise&subject=brand" },
+                        { icon: BarChart, title: t("dash.copy.performance_reports"), desc: t("dash.copy.monthly_detailed_analytics"), color: "border-primary/30 bg-secondary/50 dark:bg-primary/10", iconColor: "text-primary bg-primary/10 dark:bg-primary/20", cta: t("dash.copy.view_report"), href: "/contact?type=enterprise&subject=report" },
                       ].map(({ icon: Icon, title, desc, color, iconColor, cta, href }) => (
                         <Card key={title} className={`border ${color}`}>
                           <CardContent className="p-4 flex items-center gap-3">
@@ -1168,7 +1118,7 @@ export default function DashboardPage() {
                     <CardHeader className="p-4 pb-3">
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-primary" />
-                        {lang === "ar" ? "جميع مزاياك" : "All Your Benefits"}
+                        {t("dash.copy.all_your_benefits")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
@@ -1203,23 +1153,23 @@ export default function DashboardPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-foreground text-lg">
-                              {lang === "ar" ? "عضوية مجانية بالكامل" : "Fully Free Membership"}
+                              {t("dash.copy.fully_free_membership")}
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                              {lang === "ar" ? "وصول كامل للأفراد والشركات — بدون اشتراك" : "Full access for individuals and companies — no subscription"}
+                              {t("dash.copy.full_access_for_individuals_and_companies_no_sub")}
                             </p>
                           </div>
                         </div>
                         <Badge className="text-sm px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                          {lang === "ar" ? "مجاني" : "Free"}
+                          {t("dash.copy.free_2")}
                         </Badge>
                       </div>
                       <Separator className="mb-4" />
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                         {[
-                          { label: lang === "ar" ? "السعر" : "Price", value: "$0" },
-                          { label: lang === "ar" ? "الفوترة" : "Billing", value: lang === "ar" ? "لا يوجد" : "None" },
-                          { label: lang === "ar" ? "عضو منذ" : "Since", value: memberSince },
+                          { label: t("dash.copy.price"), value: "$0" },
+                          { label: t("dash.copy.billing"), value: t("dash.copy.none") },
+                          { label: t("dash.copy.since"), value: memberSince },
                         ].map(({ label, value }) => (
                           <div key={label} className="p-3 rounded-xl bg-muted/50">
                             <p className="text-xs text-muted-foreground mb-1">{label}</p>
@@ -1234,18 +1184,18 @@ export default function DashboardPage() {
                     <CardHeader className="p-4 pb-3">
                       <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <Gift className="w-4 h-4 text-primary" />
-                        {lang === "ar" ? "ما تشمله عضويتك" : "What's Included"}
+                        {t("dash.copy.what_s_included")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 pt-0">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {[
-                          lang === "ar" ? "الأخبار والمقالات ورؤى الصناعة" : "News, articles, and Industry Insights",
-                          lang === "ar" ? "فرص العمل والتقديم عليها" : "Job listings and applications",
-                          lang === "ar" ? "المجتمع والمنتدى ودليل الأعضاء" : "Community, forum, and members directory",
-                          lang === "ar" ? "الاستشارات والسوق ورؤى الصناعة" : "Consultations, market, and industry insights",
-                          lang === "ar" ? "حسابات الشركات مجانية بالكامل" : "Company accounts fully free",
-                          lang === "ar" ? "بدون اشتراكات أو مدفوعات" : "No subscriptions or payments",
+                          t("dash.copy.news_articles_and_industry_insights"),
+                          t("dash.copy.job_listings_and_applications"),
+                          t("dash.copy.community_forum_and_members_directory"),
+                          t("dash.copy.consultations_market_and_industry_insights"),
+                          t("dash.copy.company_accounts_fully_free"),
+                          t("dash.copy.no_subscriptions_or_payments"),
                         ].map((feat) => (
                           <div key={feat} className="flex items-center gap-2 text-sm">
                             <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -1259,19 +1209,19 @@ export default function DashboardPage() {
                   <div className="flex gap-3 flex-wrap">
                     <Link to="/enterprise" className="flex-1">
                       <Button variant="outline" className="w-full gap-2">
-                        <Building2 className="w-4 h-4" /> {lang === "ar" ? "خدمات الشركات" : "Enterprise services"}
+                        <Building2 className="w-4 h-4" /> {t("dash.copy.enterprise_services")}
                       </Button>
                     </Link>
                     {SITE.supportEmail ? (
                       <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
                         <a href={`mailto:${SITE.supportEmail}?subject=${encodeURIComponent("Membership support — Flavor Experts Network")}`}>
-                          <RefreshCw className="w-4 h-4" /> {lang === "ar" ? "الدعم" : "Support"}
+                          <RefreshCw className="w-4 h-4" /> {t("dash.copy.support")}
                         </a>
                       </Button>
                     ) : (
                       <Button variant="outline" className="gap-2 flex-1 min-w-fit" asChild>
                         <Link to="/#contact">
-                          <RefreshCw className="w-4 h-4" /> {lang === "ar" ? "الدعم" : "Support"}
+                          <RefreshCw className="w-4 h-4" /> {t("dash.copy.support")}
                         </Link>
                       </Button>
                     )}
@@ -1287,7 +1237,7 @@ export default function DashboardPage() {
                     <CardHeader className="p-5 pb-2">
                       <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <MessageSquareText className="w-4 h-4 text-primary" />
-                        {lang === "ar" ? "انشر تحديثاً مهنياً" : "Publish a professional update"}
+                        {t("dash.copy.publish_a_professional_update")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 pt-2 space-y-3">
@@ -1295,16 +1245,16 @@ export default function DashboardPage() {
                         rows={4}
                         value={dashPostBody}
                         onChange={(e) => setDashPostBody(e.target.value)}
-                        placeholder={lang === "ar" ? "شارك رؤية أو إنجازاً أو تحديثاً مهنياً…" : "Share an insight, milestone, or professional update…"}
+                        placeholder={t("dash.copy.share_an_insight_milestone_or_professional_updat")}
                         className="resize-none"
                       />
                       <div className="flex items-center justify-between gap-3">
                         <Link to="/community" className="text-xs text-primary hover:underline">
-                          {lang === "ar" ? "عرض تغذية المجتمع" : "Open community feed"}
+                          {t("dash.copy.open_community_feed")}
                         </Link>
                         <Button onClick={publishDashPost} disabled={dashPublishing} className="gap-2">
                           {dashPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                          {lang === "ar" ? "نشر" : "Publish"}
+                          {t("dash.copy.publish")}
                         </Button>
                       </div>
                     </CardContent>
@@ -1313,7 +1263,7 @@ export default function DashboardPage() {
                   <Card className="border border-border">
                     <CardHeader className="p-5 pb-2">
                       <CardTitle className="text-sm font-semibold">
-                        {lang === "ar" ? "منشوراتك الأخيرة" : "Your recent posts"}
+                        {t("dash.copy.your_recent_posts")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 pt-2 space-y-3">
@@ -1323,7 +1273,7 @@ export default function DashboardPage() {
                         </div>
                       ) : myPosts.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-8">
-                          {lang === "ar" ? "لم تنشر أي منشورات بعد." : "You have not published any posts yet."}
+                          {t("dash.copy.you_have_not_published_any_posts_yet")}
                         </p>
                       ) : (
                         myPosts.map((post) => (
@@ -1335,6 +1285,7 @@ export default function DashboardPage() {
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                                 onClick={() => deleteMyPost(post.id)}
+                                aria-label={t("dash.copy.delete_post")}
                               >
                                 <X className="w-4 h-4" />
                               </Button>
@@ -1360,12 +1311,10 @@ export default function DashboardPage() {
                   <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex-1 space-y-1">
                       <p className="font-semibold text-foreground">
-                        {lang === "ar" ? "ملفك المهني العام" : "Your public professional profile"}
+                        {t("dash.copy.your_public_professional_profile")}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {lang === "ar"
-                          ? "أكمل بياناتك وانشر تحديثات منتظمة لزيادة ظهورك في الشبكة."
-                          : "Complete your details and publish regular updates to grow your visibility."}
+                        {t("dash.copy.complete_your_details_and_publish_regular_update")}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -1379,13 +1328,13 @@ export default function DashboardPage() {
                         if (data?.id) window.open(`/members/${data.id}`, "_blank");
                         else window.open("/members", "_blank");
                       }}>
-                        {lang === "ar" ? "عرض الملف العام" : "View public profile"}
+                        {t("dash.copy.view_public_profile")}
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => selectTab("posts")}>
-                        {lang === "ar" ? "نشر منشور" : "Write a post"}
+                        {t("dash.copy.write_a_post")}
                       </Button>
                       <Button asChild size="sm">
-                        <Link to="/community">{lang === "ar" ? "المجتمع" : "Community"}</Link>
+                        <Link to="/community">{t("dash.copy.community")}</Link>
                       </Button>
                     </div>
                   </CardContent>
@@ -1393,20 +1342,20 @@ export default function DashboardPage() {
                 <Card className="border border-border">
                   <CardHeader className="p-5 pb-3 flex flex-row items-center justify-between">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <User className="w-4 h-4 text-primary" /> {lang === "ar" ? "ملفي الشخصي" : "My Profile"}
+                      <User className="w-4 h-4 text-primary" /> {t("dash.copy.my_profile")}
                     </CardTitle>
                     {!editing ? (
                       <Button size="sm" variant="outline" onClick={startEdit} className="gap-1.5">
-                        <Edit3 className="w-3.5 h-3.5" /> {lang === "ar" ? "تعديل" : "Edit"}
+                        <Edit3 className="w-3.5 h-3.5" /> {t("dash.copy.edit")}
                       </Button>
                     ) : (
                       <div className="flex gap-2">
                         <Button size="sm" onClick={handleSave} disabled={saveLoading} className="gap-1.5">
                           {saveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                          {lang === "ar" ? "حفظ" : "Save"}
+                          {t("dash.copy.save")}
                         </Button>
                         <Button size="sm" variant="outline" onClick={cancelEdit} disabled={saveLoading} className="gap-1.5">
-                          <X className="w-3.5 h-3.5" /> {lang === "ar" ? "إلغاء" : "Cancel"}
+                          <X className="w-3.5 h-3.5" /> {t("dash.copy.cancel")}
                         </Button>
                       </div>
                     )}
@@ -1417,14 +1366,14 @@ export default function DashboardPage() {
                     )}
                     {saveSuccess && (
                       <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-sm text-emerald-600 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" /> {lang === "ar" ? "تم حفظ الملف الشخصي بنجاح!" : "Profile saved successfully!"}
+                        <CheckCircle className="w-4 h-4" /> {t("dash.copy.profile_saved_successfully")}
                       </div>
                     )}
                     {editing ? (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2 space-y-2">
                           <Label className="text-xs text-muted-foreground mb-1 block">
-                            {lang === "ar" ? "صورة الغلاف" : "Cover photo"}
+                            {t("dash.copy.cover_photo")}
                           </Label>
                           <FileUploader
                             accept="image"
@@ -1433,16 +1382,14 @@ export default function DashboardPage() {
                             currentUrl={editData.cover_url || ""}
                             maxSizeMB={8}
                             showUrlFallback={false}
-                            label={lang === "ar" ? "رفع صورة غلاف" : "Upload cover image"}
+                            label={t("dash.copy.upload_cover_image")}
                             onUpload={(url) => {
                               setEditData((p) => ({ ...p, cover_url: url }));
                               setExtProfile((p) => ({ ...p, cover_url: url }));
                             }}
                           />
                           <p className="text-[11px] text-muted-foreground">
-                            {lang === "ar"
-                              ? "يفضّل صورة أفقية بعرض واسع (مثل 1600×400)."
-                              : "Prefer a wide landscape image (e.g. 1600×400)."}
+                            {t("dash.copy.prefer_a_wide_landscape_image_e_g_1600_400")}
                           </p>
                         </div>
                         <div className="sm:col-span-2 flex justify-center py-2">
@@ -1456,27 +1403,27 @@ export default function DashboardPage() {
                               setExtProfile(p => ({ ...p, avatar_url: url }));
                             }}
                             size="xl"
-                            label={lang === "ar" ? "تغيير الصورة الشخصية" : "Change Profile Photo"}
+                            label={t("dash.copy.change_profile_photo")}
                           />
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الاسم الكامل *" : "Full Name *"}</Label>
-                          <Input value={editData.full_name || ""} onChange={(e) => setEditData((p) => ({ ...p, full_name: e.target.value }))} placeholder={lang === "ar" ? "أحمد الراشدي" : "Ahmed Al-Rashidi"} />
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.full_name_2")}</Label>
+                          <Input value={editData.full_name || ""} onChange={(e) => setEditData((p) => ({ ...p, full_name: e.target.value }))} placeholder={t("dash.copy.ahmed_al_rashidi")} />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المسمى الوظيفي" : "Job Title / Role"}</Label>
-                          <Input value={editData.role || ""} onChange={(e) => setEditData((p) => ({ ...p, role: e.target.value }))} placeholder={lang === "ar" ? "خبير نكهات" : "Flavor Scientist"} />
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.job_title_role")}</Label>
+                          <Input value={editData.role || ""} onChange={(e) => setEditData((p) => ({ ...p, role: e.target.value }))} placeholder={t("dash.copy.flavor_scientist")} />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الشركة / المؤسسة" : "Company / Organization"}</Label>
-                          <Input value={editData.company || ""} onChange={(e) => setEditData((p) => ({ ...p, company: e.target.value }))} placeholder={lang === "ar" ? "مختبرات النكهات العربية" : "Arabian Flavor Labs"} />
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.company_organization")}</Label>
+                          <Input value={editData.company || ""} onChange={(e) => setEditData((p) => ({ ...p, company: e.target.value }))} placeholder={t("dash.copy.arabian_flavor_labs")} />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الموقع" : "Location"}</Label>
-                          <Input value={editData.location || ""} onChange={(e) => setEditData((p) => ({ ...p, location: e.target.value }))} placeholder={lang === "ar" ? "الرياض، المملكة" : "Riyadh, Saudi Arabia"} />
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.location")}</Label>
+                          <Input value={editData.location || ""} onChange={(e) => setEditData((p) => ({ ...p, location: e.target.value }))} placeholder={t("dash.copy.riyadh_saudi_arabia")} />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "سنوات الخبرة" : "Years of experience"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.years_of_experience")}</Label>
                           <Input
                             type="number"
                             min={0}
@@ -1492,80 +1439,74 @@ export default function DashboardPage() {
                           />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الهاتف" : "Phone"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.phone")}</Label>
                           <Input value={editData.phone || ""} onChange={(e) => setEditData((p) => ({ ...p, phone: e.target.value }))} placeholder="+966 5X XXX XXXX" />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "رابط لينكد إن" : "LinkedIn URL"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.linkedin_url")}</Label>
                           <Input value={editData.linkedin_url || ""} onChange={(e) => setEditData((p) => ({ ...p, linkedin_url: e.target.value }))} placeholder="https://linkedin.com/in/yourname" />
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الموقع الإلكتروني" : "Website"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.website")}</Label>
                           <Input value={editData.website_url || ""} onChange={(e) => setEditData((p) => ({ ...p, website_url: e.target.value }))} placeholder="https://yourwebsite.com" />
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "نبذة شخصية" : "Bio / About"}</Label>
-                          <Textarea value={editData.bio || ""} onChange={(e) => setEditData((p) => ({ ...p, bio: e.target.value }))} placeholder={lang === "ar" ? "شارك خبراتك ومسيرتك المهنية..." : "Share your expertise and background..."} rows={3} className="resize-none" />
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.bio_about")}</Label>
+                          <Textarea value={editData.bio || ""} onChange={(e) => setEditData((p) => ({ ...p, bio: e.target.value }))} placeholder={t("dash.copy.share_your_expertise_and_background")} rows={3} className="resize-none" />
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "مجالات التخصص" : "Focus areas / specialties"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.focus_areas_specialties")}</Label>
                           <Input
                             value={editData.specialty || ""}
                             onChange={(e) => setEditData((p) => ({ ...p, specialty: e.target.value }))}
-                            placeholder={lang === "ar" ? "نكهات طبيعية, تقييم حسي, تركيب" : "Natural flavors, Sensory, Formulation"}
+                            placeholder={t("dash.copy.natural_flavors_sensory_formulation")}
                           />
                           <p className="text-[11px] text-muted-foreground mt-1">
-                            {lang === "ar" ? "افصل التخصصات بفاصلة." : "Separate specialties with commas."}
+                            {t("dash.copy.separate_specialties_with_commas")}
                           </p>
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المهارات" : "Skills"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.skills")}</Label>
                           <Input
                             value={editData.skills_text || ""}
                             onChange={(e) => setEditData((p) => ({ ...p, skills_text: e.target.value }))}
-                            placeholder={lang === "ar" ? "GC-MS, QDA, Encapsulation" : "GC-MS, QDA, Encapsulation"}
+                            placeholder={t("dash.copy.gc_ms_qda_encapsulation")}
                           />
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "الخبرات المهنية" : "Work experience"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.work_experience")}</Label>
                           <Textarea
                             value={editData.work_text || ""}
                             onChange={(e) => setEditData((p) => ({ ...p, work_text: e.target.value }))}
                             placeholder={
-                              lang === "ar"
-                                ? "المسمى | الشركة | الفترة | الوصف\nخبير نكهات | شركة النكهات | 2020-الآن | تطوير تركيبات"
-                                : "Title | Company | Period | Description\nFlavor Scientist | Acme Flavors | 2020-Present | Led formulation"
+                              t("dash.copy.title_company_period_description_nflavor_scienti")
                             }
                             rows={4}
                             className="resize-none font-mono text-xs"
                           />
                           <p className="text-[11px] text-muted-foreground mt-1">
-                            {lang === "ar" ? "سطر لكل خبرة، افصل الحقول بـ |" : "One line per role; separate fields with |"}
+                            {t("dash.copy.one_line_per_role_separate_fields_with")}
                           </p>
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "التعليم" : "Education"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.education")}</Label>
                           <Textarea
                             value={editData.education_text || ""}
                             onChange={(e) => setEditData((p) => ({ ...p, education_text: e.target.value }))}
                             placeholder={
-                              lang === "ar"
-                                ? "الجامعة | الدرجة | السنة\nجامعة الملك سعود | بكالوريوس علوم الأغذية | 2018"
-                                : "School | Degree | Year\nKing Saud University | BSc Food Science | 2018"
+                              t("dash.copy.school_degree_year_nking_saud_university_bsc_foo")
                             }
                             rows={3}
                             className="resize-none font-mono text-xs"
                           />
                         </div>
                         <div className="sm:col-span-2">
-                          <Label className="text-xs text-muted-foreground mb-1 block">{lang === "ar" ? "المشاريع" : "Projects"}</Label>
+                          <Label className="text-xs text-muted-foreground mb-1 block">{t("dash.copy.projects")}</Label>
                           <Textarea
                             value={editData.projects_text || ""}
                             onChange={(e) => setEditData((p) => ({ ...p, projects_text: e.target.value }))}
                             placeholder={
-                              lang === "ar"
-                                ? "الاسم | الوصف | الرابط\nمنصة النكهات | شبكة مهنية | https://example.com"
-                                : "Name | Description | URL\nFlavor Platform | Professional network | https://example.com"
+                              t("dash.copy.name_description_url_nflavor_platform_profession")
                             }
                             rows={3}
                             className="resize-none font-mono text-xs"
@@ -1605,13 +1546,13 @@ export default function DashboardPage() {
                         <Separator />
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {[
-                            { icon: Mail, label: lang === "ar" ? "البريد" : "Email", value: user.email },
-                            { icon: Building2, label: lang === "ar" ? "الشركة" : "Company", value: extProfile.company },
-                            { icon: MapPin, label: lang === "ar" ? "الموقع" : "Location", value: extProfile.location },
-                            { icon: Briefcase, label: lang === "ar" ? "سنوات الخبرة" : "Experience", value: extProfile.years_experience ? `${extProfile.years_experience}+` : undefined },
-                            { icon: Phone, label: lang === "ar" ? "الهاتف" : "Phone", value: extProfile.phone },
+                            { icon: Mail, label: t("dash.copy.email"), value: user.email },
+                            { icon: Building2, label: t("dash.copy.company_2"), value: extProfile.company },
+                            { icon: MapPin, label: t("dash.copy.location"), value: extProfile.location },
+                            { icon: Briefcase, label: t("dash.copy.experience"), value: extProfile.years_experience ? `${extProfile.years_experience}+` : undefined },
+                            { icon: Phone, label: t("dash.copy.phone"), value: extProfile.phone },
                             { icon: Linkedin, label: "LinkedIn", value: extProfile.linkedin_url, isLink: true },
-                            { icon: Globe, label: lang === "ar" ? "الموقع الإلكتروني" : "Website", value: extProfile.website_url, isLink: true },
+                            { icon: Globe, label: t("dash.copy.website"), value: extProfile.website_url, isLink: true },
                           ].map(({ icon: Icon, label, value, isLink }) => value ? (
                             <div key={label} className="flex items-center gap-2 text-sm">
                               <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -1635,9 +1576,9 @@ export default function DashboardPage() {
                   <Card className="border border-border">
                     <CardHeader className="p-5 pb-2">
                       <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                        {lang === "ar" ? "أحدث منشوراتك" : "Latest posts"}
+                        {t("dash.copy.latest_posts")}
                         <button onClick={() => selectTab("posts")} className="text-xs text-primary hover:underline font-normal">
-                          {lang === "ar" ? "إدارة الكل" : "Manage all"}
+                          {t("dash.copy.manage_all")}
                         </button>
                       </CardTitle>
                     </CardHeader>
@@ -1660,31 +1601,31 @@ export default function DashboardPage() {
                   <Card className="border border-border">
                     <CardHeader className="p-5 pb-3">
                       <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-primary" /> {lang === "ar" ? "إعدادات الأمان" : "Security Settings"}
+                        <Lock className="w-4 h-4 text-primary" /> {t("dash.copy.security_settings")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 pt-2 space-y-4">
                       {[
                         {
                           icon: CheckCircle,
-                          label: lang === "ar" ? "التحقق من البريد" : "Email Verification",
-                          desc: user.email_confirmed_at ? (lang === "ar" ? "بريدك الإلكتروني موثق" : "Your email is verified") : (lang === "ar" ? "البريد غير موثق بعد" : "Email not verified yet"),
+                          label: t("dash.copy.email_verification"),
+                          desc: user.email_confirmed_at ? (t("dash.copy.your_email_is_verified")) : (t("dash.copy.email_not_verified_yet")),
                           color: user.email_confirmed_at ? "text-emerald-600 bg-emerald-100" : "text-amber-600 bg-amber-100",
-                          badge: user.email_confirmed_at ? (lang === "ar" ? "موثق" : "Verified") : (lang === "ar" ? "معلق" : "Pending"),
+                          badge: user.email_confirmed_at ? (t("dash.copy.verified")) : (t("dash.copy.pending")),
                         },
                         {
                           icon: Lock,
-                          label: lang === "ar" ? "كلمة المرور" : "Password",
-                          desc: lang === "ar" ? "حافظ على أمان حسابك بكلمة مرور قوية" : "Keep your account secure with a strong password",
+                          label: t("dash.copy.password"),
+                          desc: t("dash.copy.keep_your_account_secure_with_a_strong_password"),
                           color: "text-blue-600 bg-blue-100",
-                          badge: lang === "ar" ? "محمي" : "Protected",
+                          badge: t("dash.copy.protected"),
                         },
                         {
                           icon: Bell,
-                          label: lang === "ar" ? "إشعارات البريد" : "Email Notifications",
-                          desc: lang === "ar" ? "استقبل أخبار الصناعة وتحديثات المنصة" : "Receive industry news and platform updates",
+                          label: t("dash.copy.email_notifications"),
+                          desc: t("dash.copy.receive_industry_news_and_platform_updates"),
                           color: "text-purple-600 bg-purple-100",
-                          badge: lang === "ar" ? "نشط" : "Active",
+                          badge: t("dash.copy.active"),
                         },
                       ].map(({ icon: Icon, label, desc, color, badge }) => (
                         <div key={label} className="flex items-center justify-between p-3 rounded-xl border border-border">
@@ -1706,24 +1647,24 @@ export default function DashboardPage() {
                   <Card className="border border-border">
                     <CardHeader className="p-5 pb-3">
                       <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-primary" /> {lang === "ar" ? "تفاصيل الحساب" : "Account Details"}
+                        <FileText className="w-4 h-4 text-primary" /> {t("dash.copy.account_details")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-5 pt-2 space-y-3 text-sm">
                       <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">{lang === "ar" ? "معرف المستخدم" : "User ID"}</span>
+                        <span className="text-muted-foreground">{t("dash.copy.user_id")}</span>
                         <span className="font-mono text-xs text-foreground bg-muted px-2 py-0.5 rounded">{user.id?.substring(0, 16)}...</span>
                       </div>
                       <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">{lang === "ar" ? "نوع الحساب" : "Account Type"}</span>
-                        <Badge className="text-xs">{isCompany ? (lang === "ar" ? "شركة" : "Company") : (lang === "ar" ? "فردي" : "Individual")}</Badge>
+                        <span className="text-muted-foreground">{t("dash.copy.account_type")}</span>
+                        <Badge className="text-xs">{isCompany ? (t("dash.copy.company")) : (t("dash.copy.individual"))}</Badge>
                       </div>
                       <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">{lang === "ar" ? "مستوى الاشتراك" : "Subscription Tier"}</span>
-                        <Badge className={`text-xs ${tierCfg.color}`}>{lang === "ar" ? tierCfg.labelAr : tierCfg.label}</Badge>
+                        <span className="text-muted-foreground">{t("dash.copy.subscription_tier")}</span>
+                        <Badge className={`text-xs ${tierCfg.color}`}>{t(`dash.copy.tier_${currentTier}`)}</Badge>
                       </div>
                       <div className="flex justify-between py-2">
-                        <span className="text-muted-foreground">{lang === "ar" ? "عضو منذ" : "Member Since"}</span>
+                        <span className="text-muted-foreground">{t("dash.copy.member_since")}</span>
                         <span className="font-medium text-foreground text-xs">{memberSince}</span>
                       </div>
                     </CardContent>
@@ -1732,11 +1673,11 @@ export default function DashboardPage() {
                   <Card className="border border-red-200 dark:border-red-900">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-red-600 text-sm">{lang === "ar" ? "تسجيل الخروج" : "Sign Out"}</p>
-                        <p className="text-xs text-muted-foreground">{lang === "ar" ? "سيتم تسجيل خروجك من حسابك" : "You will be logged out of your account"}</p>
+                        <p className="font-semibold text-red-600 text-sm">{t("dash.copy.sign_out")}</p>
+                        <p className="text-xs text-muted-foreground">{t("dash.copy.you_will_be_logged_out_of_your_account")}</p>
                       </div>
                       <Button variant="outline" size="sm" className="gap-2 text-red-500 border-red-200 hover:bg-red-50" onClick={handleSignOut}>
-                        <LogOut className="w-3.5 h-3.5" /> {lang === "ar" ? "خروج" : "Sign Out"}
+                        <LogOut className="w-3.5 h-3.5" /> {t("dash.copy.sign_out_2")}
                       </Button>
                     </CardContent>
                   </Card>

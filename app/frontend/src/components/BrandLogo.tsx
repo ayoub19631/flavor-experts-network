@@ -11,6 +11,7 @@ type BrandLogoProps = {
   /** Visual size presets for common placements */
   size?: "sm" | "md" | "lg" | "hero";
   alt?: string;
+  priority?: boolean;
 };
 
 const sizeClass: Record<NonNullable<BrandLogoProps["size"]>, string> = {
@@ -30,12 +31,14 @@ export default function BrandLogo({
   className,
   size = "md",
   alt = SITE.tagline,
+  priority = false,
 }: BrandLogoProps) {
   return (
     <img
       src={srcForSize(size)}
       alt={alt}
-      decoding="async"
+      decoding={priority ? "sync" : "async"}
+      fetchPriority={priority ? "high" : "auto"}
       className={cn("object-contain", sizeClass[size], className)}
     />
   );

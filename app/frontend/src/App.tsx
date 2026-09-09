@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import PublicationsStaffRoute from "./components/PublicationsStaffRoute";
 import { ElectronTitleBar } from "./components/ElectronTitleBar";
-import BlogRoutes from "./blog-routes";
+const BlogRoutes = lazy(() => import("./blog-routes"));
 import EmailVerificationGuard from "./components/EmailVerificationGuard";
 import TermsAcceptanceGuard from "./components/TermsAcceptanceGuard";
 import ErrorBoundary from "./components/ErrorBoundary";
