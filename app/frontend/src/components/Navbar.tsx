@@ -162,7 +162,7 @@ export default function Navbar() {
             </Button>
 
             <Link to="/search" className="md:hidden inline-flex" aria-label={t("nav.search")}>
-              <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Button variant="ghost" size="icon" className="h-9 w-9" aria-label={t("nav.search")}>
                 <Search className="w-4 h-4" />
               </Button>
             </Link>
