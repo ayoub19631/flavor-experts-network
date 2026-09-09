@@ -1,0 +1,1 @@
+import{W as n}from"./LanguageSwitcher-f6q-m3MG.js";import"./ui-vendor-BG-BoKyt.js";import"./utils-vendor-C8BIEQPF.js";class t extends n{async show(e){}async hide(e){}}export{t as SplashScreenWeb};

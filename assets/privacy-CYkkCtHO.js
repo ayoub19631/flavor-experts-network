@@ -1,0 +1,1 @@
+function r(e){return e===!0}export{r as s};

@@ -1,0 +1,24 @@
+{
+  "name": "Flavor Experts Network",
+  "short_name": "Flavor Experts",
+  "description": "A global professional network connecting flavorists, food scientists, R&D professionals, companies, suppliers, and the flavor industry.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#002D54",
+  "theme_color": "#002D54",
+  "icons": [
+    {
+      "src": "/icons/icon-192.webp",
+      "type": "image/webp",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/logo-512.webp",
+      "type": "image/webp",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ]
+}
