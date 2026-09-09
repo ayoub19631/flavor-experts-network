@@ -16,11 +16,24 @@ export default function MarketplaceSupplierDetailPage() {
   const { t, lang } = useI18n();
   const [row, setRow] = useState<PublicSupplier | null>(null);
   const [materials, setMaterials] = useState<PublicMaterial[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) return;
-    getPublicSupplier(slug).then(setRow).catch(() => setRow(null));
-    listPublicMaterials("", undefined, slug).then(setMaterials).catch(() => setMaterials([]));
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([
+      getPublicSupplier(slug).catch(() => null),
+      listPublicMaterials("", undefined, slug).catch(() => []),
+    ]).then(([supplier, list]) => {
+      if (cancelled) return;
+      setRow(supplier);
+      setMaterials(list);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   usePageMeta({
@@ -35,8 +48,10 @@ export default function MarketplaceSupplierDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-16 mx-auto max-w-4xl px-4 space-y-6">
-        {!row ? (
-          <p className="text-muted-foreground">{t("mp.empty")}</p>
+        {loading ? (
+          <p className="text-muted-foreground" role="status">{t("mp.loading")}</p>
+        ) : !row ? (
+          <p className="text-muted-foreground">{t("mp.not_found")}</p>
         ) : (
           <>
             <SeoJsonLd data={{
@@ -61,7 +76,7 @@ export default function MarketplaceSupplierDetailPage() {
             <p>{[row.supplier_type, row.city, row.country].filter(Boolean).join(" · ")}</p>
             {row.about && <p className="text-muted-foreground">{row.about}</p>}
             {!!row.markets?.length && <p className="text-sm">{t("mp.markets")}: {row.markets.join(", ")}</p>}
-            <p className="text-xs text-muted-foreground">{t("mp.last_updated")}: {row.updated_at ? new Date(row.updated_at).toLocaleDateString() : "—"}</p>
+            <p className="text-xs text-muted-foreground">{t("mp.last_updated")}: {row.updated_at ? new Date(row.updated_at).toLocaleDateString(lang === "ar" ? "ar" : "en") : "—"}</p>
             <div className="space-y-2">
               <h2 className="font-semibold">{t("mp.materials")}</h2>
               {materials.map((m) => (

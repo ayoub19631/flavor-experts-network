@@ -814,6 +814,14 @@ export default function AdminPage() {
               <Link to="/admin/marketplace" className="text-sm text-primary hover:underline">
                 {isAR ? "مراجعة سوق الموردين" : "Marketplace review"}
               </Link>
+              <span className="mx-2 text-muted-foreground">·</span>
+              <Link to="/admin/verification" className="text-sm text-primary hover:underline">
+                {isAR ? "مراجعة التوثيق" : "Verification review"}
+              </Link>
+              <span className="mx-2 text-muted-foreground">·</span>
+              <Link to="/admin/publications" className="text-sm text-primary hover:underline">
+                {isAR ? "مراجعة المنشورات" : "Publications review"}
+              </Link>
             </div>
 
             {/* ══ OVERVIEW ══════════════════════════════════════════════════ */}

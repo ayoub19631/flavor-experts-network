@@ -23,6 +23,15 @@ export function safeHttpUrl(value: string | null | undefined): string | null {
   return url.toString();
 }
 
+/** Same-origin path used after login. Rejects protocol-relative and absolute URLs. */
+export function safeInternalPath(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const raw = value.trim();
+  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) return null;
+  if (raw.includes("\\") || raw.includes("<") || raw.includes(">")) return null;
+  return raw;
+}
+
 /** True when the value resolves to a safe https URL. */
 export function isSafeHttpUrl(value: string | null | undefined): boolean {
   return safeHttpUrl(value) !== null;

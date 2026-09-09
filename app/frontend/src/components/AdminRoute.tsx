@@ -19,7 +19,7 @@ interface AdminRouteProps {
  */
 export default function AdminRoute({ children, capability }: AdminRouteProps) {
   const { isAdmin, platformRoles, profile, loading, user } = useAuth();
-  const { lang } = useI18n();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const allowed = capability
     ? isAdmin || hasCapability(platformRoles, capability, profile?.is_admin === true)
@@ -47,15 +47,13 @@ export default function AdminRoute({ children, capability }: AdminRouteProps) {
               <ShieldAlert className="w-8 h-8 text-destructive" />
             </div>
             <h1 className="text-xl font-semibold text-foreground">
-              {lang === "ar" ? "غير مصرح" : "Access denied"}
+              {t("denied.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {lang === "ar"
-                ? "هذه الصفحة مخصصة لمسؤولي المنصة فقط."
-                : "This area is restricted to platform administrators."}
+              {t("denied.desc")}
             </p>
             <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              {lang === "ar" ? "العودة للوحة التحكم" : "Back to dashboard"}
+              {t("denied.back")}
             </Button>
           </div>
         </div>

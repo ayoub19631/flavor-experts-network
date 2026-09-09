@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -19,12 +19,14 @@ export default function ProtectedRoute({
   const { user, loading } = useAuth();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth?mode=login");
+      const next = encodeURIComponent(`${location.pathname}${location.search}`);
+      navigate(`/auth?mode=login&next=${next}`);
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, location.pathname, location.search]);
 
   if (loading) {
     return (
@@ -69,7 +71,7 @@ export default function ProtectedRoute({
             </p>
           )}
 
-          <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 mb-6 text-left">
+          <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 rounded-xl p-3 mb-6 text-start">
             <ShieldCheck className="w-5 h-5 text-amber-500 flex-shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-400">
               {t("protected.verify.notice")}

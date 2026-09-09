@@ -17,7 +17,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { getAuthRedirectUrl, mapAuthErrorMessage, rememberPendingCompany, rememberPendingVerificationEmail } from "@/lib/auth-utils";
-import { safeHttpUrl } from "@/lib/url";
+import { safeHttpUrl, safeInternalPath } from "@/lib/url";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TERMS_VERSION } from "@/lib/terms-policy";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -156,7 +156,7 @@ export default function AuthPage() {
         setError(friendlyAuthError(result.error));
       } else {
         toast.success(t("auth.welcome_back"));
-        navigate("/community");
+        navigate(safeInternalPath(searchParams.get("next")) || "/community");
       }
       setLoading(false);
       return;

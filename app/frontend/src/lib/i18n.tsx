@@ -7,6 +7,7 @@ import { publicationsTranslations } from "@/lib/publications-i18n";
 import { phase5Translations } from "@/lib/phase5-i18n";
 import { searchTranslations } from "@/lib/search-i18n";
 import { marketplaceTranslations } from "@/lib/marketplace/i18n";
+import { dashboardTranslations } from "@/lib/dashboard-i18n";
 
 export type { Language };
 
@@ -751,6 +752,7 @@ const translations: Record<"en" | "ar", Record<string, string>> = {
     ...phase5Translations.en,
     ...searchTranslations.en,
     ...marketplaceTranslations.en,
+    ...dashboardTranslations.en,
   },
   ar: {
     ...academyTranslations.ar,
@@ -1485,6 +1487,7 @@ const translations: Record<"en" | "ar", Record<string, string>> = {
     ...phase5Translations.ar,
     ...searchTranslations.ar,
     ...marketplaceTranslations.ar,
+    ...dashboardTranslations.ar,
   },
 };
 

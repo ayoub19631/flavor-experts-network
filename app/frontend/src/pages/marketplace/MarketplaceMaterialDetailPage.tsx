@@ -21,10 +21,25 @@ export default function MarketplaceMaterialDetailPage() {
   const { slug } = useParams();
   const { t, lang } = useI18n();
   const [row, setRow] = useState<MaterialDetail | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!slug) return;
-    getPublicMaterial(slug).then((data) => setRow(data as MaterialDetail | null)).catch(() => setRow(null));
+    let cancelled = false;
+    setLoading(true);
+    getPublicMaterial(slug)
+      .then((data) => {
+        if (!cancelled) setRow(data as MaterialDetail | null);
+      })
+      .catch(() => {
+        if (!cancelled) setRow(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   usePageMeta({
@@ -41,7 +56,11 @@ export default function MarketplaceMaterialDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-16 mx-auto max-w-4xl px-4 space-y-6">
-        {!row ? <p className="text-muted-foreground">{t("mp.empty")}</p> : (
+        {loading ? (
+          <p className="text-muted-foreground" role="status">{t("mp.loading")}</p>
+        ) : !row ? (
+          <p className="text-muted-foreground">{t("mp.not_found")}</p>
+        ) : (
           <>
             <SeoJsonLd data={{
               "@context": "https://schema.org",
@@ -61,7 +80,7 @@ export default function MarketplaceMaterialDetailPage() {
               {["generic_name", "category", "e_number", "fema", "cas", "physical_form", "country_of_origin", "country_of_manufacture", "packaging", "moq", "solubility", "shelf_life"].map((key) => (
                 row[key] ? (
                   <div key={key} className="rounded-lg border p-3">
-                    <dt className="text-muted-foreground">{key.replace(/_/g, " ")}</dt>
+                    <dt className="text-muted-foreground">{t(`mp.field.${key}`)}</dt>
                     <dd>{String(row[key])}</dd>
                   </div>
                 ) : null
