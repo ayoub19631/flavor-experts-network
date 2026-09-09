@@ -581,7 +581,7 @@ export default function JobsPage() {
                             <div className="space-y-2 min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
                                 <h3 className="text-lg font-semibold text-foreground">
-                                  <Link to={`/jobs/${job.id}`} className="hover:text-primary" onClick={(event) => event.stopPropagation()}>
+                                  <Link to={`/jobs/${job.slug || job.id}`} className="hover:text-primary" onClick={(event) => event.stopPropagation()}>
                                     {job.title}
                                   </Link>
                                 </h3>
