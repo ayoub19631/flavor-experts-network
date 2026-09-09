@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isPublicMarketplaceHref, shouldIndexMarketplacePath, showVerifiedBadge, stripPrivateMarketplaceFields } from "./privacy";
-import { compareDisclaimer, quoteCanWithdraw, rfqAcceptsQuotes, rfqIsTerminal } from "./status";
+import { compareDisclaimer, quoteCanRevise, quoteCanWithdraw, rfqAcceptsQuotes, rfqIsTerminal } from "./status";
 
 describe("marketplace privacy", () => {
   it("strips prices and storage paths from public payloads", () => {
@@ -33,6 +33,8 @@ describe("marketplace status", () => {
     expect(rfqIsTerminal("closed")).toBe(true);
     expect(rfqAcceptsQuotes("receiving_quotes")).toBe(true);
     expect(quoteCanWithdraw("submitted", "receiving_quotes")).toBe(true);
+    expect(quoteCanRevise("submitted", "receiving_quotes")).toBe(true);
+    expect(quoteCanRevise("accepted", "accepted")).toBe(false);
     expect(quoteCanWithdraw("accepted", "accepted")).toBe(false);
     expect(compareDisclaimer()).not.toMatch(/best offer is the lowest/i);
   });

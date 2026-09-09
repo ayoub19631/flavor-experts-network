@@ -15,6 +15,10 @@ export function quoteCanWithdraw(status: string, rfqStatus: string): boolean {
   return status !== "accepted" && !rfqIsTerminal(rfqStatus);
 }
 
+export function quoteCanRevise(status: string, rfqStatus: string): boolean {
+  return (status === "submitted" || status === "revised") && rfqAcceptsQuotes(rfqStatus);
+}
+
 export function quoteIsVisibleToBuyer(status: string): boolean {
   return status !== "draft";
 }
